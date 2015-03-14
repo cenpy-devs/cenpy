@@ -11,6 +11,8 @@ Recently I started fooling around with it a little more and decided to put it on
 For a brief moment I considered trying to port [Ezra Glenn's acs.R package](http://dusp.mit.edu/uis/publication/acsr-r-package-neighborhood-level-data-us-census), 
 but I quickly realized that that is an enormous accomplishment and honestly, I don't do enough data analysis on a routine basis to be motivated.
 
+For now, it uses the [Census Reporter API](https://github.com/censusreporter/census-api/blob/master/API.md) for data, but it might make sense to use the [official Census API](http://www.census.gov/data/developers/data-sets/acs-survey-5-year-data.html), since right now CR only has one year worth of data.
+
 ## Usage
 For now, there's really one method, <code>get_dataframe</code>. Here's how it works:
 ```
