@@ -9,5 +9,7 @@ and went on with things.
 
 Recently I started fooling around with it a little more and decided to put it on Github in case anyone else was interested. 
 For a brief moment I considered trying to port [Ezra Glenn's acs.R package](http://dusp.mit.edu/uis/publication/acsr-r-package-neighborhood-level-data-us-census), 
-but I quickly realized that that is an enormous 
-accomplishment.
+but I quickly realized that that is an enormous accomplishment and honestly, I don't do enough data analysis on a routine basis to be motivated.
+
+## Contributing
+I'm open to input and pull requests. Who knows where this will go.
