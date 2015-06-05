@@ -56,8 +56,12 @@ class Connection():
 
         if apikey is not None:
             self.last_query += '&key=' + apikey
+        res = r.get(self.last_query)
         try:
-            res = r.get(self.last_query).json()
-        except:
-            raise Warning('Invalid Query or Host Unreachable')
-        return pd.DataFrame().from_records(res[1:], columns=res[0])
+            res = res.json()
+            return pd.DataFrame().from_records(res[1:], columns=res[0])
+        except ValueError:
+            if res.status_code == 400:
+                raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
+            else:
+                res.raise_for_status()
