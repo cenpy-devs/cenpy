@@ -42,9 +42,9 @@ def explain(identifier=None, verbose=False):
     title and description (if verbose: and full API information)
     """
     if identifier is None:
-        raise ValueError('No identifier provided. Use census_pandas.available() to discover identifiers')
+        raise ValueError('No identifier provided. Use available() to discover identifiers')
     elif not verbose:
-        return APIs[identifier]['title'], APIs[identifier]['description']
+        return {APIs[identifier]['title']: APIs[identifier]['description']}
     else:
         APIs[identifier]
 
