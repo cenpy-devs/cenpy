@@ -1,55 +1,63 @@
 import pandas as pd
-import requests
+import requests as r
+import json
+import explorer as exp
 
-API_URL="http://api.censusreporter.org/1.0/data/show/{release}?table_ids={table_ids}&geo_ids={geoids}"
-def get_data(tables=None, geoids=None, release='latest'):
-    if geoids is None:
-        geoids = ['040|01000US']
-    elif isinstance(geoids,basestring):
-        geoids = [geoids]
-    if tables is None:
-        tables = ['B01001']
-    elif isinstance(tables,basestring):
-        tables=[tables]
 
-    url = API_URL.format(table_ids=','.join(tables).upper(), 
-                         geoids=','.join(geoids), 
-                         release=release)
-    response = requests.get(url)
-    return response.json()
+class Connection():
+    def __init__(self, api_name = None):
+        if 'eits' not in api_name and api_name != None:
+            curr = exp.APIs[api_name]
+            self.title = curr['title']
+            self.identifier = curr['identifier']
+            self.description = curr['description']
+            self.contact = curr['mbox']
+            self.cxn = unicode(curr['webService'] + u'?')
+            self.last_query = ''
 
-def get_dataframe(tables=None, geoids=None, release='latest',geo_names=False,col_names=False,include_moe=False):
-    response = get_data(tables=tables,geoids=geoids,release=release)
-    frame = pd.DataFrame.from_dict(prep_for_pandas(response['data'],include_moe),orient='index')
-    frame = frame[sorted(frame.columns.values)] # data not returned in order
-    if geo_names:
-        geo = pd.DataFrame.from_dict(response['geography'],orient='index')
-        frame.insert(0,'name',geo['name'])
-    if col_names:
-        d = {}
-        for table_id in response['tables']:
-            columns = response['tables'][table_id]['columns']
-            for column_id in columns:
-                d[column_id] = columns[column_id]['name']
-        frame = frame.rename(columns=d)
-    return frame
+            self.__urls__ = {k.strip('c_')[:-4]:v for k,v in curr.iteritems() if k.endswith('Link')}
 
-def prep_for_pandas(json_data,include_moe=False):
-    """Given a dict of dicts as they come from a Census Reporter API call, set it up to be amenable to pandas.DataFrame.from_dict"""
-    result = {}
-    for geoid, tables in json_data.items():
-        flat = {}
-        for table,values in tables.items():
-            for kind, columns in values.items():
-                if kind == 'estimate':
-                    flat.update(columns)
-                elif kind == 'error' and include_moe:
-                    renamed = dict((k+"_moe",v) for k,v in columns.items())
-                    flat.update(renamed)
-        result[geoid] = flat
-    return result
+            if 'documentation' in self.__urls__.keys():
+                self.doclink = self.__urls__['documentation']
+            if 'variables' in self.__urls__.keys():
+                v = pd.DataFrame()
+                self.variables = v.from_dict(r.get(self.__urls__['variables']).json().values()[0]).T
+            if 'geography' in self.__urls__.keys():
+                res = r.get(self.__urls__['geography']).json()
+                if len(res) > 1:
+                    self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
+                                                        in res.iteritems()}
+                else:
+                    self.geographies = pd.DataFrame().from_dict(res.values()[0])
+            if 'tags' in self.__urls__.keys():
+                self.tags = r.get(self.__urls__['tags']).json().values()[0]
 
-if __name__ == '__main__':
-    df = get_dataframe()
-    print "Top 10 most populous states"
-    print df.sort('B01001001',ascending=False)['B01001001'].head(10)
+            if 'examples' in self.__urls__.keys():
+                self.example_entries = r.get(self.__urls__['examples']).json()
+
+        else:
+            raise ValueError('Pick dataset identifier using the census_pandas.explorer.available() function')
+
+    def __repr__(self):
+        return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
+
+    def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = None, **kwargs):
+        self.last_query = self.cxn
+        self.last_query += 'get=' + ','.join(col for col in cols)
+        for key,val in kwargs.iteritems():
+            self.last_query += '&' + key + '=' + val
+        self.last_query += '&for=' + geo_unit
+
+        if geo_filter != {}:
+            self.last_query += '&in='
+            for key,value in geo_filter.iteritems():
+                self.last_query += key + ':' + value + '+'
+            self.last_query = self.last_query[:-1]
+
+        if apikey is not None:
+            self.last_query += '&key=' + apikey
+        try:
+            res = r.get(self.last_query).json()
+        except:
+            raise Warning('Invalid Query or Host Unreachable')
+        return pd.DataFrame().from_records(res[1:], columns=res[0])
