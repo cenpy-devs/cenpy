@@ -24,11 +24,8 @@ class Connection():
                 self.variables = v.from_dict(r.get(self.__urls__['variables']).json().values()[0]).T
             if 'geography' in self.__urls__.keys():
                 res = r.get(self.__urls__['geography']).json()
-                if len(res) > 1:
-                    self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
+                self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
                                                         in res.iteritems()}
-                else:
-                    self.geographies = pd.DataFrame().from_dict(res.values()[0])
             if 'tags' in self.__urls__.keys():
                 self.tags = r.get(self.__urls__['tags']).json().values()[0]
 
@@ -44,8 +41,7 @@ class Connection():
     def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = None, **kwargs):
         self.last_query = self.cxn
         self.last_query += 'get=' + ','.join(col for col in cols)
-        for key,val in kwargs.iteritems():
-            self.last_query += '&' + key + '=' + val
+        
         self.last_query += '&for=' + geo_unit
 
         if geo_filter != {}:
@@ -53,10 +49,15 @@ class Connection():
             for key,value in geo_filter.iteritems():
                 self.last_query += key + ':' + value + '+'
             self.last_query = self.last_query[:-1]
-
+        
+        for key,val in kwargs.iteritems():
+            self.last_query += '&' + key + '=' + val
+        
         if apikey is not None:
             self.last_query += '&key=' + apikey
         res = r.get(self.last_query)
+        if res.status_code == 204:
+            raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
         try:
             res = res.json()
             return pd.DataFrame().from_records(res[1:], columns=res[0])
