@@ -7,10 +7,18 @@ and draws inspiration from sqlalchemy-like interfaces and `acs.R`.
 
 A [demo notebook is available](http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/demo.ipynb).
 
+Installation
+------
+
+This package depends on [Pandas](https://pandas.pydata.org) and [requests](https://docs.python-requests.org/en/latest). You can install `cenpy` and other dependencies using `pip`: 
+
+```pip install cenpy```
+
+If you do not have `pip`, simply copy the module somewhere in your python path. 
+
 Usage
 ------
 
-Pop `cenpy` into your `PYTHONPATH`. Then, import the module or the submodules.
 Once done, importing `cenpy` will provide the `explorer` and `base` modules. To
 create a connection:
 
