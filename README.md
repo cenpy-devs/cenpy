@@ -5,7 +5,7 @@ An interface to explore and query the US Census API and return Pandas
 Dataframes. Ideally, this package is intended for exploratory data analysis
 and draws inspiration from sqlalchemy-like interfaces and `acs.R`. 
 
-A [demo notebook is available](http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/demo.ipynb)
+A [demo notebook is available](http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/demo.ipynb).
 
 Usage
 ------
