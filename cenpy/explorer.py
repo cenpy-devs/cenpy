@@ -54,6 +54,23 @@ def explain(identifier=None, verbose=False):
 
 
 def fips_table(kind, in_state = ''):
+    """
+    Pulls a table of FIPS codes for reference
+
+    Arguments
+    ==========
+    kind : string identifying the kind of census geography needed, down
+            to sub-county or VTD fips
+    in_state : filter to only grab fips codes from within a state. Use to 
+            avoid large data downloads if you're looking for specific data
+
+    Returns
+    ========
+
+    Pandas dataframe of fips codes and names of the geographies in question
+
+
+    """
     qurl = u'http://www2.census.gov/geo/docs/reference/codes/files/'
     tdict = {'AIA':'aia.txt',
             'COUNTY':'county.txt',
