@@ -1,4 +1,8 @@
 import requests as r
+import pandas as pd
+import os
+
+fp  = os.path.dirname(os.path.realpath(__file__))
 
 raw_APIs = r.get('http://api.census.gov/data.json').json()
 
@@ -46,5 +50,51 @@ def explain(identifier=None, verbose=False):
     elif not verbose:
         return {APIs[identifier]['title']: APIs[identifier]['description']}
     else:
-        APIs[identifier]
+        return APIs[identifier]
 
+
+def fips_table(kind, in_state = ''):
+    qurl = u'http://www2.census.gov/geo/docs/reference/codes/files/'
+    tdict = {'AIA':'aia.txt',
+            'COUNTY':'county.txt',
+            'SUBCOUNTY':'cousub.txt',
+            'PLACE':'places.txt',
+            'SCHOOLDISTRICT':'schdist.txt',
+            'VTD':'vtd.txt'}
+    
+    kind = kind.upper()
+    if len(kind.split(' ')) > 1:
+        kind = ''.join(kind.split(' '))
+
+    in_state = in_state.upper()
+
+    stfips = pd.read_csv(fp + '/stfipstable.csv')
+    
+    if kind == 'STATE':
+        return stfips
+    elif kind in tdict.keys():
+        if in_state == '':
+            qurl += 'national_' + tdict[kind]
+        else:
+            if in_state in stfips['State Abbreviation'].tolist():
+                fips = stfips[stfips['State Abbreviation'] == in_state]['FIPS Code'].values[0]
+            elif in_state in stfips['State Name'].tolist():
+                fips = stfips[stfips['State Name'] == in_state]['FIPS Code'].values[0]
+                in_state = stfips[stfips['State Name'] == in_state]['State Abbreviation'].values[0]
+            elif in_state in stfips['FIPS Code'].tolist():
+                fips = in_state
+                in_state = stfips[stfips['FIPS Code' == fips]]['State Abbreviation'].values[0]
+            else:
+                raise KeyError('Did not find State Abbreviation or Name')
+            if kind == 'COUNTY':
+                qurl += 'st' + unicode(fips).rjust(2, '0') + '_' + unicode(in_state).lower() + '_' + 'cou.txt'
+            else:
+                qurl += 'st' + unicode(fips).rjust(2, '0') + '_' + unicode(in_state).lower() + '_' + tdict[kind]
+    else:
+        raise KeyError('Requested Kind not in ', tdict.keys())
+
+    print 'reading', qurl
+    if kind in ['PLACE', 'VTD']:
+       return pd.read_table(qurl, sep='|')
+    else:
+       return pd.read_csv(qurl)
