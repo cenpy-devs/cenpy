@@ -53,5 +53,3 @@ ToDo:
 ------
 
 - [ ] Provide Joins to geodata the TIGER files REST api
-- [ ] Provide more conveneince functions, like lookups for place and state
-abbreviations to state fips/gnis codes.
