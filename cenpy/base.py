@@ -1,11 +1,23 @@
 import pandas as pd
 import requests as r
-import json
+import numpy as np
 import explorer as exp
-
+import math
 
 class Connection():
     def __init__(self, api_name = None):
+        """
+        Constructor for a Connection object
+
+        Parameters
+        ============
+        api_name : shortcode identifying which api to connect to
+
+        Returns
+        ========
+
+        a Cenpy Connection object
+        """
         if 'eits' not in api_name and api_name != None:
             curr = exp.APIs[api_name]
             self.title = curr['title']
@@ -39,10 +51,55 @@ class Connection():
         return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
 
     def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = None, **kwargs):
+        """
+        Conduct a query over the USCB api connection
+
+        Parameters
+        ===========
+        cols : census field identifiers to pull
+        geo_unit : dict or string identifying what the basic spatial
+                    unit of the query should be
+        geo_filter : dict of required geometries above the specified
+                      geo_unit needed to complete the query
+        apikey : USCB-issued key for your query.
+        **kwargs : additional search predicates can be passed here
+
+        Returns
+        ========
+        pandas dataframe of results 
+
+        Example
+        ========
+        To grab the total population of all of the census blocks in a part of Arizona:
+        
+            >>> cxn.query('P0010001', geo_unit = 'block:*', geo_filter = {'state':'04','county':'019','tract':'001802'})
+
+        Notes
+        ======
+
+        If your list of columns exceeds the maximum query length of 50,
+        the query will be broken up and concatenates back together at 
+        the end. Sometimes, the USCB might frown on large-column queries,
+        so be careful with this. Cenpy is not liable for your key getting
+        banned if you query tens of thousands of columns at once. 
+        """
+
         self.last_query = self.cxn
+
+        geo_unit = geo_unit.replace(' ', '+')
+        geo_filter = {k.replace(' ', '+'):v for k,v in geo_filter.iteritems()}
+            
+        if len(cols) >= 50:
+            self.__bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
+
         self.last_query += 'get=' + ','.join(col for col in cols)
         
-        self.last_query += '&for=' + geo_unit
+        if isinstance(geo_unit, dict):
+            geo_unit = {k.replace(' ', '+'):v for k,v in geo_unit.iteritems()}
+            self.last_query += '&for=' + geo_unit.keys()[0] + ':' + geo_unit.values()[0]
+        else:
+            geo_unit = geo_unit.replace(' ', '+')
+            self.last_query += '&for=' + geo_unit
 
         if geo_filter != {}:
             self.last_query += '&in='
@@ -66,3 +123,21 @@ class Connection():
                 raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
             else:
                 res.raise_for_status()
+
+    def __bigcolq(self, cols=[], geo_unit='us:00', geo_filter={}, apikey=None, **kwargs):
+        """
+        Helper function to manage large queries
+
+        Parameters
+        ===========
+        cols : large list of columns to be grabbed in a query
+        """
+        if len(cols) < 50:
+            self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
+        else:
+            result = pd.DataFrame()
+            chunks = np.array_split(cols, math.ceil(len(cols) / 50.))
+            for chunk in chunks:
+                df = self.query(self, chunk, geo_unit, geo_filter, apikey, **kwargs)
+                result = pd.concat([result, df], axis=1)
+            return result
