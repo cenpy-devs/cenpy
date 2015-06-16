@@ -1,11 +1,25 @@
 import pandas as pd
 import requests as r
-import json
+import numpy as np
 import explorer as exp
+import math
+from itertools import izip_longest as longzip
 
 
 class Connection():
     def __init__(self, api_name = None):
+        """
+        Constructor for a Connection object
+
+        Parameters
+        ============
+        api_name : shortcode identifying which api to connect to
+
+        Returns
+        ========
+
+        a Cenpy Connection object
+        """
         if 'eits' not in api_name and api_name != None:
             curr = exp.APIs[api_name]
             self.title = curr['title']
@@ -39,10 +53,56 @@ class Connection():
         return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
 
     def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = None, **kwargs):
+        """
+        Conduct a query over the USCB api connection
+
+        Parameters
+        ===========
+        cols : census field identifiers to pull
+        geo_unit : dict or string identifying what the basic spatial
+                    unit of the query should be
+        geo_filter : dict of required geometries above the specified
+                      geo_unit needed to complete the query
+        apikey : USCB-issued key for your query.
+        **kwargs : additional search predicates can be passed here
+
+        Returns
+        ========
+        pandas dataframe of results 
+
+        Example
+        ========
+        To grab the total population of all of the census blocks in a part of Arizona:
+        
+            >>> cxn.query('P0010001', geo_unit = 'block:*', geo_filter = {'state':'04','county':'019','tract':'001802'})
+
+        Notes
+        ======
+
+        If your list of columns exceeds the maximum query length of 50,
+        the query will be broken up and concatenates back together at 
+        the end. Sometimes, the USCB might frown on large-column queries,
+        so be careful with this. Cenpy is not liable for your key getting
+        banned if you query tens of thousands of columns at once. 
+        """
+
         self.last_query = self.cxn
+
+        geo_unit = geo_unit.replace(' ', '+')
+        geo_filter = {k.replace(' ', '+'):v for k,v in geo_filter.iteritems()}
+            
         self.last_query += 'get=' + ','.join(col for col in cols)
         
+        if isinstance(geo_unit, dict):
+            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(geo_unit.values()[0])
+        else:
+            geo_unit = geo_unit.replace(' ', '+')
+            
         self.last_query += '&for=' + geo_unit
+        
+        if len(cols) >= 50:
+            return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
+
 
         if geo_filter != {}:
             self.last_query += '&in='
@@ -66,3 +126,51 @@ class Connection():
                 raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
             else:
                 res.raise_for_status()
+
+    def _bigcolq(self, cols=[], geo_unit='us:00', geo_filter={}, apikey=None, **kwargs):
+        """
+        Helper function to manage large queries
+
+        Parameters
+        ===========
+        cols : large list of columns to be grabbed in a query
+        """
+        if len(cols) < 50:
+            print 'tiny query!'
+            return self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
+        else:
+            result = pd.DataFrame()
+            chunks = np.array_split(cols, math.ceil(len(cols) / 49.))
+            for chunk in chunks:
+                tdf = self.query(chunk, geo_unit, geo_filter, apikey, **kwargs)
+                noreps = [x for x in tdf.columns if x not in result.columns]
+                result = pd.concat([result, tdf[noreps]], axis=1)
+            return result
+
+#    def _biggeomq(self, cols=[], geo_unit='us:00', geo_filter = {}, apikey=None, namesys = 'fips', **kwargs):
+#        if namesys == 'fips':
+#            unitfilt = list(self.geographies[namesys]['name'] == geo_unit.split(':')[0])
+#
+#            reqfilt = []
+#            for x in self.geographies[namesys]['requires']:
+#                lenmatch = len(x) == len(geo_filter.keys())
+#                elmatch = all([i==j for i,j in longzip(x, geo_filter.keys())])
+#                reqfilt.append(elmatch and lenmatch) 
+#            
+#            fullfilt = [i and j for i,j in zip(reqfilt, unitfilt)]
+#
+#            match = self.geographies[namesys][fullfilt]
+#          
+#          if match.shape[0] > 1:
+#          	  raise KeyError('Schema "geo_filter" matches too many results.')
+#          if match.empty:
+#          	  raise KeyError('Schema "geo_filter" matches no results.')
+#
+#          result = pd.DataFrame()
+#
+#          wilds = [k for k,v in geo_filter.iteritems() if v == '*']
+#          binds = {k:v for k,v in geo_filter.iteritems() if v != '*'}
+#          itdict = dict()
+#          for wild in wilds:
+#              itdict.update({wild:self.query('NAME', geo_unit = wild + ':*', geo_filter = binds)[wild].tolist()})
+#          for k,v in itdict.iteritems():
