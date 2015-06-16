@@ -3,6 +3,8 @@ import requests as r
 import numpy as np
 import explorer as exp
 import math
+from itertools import izip_longest as longzip
+
 
 class Connection():
     def __init__(self, api_name = None):
@@ -89,17 +91,18 @@ class Connection():
         geo_unit = geo_unit.replace(' ', '+')
         geo_filter = {k.replace(' ', '+'):v for k,v in geo_filter.iteritems()}
             
-        if len(cols) >= 50:
-            self.__bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
-
         self.last_query += 'get=' + ','.join(col for col in cols)
         
         if isinstance(geo_unit, dict):
-            geo_unit = {k.replace(' ', '+'):v for k,v in geo_unit.iteritems()}
-            self.last_query += '&for=' + geo_unit.keys()[0] + ':' + geo_unit.values()[0]
+            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(geo_unit.values()[0])
         else:
             geo_unit = geo_unit.replace(' ', '+')
-            self.last_query += '&for=' + geo_unit
+            
+        self.last_query += '&for=' + geo_unit
+        
+        if len(cols) >= 50:
+            return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
+
 
         if geo_filter != {}:
             self.last_query += '&in='
@@ -124,7 +127,7 @@ class Connection():
             else:
                 res.raise_for_status()
 
-    def __bigcolq(self, cols=[], geo_unit='us:00', geo_filter={}, apikey=None, **kwargs):
+    def _bigcolq(self, cols=[], geo_unit='us:00', geo_filter={}, apikey=None, **kwargs):
         """
         Helper function to manage large queries
 
@@ -133,11 +136,41 @@ class Connection():
         cols : large list of columns to be grabbed in a query
         """
         if len(cols) < 50:
-            self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
+            print 'tiny query!'
+            return self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
         else:
             result = pd.DataFrame()
-            chunks = np.array_split(cols, math.ceil(len(cols) / 50.))
+            chunks = np.array_split(cols, math.ceil(len(cols) / 49.))
             for chunk in chunks:
-                df = self.query(self, chunk, geo_unit, geo_filter, apikey, **kwargs)
-                result = pd.concat([result, df], axis=1)
+                tdf = self.query(chunk, geo_unit, geo_filter, apikey, **kwargs)
+                noreps = [x for x in tdf.columns if x not in result.columns]
+                result = pd.concat([result, tdf[noreps]], axis=1)
             return result
+
+#    def _biggeomq(self, cols=[], geo_unit='us:00', geo_filter = {}, apikey=None, namesys = 'fips', **kwargs):
+#        if namesys == 'fips':
+#            unitfilt = list(self.geographies[namesys]['name'] == geo_unit.split(':')[0])
+#
+#            reqfilt = []
+#            for x in self.geographies[namesys]['requires']:
+#                lenmatch = len(x) == len(geo_filter.keys())
+#                elmatch = all([i==j for i,j in longzip(x, geo_filter.keys())])
+#                reqfilt.append(elmatch and lenmatch) 
+#            
+#            fullfilt = [i and j for i,j in zip(reqfilt, unitfilt)]
+#
+#            match = self.geographies[namesys][fullfilt]
+#          
+#          if match.shape[0] > 1:
+#          	  raise KeyError('Schema "geo_filter" matches too many results.')
+#          if match.empty:
+#          	  raise KeyError('Schema "geo_filter" matches no results.')
+#
+#          result = pd.DataFrame()
+#
+#          wilds = [k for k,v in geo_filter.iteritems() if v == '*']
+#          binds = {k:v for k,v in geo_filter.iteritems() if v != '*'}
+#          itdict = dict()
+#          for wild in wilds:
+#              itdict.update({wild:self.query('NAME', geo_unit = wild + ':*', geo_filter = binds)[wild].tolist()})
+#          for k,v in itdict.iteritems():
