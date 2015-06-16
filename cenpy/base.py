@@ -146,31 +146,3 @@ class Connection():
                 noreps = [x for x in tdf.columns if x not in result.columns]
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
-
-#    def _biggeomq(self, cols=[], geo_unit='us:00', geo_filter = {}, apikey=None, namesys = 'fips', **kwargs):
-#        if namesys == 'fips':
-#            unitfilt = list(self.geographies[namesys]['name'] == geo_unit.split(':')[0])
-#
-#            reqfilt = []
-#            for x in self.geographies[namesys]['requires']:
-#                lenmatch = len(x) == len(geo_filter.keys())
-#                elmatch = all([i==j for i,j in longzip(x, geo_filter.keys())])
-#                reqfilt.append(elmatch and lenmatch) 
-#            
-#            fullfilt = [i and j for i,j in zip(reqfilt, unitfilt)]
-#
-#            match = self.geographies[namesys][fullfilt]
-#          
-#          if match.shape[0] > 1:
-#          	  raise KeyError('Schema "geo_filter" matches too many results.')
-#          if match.empty:
-#          	  raise KeyError('Schema "geo_filter" matches no results.')
-#
-#          result = pd.DataFrame()
-#
-#          wilds = [k for k,v in geo_filter.iteritems() if v == '*']
-#          binds = {k:v for k,v in geo_filter.iteritems() if v != '*'}
-#          itdict = dict()
-#          for wild in wilds:
-#              itdict.update({wild:self.query('NAME', geo_unit = wild + ':*', geo_filter = binds)[wild].tolist()})
-#          for k,v in itdict.iteritems():
