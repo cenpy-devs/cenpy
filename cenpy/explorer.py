@@ -112,6 +112,6 @@ def fips_table(kind, in_state = ''):
 
     print 'reading', qurl
     if kind in ['PLACE', 'VTD']:
-       return pd.read_table(qurl, sep='|')
+       return pd.read_table(qurl, sep='|', header=None)
     else:
-       return pd.read_csv(qurl)
+       return pd.read_csv(qurl, header=None)
