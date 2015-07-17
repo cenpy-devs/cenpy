@@ -4,9 +4,9 @@ import os
 
 fp  = os.path.dirname(os.path.realpath(__file__))
 
-raw_APIs = r.get('http://api.census.gov/data.json').json()
+raw_APIs = r.get('http://api.census.gov/data.json').json()['dataset']
 
-APIs = {entry['identifier']: {key: value for key, value in entry.iteritems() if key != entry['identifier']} for entry in raw_APIs}
+APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key, value in entry.iteritems() if key != entry['identifier']} for entry in raw_APIs}
 
 def available(verbose=False):
     """
@@ -25,6 +25,7 @@ def available(verbose=False):
 
     """
     av_apis = [api for api in APIs.keys() if 'eits' not in api]
+    av_apis = [api for api in av_apis if APIs[api]['distribution'][0]['format'] == 'API']
     if verbose:
         return {idx: APIs[idx]['title'] for idx in av_apis}
     else:
