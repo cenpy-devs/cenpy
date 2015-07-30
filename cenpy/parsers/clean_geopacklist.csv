@@ -1,0 +1,102 @@
+idx,Data Type,Data Dictionary Reference,Field Size,Starting Position,Field,start_0idx
+0,A/N ,FILEID ,6,1,File Identification ,0
+1,A ,STUSAB ,2,7,State/U . S . Abbreviation (USPS) ,6
+2,A/N ,SUMLEV ,3,9,Summary Level ,8
+3,A/N ,GEOCOMP ,2,12,Geographic Component ,11
+4,A/N ,CHARITER ,3,14,Characteristic Iteration ,13
+5,A/N ,CIFSN ,2,17,Number ,16
+6,N ,LOGRECNO ,7,19,Logical Record Number ,18
+7,A/N ,REGION ,1,26,Region ,25
+8,A/N ,DIVISION ,1,27,Division ,26
+9,A/N ,STATE ,2,28,State (FIPS) ,27
+10,A/N ,COUNTY ,3,30,County ,29
+11,A/N ,COUNTYCC ,2,33,FIPS County Class Code ,32
+12,A/N ,COUNTYSC ,2,35,County Size Code ,34
+13,A/N ,COUSUB ,5,37,County Subdivision (FIPS) ,36
+14,A/N ,COUSUBCC ,2,42,FIPS County Subdivision Class Code ,41
+15,A/N ,COUSUBSC ,2,44,County Subdivision Size Code ,43
+16,A/N ,PLACE ,5,46,Place (FIPS) ,45
+17,A/N ,PLACECC ,2,51,FIPS Place Class Code ,50
+18,A/N ,PLACESC ,2,53,Place Size Code ,52
+19,A/N ,TRACT ,6,55,Census Tract ,54
+20,A/N ,BLKGRP ,1,61,Block Group ,60
+21,A/N ,BLOCK ,4,62,Block ,61
+22,A/N ,IUC ,2,66,Internal Use Code ,65
+23,A/N ,CONCIT ,5,68,Consolidated City (FIPS) ,67
+24,A/N ,CONCITCC ,2,73,FIPS Consolidated City Class Code ,72
+25,A/N ,CONCITSC ,2,75,Consolidated City Size Code ,74
+26,A/N ,AIANHH ,4,77,American Indian Area/Alaska Native Area/Hawaiian Home Land (Census) ,76
+27,A/N ,AIANHHFP ,5,81,American Indian Area/Alaska Native Area/Hawaiian Home Land (FIPS) ,80
+28,A/N ,AIANHHCC ,2,86,FIPS American Indian Area/Alaska NativeArea/Hawaiian Home Land Class Code ,85
+29,A/N ,AIHHTLI ,1,88,American Indian Trust Land/Hawaiian Home Land Indicator ,87
+30,A/N ,AITSCE ,3,89,American Indian Tribal Subdivision (Census) ,88
+31,A/N ,AITS ,5,92,American Indian Tribal Subdivision (FIPS) ,91
+32,A/N ,AITSCC ,2,97,FIPS American Indian Tribal Subdivision Class Code ,96
+33,A/N ,TTRACT ,6,99,Tribal Census Tract ,98
+34,A/N ,TBLKGRP ,1,105,Tribal Block Group ,104
+35,A/N ,ANRC ,5,106,Alaska Native Regional Corporation (FIPS) ,105
+36,A/N ,ANRCCC ,2,111,FIPS Alaska Native Regional Corporation Class Code ,110
+37,A/N ,CBSA ,5,113,Metropolitan Statistical Area/Micropolitan Statistical Area ,112
+38,A/N ,CBSASC ,2,118,Metropolitan Statistical Area/Micropolitan Statistical Area Size Code ,117
+39,A/N ,METDIV ,5,120,Metropolitan Division ,119
+40,A/N ,CSA ,3,125,Combined Statistical Area ,124
+41,A/N ,NECTA ,5,128,New England City and Town Area ,127
+42,A/N ,NECTASC ,2,133,New England City and Town Area Size Code ,132
+43,A/N ,NECTADIV ,5,135,New England City and Town Area Division ,134
+44,A/N ,CNECTA ,3,140,Combined New England City and Town Area ,139
+45,A/N ,CBSAPCI ,1,143,Metropolitan Statistical Area/Micropolitan Statistical Area Principal City Indicator ,142
+46,A/N ,NECTAPCI ,1,144,New England City and Town Area Principal City Indicator ,143
+47,A/N ,UA ,5,145,Urban Area ,144
+48,A/N ,UASC ,2,150,Urban Area Size Code ,149
+49,A/N ,UATYPE ,1,152,Urban Area Type ,151
+50,A/N ,UR ,1,153,Urban/Rural ,152
+51,A/N ,CD ,2,154,Congressional District (111th) ,153
+52,A/N ,SLDU ,3,156,State Legislative District (Upper Chamber) (Year 1) ,155
+53,A/N ,SLDL ,3,159,State Legislative District (Lower Chamber) (Year 1) ,158
+54,A/N ,VTD ,6,162,Voting District ,161
+55,A/N ,VTDI ,1,168,Voting District Indicator ,167
+56,A/N ,RESERVE2 ,3,169,Reserved ,168
+57,A/N ,ZCTA5 ,5,172,ZIP Code Tabulation Area (5-Digit) ,171
+58,A/N ,SUBMCD ,5,177,Subminor Civil Division (FIPS) ,176
+59,A/N ,SUBMCDCC ,2,182,FIPS Subminor Civil Division Class Code ,181
+60,A/N ,SDELM ,5,184,School District (Elementary) ,183
+61,A/N ,SDSEC ,5,189,School District (Secondary) ,188
+62,A/N ,SDUNI ,5,194,School District (Unified) ,193
+63,N ,AREALAND ,14,199,Area (Land) ,198
+64,N ,AREAWATR ,14,213,Area (Water) ,212
+66,A/N ,NAME ,90,227,Area Name-Legal/Statistical Area Description (LSAD) Term-Part Indicator ,226
+67,A/N ,FUNCSTAT ,1,317,Functional Status Code ,316
+68,A/N ,GCUNI ,1,318,Geographic Change User Note Indicator ,317
+69,N ,POP100 ,9,319,Population Count (100%) ,318
+70,N ,HU100 ,9,328,Housing Unit Count (100%) ,327
+71,A/N ,INTPTLAT ,11,337,Internal Point (Latitude) ,336
+72,A/N ,INTPTLON ,12,348,Internal Point (Longitude) ,347
+73,A/N ,LSADC ,2,360,Legal/Statistical Area Description Code ,359
+74,A/N ,PARTFLAG ,1,362,Part Flag ,361
+75,A/N ,RESERVE3 ,6,363,Reserved ,362
+76,A/N ,UGA ,5,369,Urban Growth Area ,368
+77,A/N ,STATENS ,8,374,State (ANSI) ,373
+78,A/N ,COUNTYNS ,8,382,County (ANSI) ,381
+79,A/N ,COUSUBNS ,8,390,County Subdivision (ANSI) ,389
+80,A/N ,PLACENS ,8,398,Place (ANSI) ,397
+81,A/N ,CONCITNS ,8,406,Consolidated City (ANSI) ,405
+83,A/N ,AIANHHNS ,8,414,American Indian Area/Alaska Native Area/Hawaiian Home Land (ANSI) ,413
+84,A/N ,AITSNS ,8,422,American Indian Tribal Subdivision (ANSI) ,421
+85,A/N ,ANRCNS ,8,430,Alaska Native Regional Corporation (ANSI) ,429
+86,A/N ,SUBMCDNS ,8,438,Subminor Civil Division (ANSI) ,437
+87,A/N ,CD113 ,2,446,Congressional District (113th) ,445
+88,A/N ,CD114 ,2,448,Congressional District (114th) ,447
+89,A/N ,CD115 ,2,450,Congressional District (115th) ,449
+90,A/N ,SLDU2 ,3,452,State Legislative District (Upper Chamber) (Year 2) ,451
+91,A/N ,SLDU3 ,3,455,State Legislative District (Upper Chamber) (Year 3) ,454
+92,A/N ,SLDU4 ,3,458,State Legislative District (Upper Chamber) (Year 4) ,457
+93,A/N ,SLDL2 ,3,461,State Legislative District (Lower Chamber) (Year 2) ,460
+94,A/N ,SLDL3 ,3,464,State Legislative District (Lower Chamber) (Year 3) ,463
+95,A/N ,SLDL4 ,3,467,State Legislative District (Lower Chamber) (Year 4) ,466
+96,A/N ,AIANHHSC ,2,470,American Indian Area/Alaska Native Area/Hawaiian Home Land Size Code ,469
+97,A/N ,CSASC ,2,472,Combined Statistical Area Size Code ,471
+98,A/N ,CNECTASC ,2,474,Combined NECTA Size Code ,473
+99,A/N ,MEMI ,1,476,Metropolitan/Micropolitan Indicator ,475
+100,A/N ,NMEMI ,1,477,NECTA Metropolitan/Micropolitan Indicator ,476
+101,A/N ,PUMA ,5,478,Public Use Microdata Area ,477
+102,A/N ,RESERVED ,18,483,Reserved ,482

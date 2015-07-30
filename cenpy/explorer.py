@@ -111,7 +111,7 @@ def fips_table(kind, in_state = ''):
     else:
         raise KeyError('Requested Kind not in ', tdict.keys())
 
-    print 'reading', qurl
+    print('reading {}'.format(qurl))
     if kind in ['PLACE', 'VTD']:
        return pd.read_table(qurl, sep='|', header=None)
     else:

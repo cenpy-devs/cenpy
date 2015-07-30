@@ -1,0 +1,102 @@
+datatype,reference,fieldsize,fileID,start
+A/N,FILEID,6,File Identification,0
+A,STUSAB,2,State/U . S . Abbreviation (USPS),6
+A/N,SUMLEV,3,Summary Level,8
+A/N,GEOCOMP,2,Geographic Component,11
+A/N,CHARITER,3,Characteristic Iteration,13
+A/N,CIFSN,2,Number,16
+N,LOGRECNO,7,Logical Record Number,18
+A/N,REGION,1,Region,25
+A/N,DIVISION,1,Division,26
+A/N,STATE,2,State (FIPS),27
+A/N,COUNTY,3,County,29
+A/N,COUNTYCC,2,FIPS County Class Code,32
+A/N,COUNTYSC,2,County Size Code,34
+A/N,COUSUB,5,County Subdivision (FIPS),36
+A/N,COUSUBCC,2,FIPS County Subdivision Class Code,41
+A/N,COUSUBSC,2,County Subdivision Size Code,43
+A/N,PLACE,5,Place (FIPS),45
+A/N,PLACECC,2,FIPS Place Class Code,50
+A/N,PLACESC,2,Place Size Code,52
+A/N,TRACT,6,Census Tract,54
+A/N,BLKGRP,1,Block Group,60
+A/N,BLOCK,4,Block,61
+A/N,IUC,2,Internal Use Code,65
+A/N,CONCIT,5,Consolidated City (FIPS),67
+A/N,CONCITCC,2,FIPS Consolidated City Class Code,72
+A/N,CONCITSC,2,Consolidated City Size Code,74
+A/N,AIANHH,4,American Indian Area/Alaska Native Area/Hawaiian Home Land (Census),76
+A/N,AIANHHFP,5,American Indian Area/Alaska Native Area/Hawaiian Home Land (FIPS),80
+A/N,AIANHHCC,2,FIPS American Indian Area/Alaska NativeArea/Hawaiian Home Land Class Code,85
+A/N,AIHHTLI,1,American Indian Trust Land/Hawaiian Home Land Indicator,87
+A/N,AITSCE,3,American Indian Tribal Subdivision (Census),88
+A/N,AITS,5,American Indian Tribal Subdivision (FIPS),91
+A/N,AITSCC,2,FIPS American Indian Tribal Subdivision Class Code,96
+A/N,TTRACT,6,Tribal Census Tract,98
+A/N,TBLKGRP,1,Tribal Block Group,104
+A/N,ANRC,5,Alaska Native Regional Corporation (FIPS),105
+A/N,ANRCCC,2,FIPS Alaska Native Regional Corporation Class Code,110
+A/N,CBSA,5,Metropolitan Statistical Area/Micropolitan Statistical Area,112
+A/N,CBSASC,2,Metropolitan Statistical Area/Micropolitan Statistical Area Size Code,117
+A/N,METDIV,5,Metropolitan Division,119
+A/N,CSA,3,Combined Statistical Area,124
+A/N,NECTA,5,New England City and Town Area,127
+A/N,NECTASC,2,New England City and Town Area Size Code,132
+A/N,NECTADIV,5,New England City and Town Area Division,134
+A/N,CNECTA,3,Combined New England City and Town Area,139
+A/N,CBSAPCI,1,Metropolitan Statistical Area/Micropolitan Statistical Area Principal City Indicator,142
+A/N,NECTAPCI,1,New England City and Town Area Principal City Indicator,143
+A/N,UA,5,Urban Area,144
+A/N,UASC,2,Urban Area Size Code,149
+A/N,UATYPE,1,Urban Area Type,151
+A/N,UR,1,Urban/Rural,152
+A/N,CD,2,Congressional District (111th),153
+A/N,SLDU,3,State Legislative District (Upper Chamber) (Year 1),155
+A/N,SLDL,3,State Legislative District (Lower Chamber) (Year 1),158
+A/N,VTD,6,Voting District,161
+A/N,VTDI,1,Voting District Indicator,167
+A/N,RESERVE2,3,Reserved,168
+A/N,ZCTA5,5,ZIP Code Tabulation Area (5-Digit),171
+A/N,SUBMCD,5,Subminor Civil Division (FIPS),176
+A/N,SUBMCDCC,2,FIPS Subminor Civil Division Class Code,181
+A/N,SDELM,5,School District (Elementary),183
+A/N,SDSEC,5,School District (Secondary),188
+A/N,SDUNI,5,School District (Unified),193
+N,AREALAND,14,Area (Land),198
+N,AREAWATR,14,Area (Water),212
+A/N,NAME,90,Area Name-Legal/Statistical Area Description (LSAD) Term-Part Indicator,226
+A/N,FUNCSTAT,1,Functional Status Code,316
+A/N,GCUNI,1,Geographic Change User Note Indicator,317
+N,POP100,9,Population Count (100%),318
+N,HU100,9,Housing Unit Count (100%),327
+A/N,INTPTLAT,11,Internal Point (Latitude),336
+A/N,INTPTLON,12,Internal Point (Longitude),347
+A/N,LSADC,2,Legal/Statistical Area Description Code,359
+A/N,PARTFLAG,1,Part Flag,361
+A/N,RESERVE3,6,Reserved,362
+A/N,UGA,5,Urban Growth Area,368
+A/N,STATENS,8,State (ANSI),373
+A/N,COUNTYNS,8,County (ANSI),381
+A/N,COUSUBNS,8,County Subdivision (ANSI),389
+A/N,PLACENS,8,Place (ANSI),397
+A/N,CONCITNS,8,Consolidated City (ANSI),405
+A/N,AIANHHNS,8,American Indian Area/Alaska Native Area/Hawaiian Home Land (ANSI),413
+A/N,AITSNS,8,American Indian Tribal Subdivision (ANSI),421
+A/N,ANRCNS,8,Alaska Native Regional Corporation (ANSI),429
+A/N,SUBMCDNS,8,Subminor Civil Division (ANSI),437
+A/N,CD113,2,Congressional District (113th),445
+A/N,CD114,2,Congressional District (114th),447
+A/N,CD115,2,Congressional District (115th),449
+A/N,SLDU2,3,State Legislative District (Upper Chamber) (Year 2),451
+A/N,SLDU3,3,State Legislative District (Upper Chamber) (Year 3),454
+A/N,SLDU4,3,State Legislative District (Upper Chamber) (Year 4),457
+A/N,SLDL2,3,State Legislative District (Lower Chamber) (Year 2),460
+A/N,SLDL3,3,State Legislative District (Lower Chamber) (Year 3),463
+A/N,SLDL4,3,State Legislative District (Lower Chamber) (Year 4),466
+A/N,AIANHHSC,2,American Indian Area/Alaska Native Area/Hawaiian Home Land Size Code,469
+A/N,CSASC,2,Combined Statistical Area Size Code,471
+A/N,CNECTASC,2,Combined NECTA Size Code,473
+A/N,MEMI,1,Metropolitan/Micropolitan Indicator,475
+A/N,NMEMI,1,NECTA Metropolitan/Micropolitan Indicator,476
+A/N,PUMA,5,Public Use Microdata Area,477
+A/N,RESERVED,18,Reserved,482

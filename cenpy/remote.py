@@ -3,7 +3,6 @@ import requests as r
 import numpy as np
 import explorer as exp
 import math
-import parsers
 from itertools import izip_longest as longzip
 
 
@@ -21,12 +20,13 @@ class APIConnection():
 
         a Cenpy Connection object
         """
-        if 'eits' not in api_name and api_name is not None:
+        if 'eits' not in api_name and api_name != None:
             curr = exp.APIs[api_name]
             self.title = curr['title']
             self.identifier = curr['identifier']
             self.description = curr['description']
-            self.cxn = unicode(curr['distribution'][0]['accessURL'] + '?')
+            self.contact = curr['mbox']
+            self.cxn = unicode(curr['webService'] + u'?')
             self.last_query = ''
 
             self.__urls__ = {k.strip('c_')[:-4]:v for k,v in curr.iteritems() if k.endswith('Link')}
@@ -35,7 +35,7 @@ class APIConnection():
                 self.doclink = self.__urls__['documentation']
             if 'variables' in self.__urls__.keys():
                 v = pd.DataFrame()
-                self.variables = v.from_dict(r.get(self.__urls__['variables']).json()['variables']).T
+                self.variables = v.from_dict(r.get(self.__urls__['variables']).json().values()[0]).T
             if 'geography' in self.__urls__.keys():
                 res = r.get(self.__urls__['geography']).json()
                 self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
@@ -146,31 +146,3 @@ class APIConnection():
                 noreps = [x for x in tdf.columns if x not in result.columns]
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
-
-class LocalConnection():
-    def __init__(self, sfdir, year=2010, **kwargs):
-        self._files = os.listdir(sfdir)
-        self.datafiles = [x for x in self._files if x.endswith('.sf1') and 'geo' not in x]
-        
-        geo = [x for x in self.files if x.endswith('geo' + str(year) + '.sf1')]
-        if len(geo) > 1:
-            raise KeyError('Multiple Geographic Header Files found')
-        elif len(geo) < 1:
-            raise KeyError('No Geographic Header File found')
-        geo = geo[0]
-        
-        ###IMPLEMENT KWARGS PASSING HERE
-        self.geoheader = parsers.parse_geoheader(geo[0], **kwargs)
-        
-        packlistpath = [x for x in self._files if x.endswith('packinglist.txt')]
-        if len(packlistpath) > 1:
-            raise KeyError('Multiple packing lists found')
-        elif len(packlistpath) < 1:
-            raise KeyError('No packing lists found')
-        packlistpath = packlistpath[0]
-        
-        self.packlist, self.packinfo = parsers.parse_packlist(packlistpath[0]) 
-
-    def __repr__(self):
-        return 'Connection to ' + self.datadir
-
