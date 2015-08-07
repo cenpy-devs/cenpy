@@ -20,9 +20,6 @@ class SF1_2010(object):
     def __repr__(self):
         return 'Connection to ' + self._maindir
 
-    def query(get, geo_unit, geo_filter):
-        """return information from a census fractured file database"""
-
     def get_documentation(year=2010, outdir='~'):
         if year == 2010:
             tdoc = get('https://www.census.gov/prod/cen2010/doc/sf1.pdf')
@@ -31,13 +28,9 @@ class SF1_2010(object):
             print('File written to ', os.path.expanduser(outdir))
             return None
     
-    def query(get, geolevel, filt):
-        filt = [False] * len(self.packlist)
-        for col in cols:
-            filt = [p or i.startswith(col) for p,i in zip(filt,self.packlist.index)]
+    def query(get, geo_unit, geo_filter):
+        raise NotImplementedError('Querying static file databases is not implemented yet')
 
-        qpack = self.packlist[filt].copy()
-        pass
 
 class FileDB(object):
     def __init__(self, sfdir, **kwargs):
@@ -155,7 +148,8 @@ class FileDB(object):
 
     def query(self, get, geo_level, geo_filt, ptupes=None):
         """Query a file DB for a set of columns"""
-
+        
+        raise NotImplementedError('Queries are not implemented yet on FileDBs for the 2010 Short Form')
         # New Strategy: 
         # 1. Figure out which files to grab
         # 2. For each file, _readfile() and drop unwanted

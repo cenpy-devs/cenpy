@@ -20,13 +20,12 @@ class APIConnection():
 
         a Cenpy Connection object
         """
-        if 'eits' not in api_name and api_name != None:
+        if 'eits' not in api_name and api_name is not None:
             curr = exp.APIs[api_name]
             self.title = curr['title']
             self.identifier = curr['identifier']
             self.description = curr['description']
-            self.contact = curr['mbox']
-            self.cxn = unicode(curr['webService'] + u'?')
+            self.cxn = unicode(curr['distribution'][0]['accessURL'] + '?')
             self.last_query = ''
 
             self.__urls__ = {k.strip('c_')[:-4]:v for k,v in curr.iteritems() if k.endswith('Link')}
@@ -35,7 +34,7 @@ class APIConnection():
                 self.doclink = self.__urls__['documentation']
             if 'variables' in self.__urls__.keys():
                 v = pd.DataFrame()
-                self.variables = v.from_dict(r.get(self.__urls__['variables']).json().values()[0]).T
+                self.variables = v.from_dict(r.get(self.__urls__['variables']).json()['variables']).T
             if 'geography' in self.__urls__.keys():
                 res = r.get(self.__urls__['geography']).json()
                 self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
@@ -108,12 +107,6 @@ class APIConnection():
             self.last_query += '&in='
             for key,value in geo_filter.iteritems():
                 self.last_query += key + ':' + value + '+'
-            self.last_query = self.last_query[:-1]
-        
-        for key,val in kwargs.iteritems():
-            self.last_query += '&' + key + '=' + val
-        
-        if apikey is not None:
             self.last_query += '&key=' + apikey
         res = r.get(self.last_query)
         if res.status_code == 204:
