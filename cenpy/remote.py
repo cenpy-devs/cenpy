@@ -3,11 +3,12 @@ import requests as r
 import numpy as np
 import explorer as exp
 import math
+from six import iteritems
 from itertools import izip_longest as longzip
 
 
 class APIConnection():
-    def __init__(self, api_name = None):
+    def __init__(self, api_name = None, apikey=''):
         """
         Constructor for a Connection object
 
@@ -27,8 +28,9 @@ class APIConnection():
             self.description = curr['description']
             self.cxn = unicode(curr['distribution'][0]['accessURL'] + '?')
             self.last_query = ''
+            self.apikey = apikey
 
-            self.__urls__ = {k.strip('c_')[:-4]:v for k,v in curr.iteritems() if k.endswith('Link')}
+            self.__urls__ = {k.strip('c_')[:-4]:v for k,v in iteritems(curr) if k.endswith('Link')}
 
             if 'documentation' in self.__urls__.keys():
                 self.doclink = self.__urls__['documentation']
@@ -38,7 +40,7 @@ class APIConnection():
             if 'geography' in self.__urls__.keys():
                 res = r.get(self.__urls__['geography']).json()
                 self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
-                                                        in res.iteritems()}
+                                                        in iteritems(res)}
             if 'tags' in self.__urls__.keys():
                 self.tags = r.get(self.__urls__['tags']).json().values()[0]
 
@@ -51,7 +53,7 @@ class APIConnection():
     def __repr__(self):
         return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
 
-    def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = None, **kwargs):
+    def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = '', **kwargs):
         """
         Conduct a query over the USCB api connection
 
@@ -85,10 +87,13 @@ class APIConnection():
         banned if you query tens of thousands of columns at once. 
         """
 
+        if len(cols) >= 50:
+            return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
+
         self.last_query = self.cxn
 
         geo_unit = geo_unit.replace(' ', '+')
-        geo_filter = {k.replace(' ', '+'):v for k,v in geo_filter.iteritems()}
+        geo_filter = {k.replace(' ', '+'):v for k,v in iteritems(geo_filter)}
             
         self.last_query += 'get=' + ','.join(col for col in cols)
         
@@ -99,15 +104,21 @@ class APIConnection():
             
         self.last_query += '&for=' + geo_unit
         
-        if len(cols) >= 50:
-            return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
-
 
         if geo_filter != {}:
             self.last_query += '&in='
-            for key,value in geo_filter.iteritems():
+            for key,value in iteritems(geo_filter):
                 self.last_query += key + ':' + value + '+'
+
+        if apikey != '':
             self.last_query += '&key=' + apikey
+        elif self.apikey != '':
+            self.last_query += '&key=' + apikey
+        
+        if kwargs != {}:
+            self.last_query += ''.join(['&{k}={v}'.format(k=k,v=v) 
+                                        for k,v in iteritems(kwargs)])
+
         res = r.get(self.last_query)
         if res.status_code == 204:
             raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
