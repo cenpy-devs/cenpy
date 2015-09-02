@@ -53,3 +53,4 @@ ToDo:
 ------
 
 - [ ] Provide Joins to geodata the TIGER files REST api
+- [ ] Recursively search for all target aggregation units for incompletely-specified hierarchies
