@@ -1,4 +1,5 @@
 import requests as r
+from six import iteritems as diter
 import pandas as pd
 import os
 
@@ -6,7 +7,7 @@ fp  = os.path.dirname(os.path.realpath(__file__))
 
 raw_APIs = r.get('http://api.census.gov/data.json').json()['dataset']
 
-APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key, value in entry.iteritems() if key != entry['identifier']} for entry in raw_APIs}
+APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key,value in diter(entry) if key != entry['identifier']} for entry in raw_APIs}
 
 def available(verbose=False):
     """
