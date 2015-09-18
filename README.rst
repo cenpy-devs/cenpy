@@ -52,8 +52,8 @@ dataset. Then, you must specify the ``geo_unit`` and ``geo_filter``,
 which provide *what* the unit of aggregation should be and *where* the
 units should be. ``geo_unit`` must be a string containing the unit of
 analysis and an identifier. For instance, if you want all counties in
-Arizona, you specify ``geo_unit = 'county:*'`` and ``geo_filter`` =
-{'state','04'}.
+Arizona, you specify ``geo_unit = 'county:*'`` and ``geo_filter =
+{'state','04'}``.
 
 ToDo:
 -----
