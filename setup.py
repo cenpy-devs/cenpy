@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='cenpy',
-        version='0.8.3',
+        version='0.8.4',
       description='Explore and download data from Census APIs',
       url='https://github.com/ljwolf/cenpy',
       author='Levi John Wolf',
@@ -9,4 +9,5 @@ setup(name='cenpy',
       license='3-Clause BSD',
       packages=['cenpy'],
       install_requires=['pandas', 'requests'],
+      package_data={'cenpy': list('./cenpy/stfipstable.csv')},
       zip_safe=False)
