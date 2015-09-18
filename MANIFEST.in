@@ -1,1 +1,1 @@
-include demo.ipynb README.md LICENSE cenpy/stfipstable.csv
+include demo.ipynb README.md LICENSE *.csv
