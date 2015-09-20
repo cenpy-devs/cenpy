@@ -4,6 +4,10 @@ import numpy as np
 import cenpy.explorer as exp
 import math
 from six import iteritems
+import six
+
+if six.PY3:
+    unicode = str
 
 class APIConnection():
     def __init__(self, api_name = None, apikey=''):
@@ -40,7 +44,7 @@ class APIConnection():
                 self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
                                                         in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                self.tags = r.get(self.__urls__['tags']).json().values()[0]
+                self.tags = list(r.get(self.__urls__['tags']).json().values())[0]
 
             if 'examples' in self.__urls__.keys():
                 self.example_entries = r.get(self.__urls__['examples']).json()
@@ -122,7 +126,7 @@ class APIConnection():
         self.last_query += 'get=' + ','.join(col for col in cols)
         
         if isinstance(geo_unit, dict):
-            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(geo_unit.values()[0])
+            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
         else:
             geo_unit = geo_unit.replace(' ', '+')
             
