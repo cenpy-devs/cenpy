@@ -52,6 +52,34 @@ class APIConnection():
 
     def __repr__(self):
         return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
+    
+    def explain(self, *args, **kwargs):
+        """
+        Explain a column or list of columns.
+
+        Parameters
+        ============
+        *args : list of names of columns in the variables dataframe that require
+                explanation" 
+        verbose : boolean denoting whether to grab both "label" and "concept"
+                from the variable dataframe. 
+
+        Returns
+        ==========
+        dictionary of explanatory texts about variables inputted.
+        """
+        verbose = kwargs.pop('verbose', False)
+        grab = ['label']
+        if verbose:
+            grab.append('concept')
+        if isinstance(args[0], list) and len(args) == 1:
+            args = args[0]
+        else:
+            args = np.squeeze(args)
+        try:
+            return {arg :self.variables.ix[arg][grab] for arg in args}
+        except TypeError:
+            raise TypeError("Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
 
     def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = '', **kwargs):
         """
