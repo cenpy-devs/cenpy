@@ -16,8 +16,8 @@ before_install:
     - source activate test-env
 
 install:
-    - conda install --yes pip
-    - pip install -r REQUIREMENTS.txt
+    - conda install --yes numpy pandas requests six
+    - python setup.py install
 
 script:
     - python -c 'import cenpy'
