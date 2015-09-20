@@ -1,8 +1,9 @@
 import unittest
 import cenpy
-import six.iteritems as diter
+from six import iteritems as diter
 
-class TestExplorer(unittest.Testcase):
+
+class TestExplorer(unittest.TestCase):
     """
     This tests the explorer module
     """

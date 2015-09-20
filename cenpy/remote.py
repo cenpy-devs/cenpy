@@ -68,16 +68,14 @@ class APIConnection():
         ==========
         dictionary of explanatory texts about variables inputted.
         """
-        verbose = kwargs.pop('verbose', False)
-        grab = ['label']
-        if verbose:
-            grab.append('concept')
+        verbose = kwargs.pop('verbose', True)
+        grab = ['concept']
+        if not verbose:
+            grab = ['label']
         if isinstance(args[0], list) and len(args) == 1:
             args = args[0]
-        else:
-            args = np.squeeze(args)
         try:
-            return {arg :self.variables.ix[arg][grab] for arg in args}
+            return {arg :self.variables.ix[arg][grab].values[0] for arg in args}
         except TypeError:
             raise TypeError("Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
 
