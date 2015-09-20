@@ -12,16 +12,18 @@ before_install:
     - chmod +x miniconda.sh && ./miniconda.sh -b
     - export PATH=/home/travis/miniconda/bin:$PATH
     - conda update --yes conda
-    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy pandas six pip requests
+    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy pandas six pip requests nose
     - source activate test-env
+    - python -c 'import requests; print requests.__version__'
+    - python -c 'import pandas; print pandas.__version__'
 
 install:
     - python setup.py install
 
 script:
-    - python -c 'import cenpy'
+    - python -c 'import cenpy; print(cenpy._version)'
     - python setup.py sdist > /dev/null
-    - nosetests
+    - nosetests cenpy/
  
 notifications:
     email:

@@ -1,1 +1,1 @@
-include demo.ipynb README.md LICENSE *.csv MANIFEST.in
+include demo.ipynb README.rst LICENSE *.csv MANIFEST.in REQUIREMENTS.txt
