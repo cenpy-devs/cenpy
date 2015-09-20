@@ -1,0 +1,32 @@
+language: python
+sudo: false
+branches:
+only:
+    - master
+python:
+    - 2.7
+    - 3.4
+
+before_install:
+    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh && ./miniconda.sh -b
+    - export PATH=/home/travis/miniconda/bin:$PATH
+    - conda update --yes conda
+    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION
+    - source activate test-env
+
+install:
+    - conda install --yes pip
+    - pip install -r REQUIREMENTS.txt
+
+script:
+    - python -c 'import cenpy'
+    - python setup.py sdist > /dev/null
+    - nosetests
+ 
+notifications:
+    email:
+        recipients:
+            - levi.john.wolf@gmail.com
+        on_success: always
+        on_faliure: always
