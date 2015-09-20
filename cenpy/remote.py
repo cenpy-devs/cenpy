@@ -1,11 +1,9 @@
 import pandas as pd
 import requests as r
 import numpy as np
-import explorer as exp
+import cenpy.explorer as exp
 import math
 from six import iteritems
-from itertools import izip_longest as longzip
-
 
 class APIConnection():
     def __init__(self, api_name = None, apikey=''):
