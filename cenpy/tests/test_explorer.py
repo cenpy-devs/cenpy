@@ -1,7 +1,13 @@
 import unittest
 import cenpy
 from six import iteritems as diter
+<<<<<<< HEAD
+import six
 
+if six.PY3:
+    testtype = str
+else:
+    testtype = unicode
 
 class TestExplorer(unittest.TestCase):
     """
@@ -15,23 +21,24 @@ class TestExplorer(unittest.TestCase):
         self.assertIsInstance(self.av, list)
         self.assertNotEqual(len(self.av), 0)
         for name in self.av:
-            self.assertIsInstance(name, unicode)
+            self.assertIsInstance(name, testtype)
         
         self.assertIsInstance(self.avv, dict)
         self.assertNotEqual(len(self.avv), 0)
         for k,v in diter(self.avv):
-            self.assertIsInstance(k, unicode)
+            self.assertIsInstance(k, testtype)
             self.assertNotEqual(len(k), 0) 
-            self.assertIsInstance(v, unicode)
+            self.assertIsInstance(v, testtype)
             self.assertNotEqual(len(v), 0)
 
     def test_explain(self):
         explaintext = cenpy.explorer.explain(self.av[0])
         self.assertIsInstance(explaintext, dict)
-        self.assertIsInstance(explaintext.keys()[0], unicode)
-        self.assertNotEqual(len(explaintext.keys()[0]), 0)
-        self.assertIsInstance(explaintext.values()[0], unicode)
-        self.assertNotEqual(len(explaintext.values()[0]), 0)
+        for k,v in diter(explaintext):
+            self.assertIsInstance(k, testtype)
+            self.assertNotEqual(len(k), 0)
+            self.assertIsInstance(v, testtype)
+            self.assertNotEqual(len(v), 0)
         
         explaintextv = cenpy.explorer.explain(self.av[0], verbose=True)
         self.assertIsInstance(explaintextv, dict)

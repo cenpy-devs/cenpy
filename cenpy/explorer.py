@@ -2,6 +2,10 @@ import requests as r
 from six import iteritems as diter
 import pandas as pd
 import os
+import six
+
+if six.PY3:
+    unicode = str
 
 fp  = os.path.dirname(os.path.realpath(__file__))
 

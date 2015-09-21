@@ -1,1 +1,1 @@
-from remote import APIConnection as Connection
+from .remote import APIConnection as Connection

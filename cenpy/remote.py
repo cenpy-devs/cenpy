@@ -1,11 +1,13 @@
 import pandas as pd
 import requests as r
 import numpy as np
-import explorer as exp
+import cenpy.explorer as exp
 import math
 from six import iteritems
-from itertools import izip_longest as longzip
+import six
 
+if six.PY3:
+    unicode = str
 
 class APIConnection():
     def __init__(self, api_name = None, apikey=''):
@@ -42,7 +44,7 @@ class APIConnection():
                 self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
                                                         in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                self.tags = r.get(self.__urls__['tags']).json().values()[0]
+                self.tags = list(r.get(self.__urls__['tags']).json().values())[0]
 
             if 'examples' in self.__urls__.keys():
                 self.example_entries = r.get(self.__urls__['examples']).json()
@@ -68,16 +70,14 @@ class APIConnection():
         ==========
         dictionary of explanatory texts about variables inputted.
         """
-        verbose = kwargs.pop('verbose', False)
-        grab = ['label']
-        if verbose:
-            grab.append('concept')
+        verbose = kwargs.pop('verbose', True)
+        grab = ['concept']
+        if not verbose:
+            grab = ['label']
         if isinstance(args[0], list) and len(args) == 1:
             args = args[0]
-        else:
-            args = np.squeeze(args)
         try:
-            return {arg :self.variables.ix[arg][grab] for arg in args}
+            return {arg :self.variables.ix[arg][grab].values[0] for arg in args}
         except TypeError:
             raise TypeError("Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
 
@@ -126,7 +126,7 @@ class APIConnection():
         self.last_query += 'get=' + ','.join(col for col in cols)
         
         if isinstance(geo_unit, dict):
-            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(geo_unit.values()[0])
+            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
         else:
             geo_unit = geo_unit.replace(' ', '+')
             
