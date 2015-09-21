@@ -1,6 +1,7 @@
 import unittest
 import cenpy
 from six import iteritems as diter
+<<<<<<< HEAD
 import six
 
 if six.PY3:
