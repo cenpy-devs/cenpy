@@ -178,3 +178,53 @@ class APIConnection():
                 noreps = [x for x in tdf.columns if x not in result.columns]
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
+
+    def colslike(self, pattern, engine='regex'):
+        """
+        Grabs columns that match a particular search pattern.
+
+        Parameters
+        ==========
+        pattern : string containing a search pattern
+        engine  : string describing backend string matching module to use.
+
+        Notes
+        ======
+        Only regex and fnmatch will be supported modules. Note that, while
+        regex is the default, the python regular expressions module has some
+        strange behavior if you're used to VIM or Perl-like regex. It may be
+        easier to use fnmatch if regex is not providing the results you expect.
+        
+        If you want, you can also pass an engine that is a function. If so, this
+        needs to be a function that has a signature like:
+
+        fn(candidate, pattern)
+
+        and return True or False if the candidate matches the pattern. So, for
+        instance, you can use any string processing function:
+
+            >>> cxn.colslike('_100M', engine = lambda c,p: c.endswith(p)
+
+        which may also be expressed as a regexp:
+
+            >>> cxn.colslike('_100M$', engine='re')
+
+        or an fnmatch pattern:
+
+            >>> cxn.colslike('*_100M', engine='fnmatch')
+        """
+
+        if engine == 'regex':
+            import re
+            search = re.compile(pattern)
+            return [candidate for candidate in self.variables.index 
+                    if re.match(pattern, candidate)]
+        elif engine == 're':
+            self.colslike(pattern, engine='regexp')
+        elif engine == 'fnmatch':
+            import fnmatch
+            return fnmatch.filter(self.variables.index, pattern)
+        elif callable(engine):
+            return [ix for ix in self.variables.index if engine(ix, pattern)]
+        else:
+            raise TypeError("Engine option is not supported or not callable.")
