@@ -49,8 +49,10 @@ class APIConnection():
             if 'examples' in self.__urls__.keys():
                 self.example_entries = r.get(self.__urls__['examples']).json()
 
+        elif 'eits' in api_name:
+            raise NotImplementedError('EITS datasets are not supported at this time')
         else:
-            raise ValueError('Pick dataset identifier using the census_pandas.explorer.available() function')
+            raise ValueError('Pick dataset identifier using the cenpy.explorer.available() function')
 
     def __repr__(self):
         return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
