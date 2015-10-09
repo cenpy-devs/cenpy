@@ -55,10 +55,10 @@ class APIConnection():
             raise ValueError('Pick dataset identifier using the cenpy.explorer.available() function')
 
     def __repr__(self):
-        if hasattr(self, 'mapserver'):
+        if hasattr(self, 'mapservice'):
             return str('Connection to ' + self.title + '(ID: ' +
                     self.identifier+ ')' + '\nWith MapServer: ' +
-                    self.mapserver.title)
+                    self.mapservice.title)
         else:
             return str('Connection to ' + self.title + ' (ID: ' + 
                         self.identifier + ')')
@@ -132,7 +132,8 @@ class APIConnection():
         geo_filter = {k.replace(' ', '+'):v for k,v in iteritems(geo_filter)}
             
         self.last_query += 'get=' + ','.join(col for col in cols)
-        
+        convert_numeric = kwargs.pop('convert_numeric', True)
+
         if isinstance(geo_unit, dict):
             geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
         else:
@@ -160,7 +161,9 @@ class APIConnection():
             raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
         try:
             res = res.json()
-            return pd.DataFrame().from_records(res[1:], columns=res[0])
+            df = pd.DataFrame().from_records(res[1:], columns=res[0])
+            df[cols] = df[cols].convert_objects(convert_numeric=convert_numeric)
+            return df
         except ValueError:
             if res.status_code == 400:
                 raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
@@ -187,7 +190,7 @@ class APIConnection():
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
 
-    def colslike(self, pattern, engine='regex'):
+    def varslike(self, pattern, engine='regex'):
         """
         Grabs columns that match a particular search pattern.
 
@@ -237,9 +240,9 @@ class APIConnection():
         else:
             raise TypeError("Engine option is not supported or not callable.")
         
-    def set_mapserver(self, key):
+    def set_mapservice(self, key):
         """
-        Assign a mapserver to the connection instance
+        Assign a mapservice to the connection instance
 
         Parameters
         ===========
@@ -248,9 +251,9 @@ class APIConnection():
 
         Returns
         ========
-        adds a mapserver attribute to the connection object, returns none.
+        adds a mapservice attribute to the connection object, returns none.
         """
         if isinstance(key, tig.TigerConnection):
-            self.mapserver = key
+            self.mapservice = key
         elif isinstance(key, str):
-            self.mapserver = tig.TigerConnection(name=key) 
+            self.mapservice = tig.TigerConnection(name=key) 

@@ -1,3 +1,5 @@
+import pandas as pd
+
 def esriGeometryPolygon(egpoly):
     feature = {'type':'Feature'}
     egpoly['geometry']['coordinates'] = egpoly['geometry'].pop('rings', [])
