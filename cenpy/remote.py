@@ -1,12 +1,12 @@
 import pandas as pd
 import requests as r
 import numpy as np
-import cenpy.explorer as exp
+from . import explorer as exp
+from . import tiger as tig
 import math
-from six import iteritems
-import six
+from six import iteritems, PY3
 
-if six.PY3:
+if PY3:
     unicode = str
 
 class APIConnection():
@@ -49,11 +49,19 @@ class APIConnection():
             if 'examples' in self.__urls__.keys():
                 self.example_entries = r.get(self.__urls__['examples']).json()
 
+        elif 'eits' in api_name:
+            raise NotImplementedError('EITS datasets are not supported at this time')
         else:
-            raise ValueError('Pick dataset identifier using the census_pandas.explorer.available() function')
+            raise ValueError('Pick dataset identifier using the cenpy.explorer.available() function')
 
     def __repr__(self):
-        return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
+        if hasattr(self, 'mapservice'):
+            return str('Connection to ' + self.title + '(ID: ' +
+                    self.identifier+ ')' + '\nWith MapServer: ' +
+                    self.mapservice.title)
+        else:
+            return str('Connection to ' + self.title + ' (ID: ' + 
+                        self.identifier + ')')
     
     def explain(self, *args, **kwargs):
         """
@@ -124,7 +132,8 @@ class APIConnection():
         geo_filter = {k.replace(' ', '+'):v for k,v in iteritems(geo_filter)}
             
         self.last_query += 'get=' + ','.join(col for col in cols)
-        
+        convert_numeric = kwargs.pop('convert_numeric', True)
+
         if isinstance(geo_unit, dict):
             geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
         else:
@@ -152,7 +161,9 @@ class APIConnection():
             raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
         try:
             res = res.json()
-            return pd.DataFrame().from_records(res[1:], columns=res[0])
+            df = pd.DataFrame().from_records(res[1:], columns=res[0])
+            df[cols] = df[cols].convert_objects(convert_numeric=convert_numeric)
+            return df
         except ValueError:
             if res.status_code == 400:
                 raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
@@ -179,7 +190,7 @@ class APIConnection():
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
 
-    def colslike(self, pattern, engine='regex'):
+    def varslike(self, pattern, engine='regex'):
         """
         Grabs columns that match a particular search pattern.
 
@@ -228,3 +239,21 @@ class APIConnection():
             return [ix for ix in self.variables.index if engine(ix, pattern)]
         else:
             raise TypeError("Engine option is not supported or not callable.")
+        
+    def set_mapservice(self, key):
+        """
+        Assign a mapservice to the connection instance
+
+        Parameters
+        ===========
+        key : str
+                string describing the shortcode of the Tiger mapservice
+
+        Returns
+        ========
+        adds a mapservice attribute to the connection object, returns none.
+        """
+        if isinstance(key, tig.TigerConnection):
+            self.mapservice = key
+        elif isinstance(key, str):
+            self.mapservice = tig.TigerConnection(name=key) 
