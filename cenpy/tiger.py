@@ -178,7 +178,7 @@ class TigerConnection(object):
             self._baseurl = '/'.join([_baseurl, name, 'MapServer'])
             resp = _jget(self._baseurl).json()
             self._key = name
-            self.name = resp.pop('mapName', name)
+            self.title = resp.pop('mapName', name)
             self.layers = self._get_layers()
             self.copyright = resp['copyrightText']
             self.projection = resp['spatialReference']['latestWkid']

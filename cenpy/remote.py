@@ -1,12 +1,12 @@
 import pandas as pd
 import requests as r
 import numpy as np
-import cenpy.explorer as exp
+from . import explorer as exp
+from . import tiger as tig
 import math
-from six import iteritems
-import six
+from six import iteritems, PY3
 
-if six.PY3:
+if PY3:
     unicode = str
 
 class APIConnection():
@@ -55,7 +55,13 @@ class APIConnection():
             raise ValueError('Pick dataset identifier using the cenpy.explorer.available() function')
 
     def __repr__(self):
-        return str('Connection to ' + self.title + ' (ID: ' + self.identifier + ')')
+        if hasattr(self, 'mapserver'):
+            return str('Connection to ' + self.title + '(ID: ' +
+                    self.identifier+ ')' + '\nWith MapServer: ' +
+                    self.mapserver.title)
+        else:
+            return str('Connection to ' + self.title + ' (ID: ' + 
+                        self.identifier + ')')
     
     def explain(self, *args, **kwargs):
         """
@@ -230,3 +236,21 @@ class APIConnection():
             return [ix for ix in self.variables.index if engine(ix, pattern)]
         else:
             raise TypeError("Engine option is not supported or not callable.")
+        
+    def set_mapserver(self, key):
+        """
+        Assign a mapserver to the connection instance
+
+        Parameters
+        ===========
+        key : str
+                string describing the shortcode of the Tiger mapservice
+
+        Returns
+        ========
+        adds a mapserver attribute to the connection object, returns none.
+        """
+        if isinstance(key, tig.TigerConnection):
+            self.mapserver = key
+        elif isinstance(key, str):
+            self.mapserver = tig.TigerConnection(name=key) 
