@@ -157,7 +157,7 @@ class ESRILayer(object):
             todf.append(locfeat['properties'])
             todf[i].update({'geometry':locfeat['geometry']})
         df = pd.DataFrame(todf)
-        outdf = convert_geometries(df)
+        outdf = gpsr.convert_geometries(df)
         if gpize:
             try:
                 from geopandas import GeoDataFrame
@@ -186,4 +186,10 @@ class TigerConnection(object):
     def _get_layers(self):
         resp = _jget(self._baseurl + '/layers').json()
         return {d['id']:ESRILayer(self._baseurl, **d) for d in resp['layers']}
+    
+    def query(self, **kwargs):
+        layer_idx = kwargs.pop('layer', None)
+        if layer_idx is None:
+            raise Exception('No layer selected.')
+        return self.layers[layer_idx].query(**kwargs)
 

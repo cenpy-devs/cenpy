@@ -65,17 +65,11 @@ def convert_geometries(df, pkg='pysal'):
         try:
             df['geometry'] = pd.Series([g.__dict__[e['type']](e) for e in df['geometry']])
         except:
-            #if 'MultiPolygon' in first['type']:
-            #    df['geometry'] = pd.Series([g.MultiPolygon(np.array(
-            #                                e['coordinates'])) for e in df['geometry']])
             if 'Polygon' in first['type']:
                 df['geometry'] = pd.Series([g.Polygon(e['coordinates'][0])\
                                             for e in df['geometry']])
             elif 'MultiLine' in first['type']:
                 df['geometry'] = pd.Series([g.MultiLineString(e['coordinates'])\
-                                            for e in df['geometry']])
-            elif 'LineString' in first['type']:
-                df['geometry'] = pd.Series([g.LineString(e['coordinates'][0])\
                                             for e in df['geometry']])
             elif 'MultiPoint' in first['type']:
                 df['geometry'] = pd.Series([g.MultiPoint(e['coordinates']) 
