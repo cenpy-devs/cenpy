@@ -1,5 +1,7 @@
 CenPy
 =====
+.. image:: https://travis-ci.org/ljwolf/cenpy.svg?branch=master
+    :target: https://travis-ci.org/ljwolf/cenpy
 
 An interface to explore and query the US Census API and return Pandas
 Dataframes. Ideally, this package is intended for exploratory data
