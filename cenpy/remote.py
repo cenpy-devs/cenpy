@@ -133,6 +133,7 @@ class APIConnection():
             
         self.last_query += 'get=' + ','.join(col for col in cols)
         convert_numeric = kwargs.pop('convert_numeric', True)
+        index = kwargs.pop('index', '')
 
         if isinstance(geo_unit, dict):
             geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
@@ -163,6 +164,8 @@ class APIConnection():
             res = res.json()
             df = pd.DataFrame().from_records(res[1:], columns=res[0])
             df[cols] = df[cols].convert_objects(convert_numeric=convert_numeric)
+            if index is not '':
+                df.index = df[index]
             return df
         except ValueError:
             if res.status_code == 400:
