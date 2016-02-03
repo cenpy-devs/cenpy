@@ -60,6 +60,6 @@ Arizona, you specify ``geo_unit = 'county:*'`` and ``geo_filter =
 ToDo:
 -----
 
--  [ ] Provide Joins to geodata the TIGER files REST api
--  [ ] Recursively search for all target aggregation units for
-   incompletely-specified hierarchies
+-  [ ] Recursively search for incompletely-specified hierarchies
+-  [ ] Build out commonly-used data resources (like specific ACS products or
+       Decennials)
