@@ -147,6 +147,7 @@ class APIConnection():
             self.last_query += '&in='
             for key,value in iteritems(geo_filter):
                 self.last_query += key + ':' + value + '+'
+            self.last_query = self.last_query.rstrip('+')
 
         if apikey != '':
             self.last_query += '&key=' + apikey
