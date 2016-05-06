@@ -145,9 +145,7 @@ class APIConnection():
 
         if geo_filter != {}:
             self.last_query += '&in='
-            for key,value in iteritems(geo_filter):
-                self.last_query += key + ':' + value + '+'
-            self.last_query = self.last_query.rstrip('+')
+            self.last_query += '+'.join([':'.join(kvpair) for kvpair in iteritems(geo_filter)])
 
         if apikey != '':
             self.last_query += '&key=' + apikey
