@@ -33,5 +33,5 @@ notifications:
     email:
         recipients:
             - levi.john.wolf@gmail.com
-        on_success: always
+        on_success: change
         on_faliure: always
