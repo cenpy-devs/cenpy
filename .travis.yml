@@ -15,9 +15,8 @@ before_install:
     - conda update --yes conda
     - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy scipy pandas six pip requests nose
     - source activate test-env
-    - conda install -y -c osgeo gdal
-    - pip install geopandas
-    - pip install pysal 
+    - conda install -y geopandas -c conda-forge
+    - pip install pysal
     - python -c 'import requests; print(requests.__version__)'
     - python -c 'import pandas; print(pandas.__version__)'
 
