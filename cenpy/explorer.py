@@ -84,6 +84,7 @@ def fips_table(kind, in_state = ''):
             'PLACE':'places.txt',
             'SCHOOLDISTRICT':'schdist.txt',
             'VTD':'vtd.txt'}
+            'STATE': None}
     
     kind = kind.upper()
     if len(kind.split(' ')) > 1:
@@ -118,6 +119,6 @@ def fips_table(kind, in_state = ''):
 
     print('reading {}'.format(qurl))
     if kind in ['PLACE', 'VTD']:
-       return pd.read_table(qurl, sep='|', header=None)
+        return pd.read_table(qurl, sep='|', header=None) #thanks uscb :)
     else:
        return pd.read_csv(qurl, header=None)
