@@ -1,4 +1,5 @@
 import pandas as pd
+from json import JSONDecodeError
 import requests as r
 import numpy as np
 from . import explorer as exp
@@ -150,13 +151,14 @@ class APIConnection():
         if apikey != '':
             self.last_query += '&key=' + apikey
         elif self.apikey != '':
-            self.last_query += '&key=' + apikey
+            self.last_query += '&key=' + self.apikey
         
         if kwargs != {}:
             self.last_query += ''.join(['&{k}={v}'.format(k=k,v=v) 
                                         for k,v in iteritems(kwargs)])
 
         res = r.get(self.last_query)
+        res.raise_for_status()
         if res.status_code == 204:
             raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
         try:
@@ -166,7 +168,7 @@ class APIConnection():
             if index is not '':
                 df.index = df[index]
             return df
-        except ValueError:
+        except (ValueError, JSONDecodeError):
             if res.status_code == 400:
                 raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
             else:

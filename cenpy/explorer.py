@@ -83,7 +83,7 @@ def fips_table(kind, in_state = ''):
             'SUBCOUNTY':'cousub.txt',
             'PLACE':'places.txt',
             'SCHOOLDISTRICT':'schdist.txt',
-            'VTD':'vtd.txt'}
+            'VTD':'vtd.txt',
             'STATE': None}
     
     kind = kind.upper()

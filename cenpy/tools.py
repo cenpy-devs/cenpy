@@ -1,7 +1,9 @@
 import itertools as it
 import pandas as pd
 import os
-from ..explorer import fips_table as _ft
+import warnings as warn
+from .explorer import fips_table as _ft
+from requests import HTTPError
 _state_fipscodes = _ft('state')['FIPS Code'].apply(lambda x: str(x).rjust(2, '0')) 
 
 def national_to_block(cxn, *columns):
@@ -10,7 +12,14 @@ def national_to_block(cxn, *columns):
     This just naively calls state_to_block for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
-    return pd.concat([state_to_block(fp, cxn, *columns) for fp in _state_fipscodes])
+    outs = []
+    for fp in _state_fipscodes:
+        try:
+            outs.append(state_to_block(fp, cxn, *columns))
+        except HTTPError:
+            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            raise
+    return pd.concat(outs)
 
 def national_to_tract(cxn, *columns):
     """
@@ -18,7 +27,14 @@ def national_to_tract(cxn, *columns):
     This just naively calls state_to_tract for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
-    return pd.concat([state_to_tract(fp, cxn, *columns) for fp in _state_fipscodes])
+    outs = []
+    for fp in _state_fipscodes:
+        try:
+            outs.append(state_to_tract(fp, cxn, *columns))
+        except HTTPError:
+            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            raise
+    return pd.concat(outs)
 
 def national_to_blockgroup(cxn, *columns):
     """
@@ -26,7 +42,14 @@ def national_to_blockgroup(cxn, *columns):
     This just naively calls state_to_blockgroup for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
-    return pd.concat([state_to_blockgroup(fp, cxn, *columns) for fp in _state_fipscodes])
+    outs = []
+    for fp in _state_fipscodes:
+        try:
+            outs.append(state_to_blockgroup(fp, cxn, *columns))
+        except HTTPError:
+            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            raise
+    return pd.concat(outs)
 
 def state_to_block(stfips, cxn, *columns):
     """
