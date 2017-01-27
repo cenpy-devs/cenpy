@@ -1,6 +1,32 @@
 import itertools as it
 import pandas as pd
 import os
+from ..explorer import fips_table as _ft
+_state_fipscodes = _ft('state')['FIPS Code'].apply(lambda x: str(x).rjust(2, '0')) 
+
+def national_to_block(cxn, *columns):
+    """
+    A helper function to grab all blocks by iterating over state fips codes in cenpy.explorer.fips_table. 
+    This just naively calls state_to_block for each state, so will end up executing quite a few queries. 
+    You may be rate limited if you don't use an APIKEY
+    """
+    return pd.concat([state_to_block(fp, cxn, *columns) for fp in _state_fipscodes])
+
+def national_to_tract(cxn, *columns):
+    """
+    A helper function to grab all tracts by iterating over state fips codes in cenpy.explorer.fips_table. 
+    This just naively calls state_to_tract for each state, so will end up executing quite a few queries. 
+    You may be rate limited if you don't use an APIKEY
+    """
+    return pd.concat([state_to_tract(fp, cxn, *columns) for fp in _state_fipscodes])
+
+def national_to_blockgroup(cxn, *columns):
+    """
+    A helper function to grab all blockgroups by iterating over state fips codes in cenpy.explorer.fips_table. 
+    This just naively calls state_to_blockgroup for each state, so will end up executing quite a few queries. 
+    You may be rate limited if you don't use an APIKEY
+    """
+    return pd.concat([state_to_blockgroup(fp, cxn, *columns) for fp in _state_fipscodes])
 
 def state_to_block(stfips, cxn, *columns):
     """
