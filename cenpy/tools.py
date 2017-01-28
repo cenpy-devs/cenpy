@@ -4,7 +4,8 @@ import os
 import warnings as warn
 from .explorer import fips_table as _ft
 from requests import HTTPError
-_state_fipscodes = _ft('state')['FIPS Code'].apply(lambda x: str(x).rjust(2, '0')) 
+_state_fipscodes = _ft('state')['FIPS Code']
+_state_fipscodes = [str(f).rjust(2, '0') for f in _state_fipscodes if f < 60] 
 
 def national_to_block(cxn, *columns):
     """
