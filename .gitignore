@@ -3,3 +3,4 @@
 dist
 .ipynb_checkpoints
 cenpy.egg*
+SITEKEY.txt

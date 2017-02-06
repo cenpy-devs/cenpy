@@ -1,5 +1,5 @@
 __author__ = 'Levi John Wolf ljw2@asu.edu'
-#__version__ == '0.8.8.dev'
+#__version__ == '0.9.8.dev'
 
 import cenpy.explorer
 import cenpy.base
