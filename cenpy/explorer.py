@@ -9,7 +9,7 @@ if six.PY3:
 
 fp  = os.path.dirname(os.path.realpath(__file__))
 
-raw_APIs = r.get('http://api.census.gov/data.json').json()['dataset']
+raw_APIs = r.get('https://api.census.gov/data.json').json()['dataset']
 
 APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key,value in diter(entry) if key != entry['identifier']} for entry in raw_APIs}
 
@@ -77,7 +77,7 @@ def fips_table(kind, in_state = ''):
 
 
     """
-    qurl = u'http://www2.census.gov/geo/docs/reference/codes/files/'
+    qurl = u'https://www2.census.gov/geo/docs/reference/codes/files/'
     tdict = {'AIA':'aia.txt',
             'COUNTY':'county.txt',
             'SUBCOUNTY':'cousub.txt',
