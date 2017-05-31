@@ -2,76 +2,157 @@ import itertools as it
 import pandas as pd
 import os
 import warnings as warn
+import time
 from .explorer import fips_table as _ft
 from requests import HTTPError
 _state_fipscodes = _ft('state')['FIPS Code']
 _state_fipscodes = [str(f).rjust(2, '0') for f in _state_fipscodes if f < 60] 
 
-def national_to_block(cxn, *columns):
+def national_to_block(cxn, *columns, wait_by_state=0, 
+                                     wait_by_county=0):
     """
     A helper function to grab all blocks by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_block for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
+    Arguments
+    ---------
+    cxn     :   cenpy.base.Connection object
+                    the connection to use to query.
+    columns :   comma separated collection
+                    splatted comma separated collection of column names
+                    to grab from the connection. A call may be like:
+                    >>> tools.national_to_block(cxn, *cxn.varslike('H001*"))
+    wait_by_state : callable or int
+                    if an integer, gives the number of seconds passed 
+                    to sys.sleep between each state query. if callable,
+                    will be called each state to get a sleep time. This
+                    means you can use random waittimes. So, to wait
+                    for an exponentially-distributed number of seconds:
+                    >>> import random
+                    >>> tools.national_to_block(cxn, 
+                                                *cxn.varslike("P001*"), 
+                                                wait_by_state = lambda : (random.expovariate(2) * 20))
+    wait_by_county: callable or int
+                    wait time (or wait time callable) applied between each county-level query. See wait_by_state for more information. If this value tends to be large, the time it takes to conduct the query can get large quickly. 
     """
+    if isinstance(wait_by_state, (int, float)):
+        waitfunc = lambda : wait_by_state
+    else:
+        waitfunc = wait_by_state
     outs = []
     for fp in _state_fipscodes:
         try:
-            outs.append(state_to_block(fp, cxn, *columns))
+            outs.append(state_to_block(fp, cxn, *columns, 
+                                       wait=wait_by_county))
         except HTTPError:
             warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
             raise
+        time.sleep(waitfunc())
     return pd.concat(outs)
 
-def national_to_tract(cxn, *columns):
+def national_to_tract(cxn, *columns, wait_by_state = 0,
+                                     wait_by_county = 0):
     """
     A helper function to grab all tracts by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_tract for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
+    if isinstance(wait_by_state, (int, float)):
+        waitfunc = lambda : wait_by_state
+    else:
+        waitfunc = wait_by_state
     outs = []
     for fp in _state_fipscodes:
         try:
-            outs.append(state_to_tract(fp, cxn, *columns))
+            outs.append(state_to_tract(fp, cxn, *columns, 
+                                       wait=wait_by_county))
         except HTTPError:
             warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
             raise
+        time.sleep(waitfunc())
     return pd.concat(outs)
 
-def national_to_blockgroup(cxn, *columns):
+def national_to_blockgroup(cxn, *columns, wait_by_state=0, wait_by_county=0):
     """
     A helper function to grab all blockgroups by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_blockgroup for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
+    if isinstance(wait_by_state, (int, float)):
+        wait_by_state = lambda : wait_by_state
+    else:
+        waitfunc = wait_by_state
     outs = []
     for fp in _state_fipscodes:
         try:
-            outs.append(state_to_blockgroup(fp, cxn, *columns))
+            outs.append(state_to_blockgroup(fp, cxn, *columns, wait=wait_by_county))
         except HTTPError:
             warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
             raise
+        time.sleep(waitfunc(a))
     return pd.concat(outs)
 
-def state_to_block(stfips, cxn, *columns):
+def state_to_block(stfips, cxn, *columns, wait=0):
     """
     Casts the generator constructed by genstate_to_block to a full dataframe. 
     For arguments, see genstate_to_block
     """
-    return pd.concat(list(genstate_to_block(stfips, cxn, *columns)))
+    if isinstance(wait, (int, float)):
+        waitfunc = lambda : wait
+    else:
+        waitfunc = wait
+    out = []
+    for cblock in genstate_to_block(stfips, cxn, *columns):
+        out.append(cblock)
+        time.sleep(waitfunc())
+    return pd.concat(out)
 
-def state_to_blockgroup(stfips, cxn, *columns):
+def state_to_blockgroup(stfips, cxn, *columns, wait=0):
     """
     Casts the generator constructed by genstate_to_blockgroup to a full dataframe. 
     For arguments, see genstate_to_blockgroup
     """
-    return pd.concat(list(genstate_to_block(stfips, cxn, *columns)))
+    if isinstance(wait, (int, float)):
+        waitfunc = lambda : wait
+    else:
+        waitfunc = wait
+    out = []
+    for cblock in genstate_to_blockgroup(stfips, cxn, *columns):
+        out.append(cblock)
+        time.sleep(waitfunc())
+    return pd.concat(out)
 
-def state_to_tract(stfips, cxn, *columns):
+def state_to_tract(stfips, cxn, *columns, wait=0):
     """
     Casts the generator constructed by genstate_to_tract to a full dataframe. 
+    Arguments
+    ---------
+    stfips  :   string
+                two-digit state fips code used to grab tracts
+    cxn     :   cenpy.base.Connection
+                connection object against which the query occurs
+    *columns:   comma separated collection
+                splatted list of columns to use in the query:
+                >>> state_to_tract('06', cxn, 'H0010001', 'P001002')
+                >>> #is equivalent to:
+                >>> state_to_tract('06', cxn, *['H0010001', 'P001002'])
+    wait    :   int or callable
+                a number of seconds to wait before the next county
+                is queried. Must be an integer or a function that 
+                takes no arguments and returns a number of seconds 
+                to wait. 
+                
     For arguments, see genstate_to_tract
     """
-    return pd.concat(list(genstate_to_tract(stfips, cxn, *columns)))
+    if isinstance(wait, (int, float)):
+        waitfunc = lambda : wait
+    else:
+        waitfunc = wait
+    out = []
+    for cblock in genstate_to_tract(stfips, cxn, *columns):
+        out.append(cblock)
+        time.sleep(waitfunc())
+    return pd.concat(out)
 
 def genstate_to_block(stfips, cxn, *columns):
     """

@@ -113,7 +113,11 @@ class ESRILayer(object):
                      whether to return z components of shp-z
         return_m: bool, (default: False)
                      whether to return m components of shp-m
-
+        pkg     :   str (default: 'pysal')
+                    what geometry type to provide in the results of the query. Uses PySAL
+                    shapes by default. Supports "shapely," which constructs shapely
+                    shapes instead of pysal shape, and "geopandas," which packs shapely
+                    shapes into a GeoPandas dataframe. 
         Returns
         =======
         Dataframe or GeoDataFrame containing entries from the geodatabase
