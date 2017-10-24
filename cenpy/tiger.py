@@ -171,6 +171,7 @@ class ESRILayer(object):
             todf.append(locfeat['properties'])
             todf[i].update({'geometry':locfeat['geometry']})
         df = pd.DataFrame(todf)
+        # return df
         outdf = gpsr.convert_geometries(df, pkg)
         if gpize:
             try:
