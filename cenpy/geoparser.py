@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def esriGeometryPolygon(egpoly):
     feature = {'type':'Feature'}
@@ -93,8 +94,9 @@ def parse_polygon_to_pysal(raw_feature):
     elif pgon_type == 'Polygon with Holes':
         return Polygon(ogc_nest[0], holes=ogc_nest[1:])
     elif pgon_type == 'MultiPolygon with Holes':
+        # return ogc_nest
         return Polygon(vertices = [ring[0] for ring in ogc_nest], 
-                       holes = [ring[1:] for ring in ogc_nest])
+                       holes = [list(hole) for ring in ogc_nest for hole in ring[1:]])
     else:
         raise Exception('Unexpected Polygon kind {} provided to'
                         ' parse_polygon_to_pysal'.format(pgon_type)) 
@@ -109,8 +111,11 @@ def parse_polygon_to_shapely(raw_feature):
     elif pgon_type == 'MultiPolygon':
         return MultiPolygon(Polygon(s, holes=None) for s in ogc_nest)
     elif pgon_type == 'MultiPolygon with Holes':
-        return MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:]) 
+        out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:]) 
                                       for ring in ogc_nest])
+        if not out.is_valid:
+            out = fix_rings(out)
+        return out
     else:
         raise Exception('Unexpected Polygon kind {} provided to'
                         ' parse_polygon_to_shapely'.format(pgon_type))
@@ -187,7 +192,56 @@ def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
     OGC_nest = []
     for ring, is_cw in zip(ring_array, clockwise_sequence):
         if is_cw:
-            OGC_nest.append([ring])
+            OGC_nest.append([list(ring)])
         else:
-            OGC_nest[-1].append(ring)
+            OGC_nest[-1].append(list(ring))
     return OGC_nest
+
+def fix_rings(multipolygon):    
+    """
+    This resolves a multipolygon with invalid exterior/interior ring pairing. 
+
+    It does so by first sorting the exteriors by z-order (so that the exteriors 
+    contained by the most other exteriors are "higher" & get priority). Then, 
+    interiors are assigned to their highest containing exterior ring.
+
+    This ensures that the "most interior" interior rings are paired with the 
+    "most interior" external rings.
+
+    Requires shapely, may take a bit for shapes with many exteriors/interiors. 
+
+    Argument:
+    ---------
+    multipolygon: a shapely polygon. (should be invalid due to ring ordering)
+
+    Returns:
+    --------
+    multipolygon: a shapely polygon that should have valid ring ordering. 
+                  May be invalid due to other reasons.
+
+    NOTE: This function has undefined behavior for invalid multipolygons. 
+    """
+    from shapely import geometry as geom
+    from shapely.ops import cascaded_union
+    from shapely.validation import explain_validity
+    vexplain = explain_validity(multipolygon)
+    if "hole lies outside shell" not in vexplain.lower():
+        from shapely.geos import TopologicalError
+        raise TopologicalError('Shape is invalid for a different reason than'
+                               'hole outside of shell: \n{}'.format(vexplain))
+    exteriors = [geom.Polygon(part.exterior) for part in multipolygon.geoms]
+    interiors = [geom.Polygon(interior) for part in multipolygon.geoms for interior in part.interiors]
+    zorder = [sum([exterior.contains(other_exterior) for other_exterior in exteriors]) - 1
+                   for exterior in exteriors]
+    sort_zorder = np.argsort(zorder)
+    zordered_exteriors = np.asarray(exteriors)[sort_zorder]
+    polygons = [[exterior] for exterior in exteriors]
+    for i, exterior in enumerate(zordered_exteriors):
+        owns = [exterior.contains(interior) for interior in interiors]
+        owned_interiors = [interior for owned,interior in zip(owns, interiors)
+                           if owned]
+        polygons[i] = exterior.difference(cascaded_union(owned_interiors))
+        interiors = [interior for owned, interior in zip(owns, interiors)
+                     if not owned]
+    out = geom.MultiPolygon(polygons)
+    return geom.MultiPolygon(polygons)
