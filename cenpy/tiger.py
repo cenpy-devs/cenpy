@@ -1,6 +1,5 @@
 from six import iteritems as diter
 import requests as r
-import numpy as np
 import pandas as pd
 import copy
 
@@ -118,6 +117,9 @@ class ESRILayer(object):
                     shapes by default. Supports "shapely," which constructs shapely
                     shapes instead of pysal shape, and "geopandas," which packs shapely
                     shapes into a GeoPandas dataframe. 
+        strict  :   bool (default: True)
+                    whether to throw an error if invalid polygons are provided from the API (True)
+                    or just warn that at least one polygon is invalid (False)
         Returns
         =======
         Dataframe or GeoDataFrame containing entries from the geodatabase
@@ -135,6 +137,7 @@ class ESRILayer(object):
     #parse args
         pkg = kwargs.pop('pkg', 'pysal')
         gpize = kwargs.pop('gpize', False)
+        strict = kwargs.pop('strict', False)
         if pkg.lower() == 'geopandas':
             pkg = 'shapely'
             gpize = True
@@ -171,7 +174,7 @@ class ESRILayer(object):
             todf.append(locfeat['properties'])
             todf[i].update({'geometry':locfeat['geometry']})
         df = pd.DataFrame(todf)
-        outdf = gpsr.convert_geometries(df, pkg)
+        outdf = gpsr.convert_geometries(df, pkg, strict=strict)
         if gpize:
             try:
                 from geopandas import GeoDataFrame

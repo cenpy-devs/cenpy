@@ -44,7 +44,7 @@ def esriMultiPoint(egmpt):
                                   'hasZ':egmpt.pop('hasZ', False)})
     return feature
 
-def convert_geometries(df, pkg='pysal'):
+def convert_geometries(df, pkg='pysal', strict=False):
     first = df['geometry'].head(1).tolist()[0]
     if pkg.lower() == 'pysal':
         from pysal.cg.shapes import Chain, Point, asShape
@@ -69,7 +69,7 @@ def convert_geometries(df, pkg='pysal'):
             df['geometry'] = pd.Series([g.__dict__[e['type']](e) for e in df['geometry']])
         except:
             if 'Polygon' in first['type']:
-                df['geometry'] = pd.Series([parse_polygon_to_shapely(e)\
+                df['geometry'] = pd.Series([parse_polygon_to_shapely(e, strict=strict)\
                                             for e in df['geometry']])
             elif 'MultiLine' in first['type']:
                 df['geometry'] = pd.Series([g.MultiLineString(e['coordinates'])\
@@ -101,7 +101,7 @@ def parse_polygon_to_pysal(raw_feature):
         raise Exception('Unexpected Polygon kind {} provided to'
                         ' parse_polygon_to_pysal'.format(pgon_type)) 
 
-def parse_polygon_to_shapely(raw_feature):
+def parse_polygon_to_shapely(raw_feature, strict=False):
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
     from shapely.geometry import Polygon, MultiPolygon
     if pgon_type == 'Polygon':
@@ -114,7 +114,7 @@ def parse_polygon_to_shapely(raw_feature):
         out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:]) 
                                       for ring in ogc_nest])
         if not out.is_valid:
-            out = fix_rings(out)
+            out = fix_rings(out, strict=strict)
         return out
     else:
         raise Exception('Unexpected Polygon kind {} provided to'
@@ -165,7 +165,6 @@ def _get_polygon_type(raw_feature):
             if sum(clockwise_sequence) == len(clockwise_sequence): #all rings are clockwise (external)
                 return "MultiPolygon", ring_array
             else:
-
                 return "MultiPolygon with Holes", _parse_clockwise_sequence(ring_array, 
                                                                             clockwise_sequence) 
 
@@ -197,7 +196,7 @@ def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
             OGC_nest[-1].append(list(ring))
     return OGC_nest
 
-def fix_rings(multipolygon):    
+def fix_rings(multipolygon, strict=False):    
     """
     This resolves a multipolygon with invalid exterior/interior ring pairing. 
 
@@ -226,9 +225,14 @@ def fix_rings(multipolygon):
     from shapely.validation import explain_validity
     vexplain = explain_validity(multipolygon)
     if "hole lies outside shell" not in vexplain.lower():
-        from shapely.geos import TopologicalError
-        raise TopologicalError('Shape is invalid for a different reason than'
-                               'hole outside of shell: \n{}'.format(vexplain))
+        if strict:
+            from shapely.geos import TopologicalError
+            def tell_user(x):
+                raise TopologicalError(x)
+        else:
+            from warnings import warn as tell_user
+        tell_user('Shape is invalid for a different reason than'
+                  ' hole outside of shell: \n{}'.format(vexplain))
     exteriors = [geom.Polygon(part.exterior) for part in multipolygon.geoms]
     interiors = [geom.Polygon(interior) for part in multipolygon.geoms for interior in part.interiors]
     zorder = [sum([exterior.contains(other_exterior) for other_exterior in exteriors]) - 1
@@ -243,5 +247,4 @@ def fix_rings(multipolygon):
         polygons[i] = exterior.difference(cascaded_union(owned_interiors))
         interiors = [interior for owned, interior in zip(owns, interiors)
                      if not owned]
-    out = geom.MultiPolygon(polygons)
     return geom.MultiPolygon(polygons)
