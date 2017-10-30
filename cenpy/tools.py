@@ -1,4 +1,3 @@
-import itertools as it
 import pandas as pd
 import os
 import warnings as warn
@@ -154,6 +153,30 @@ def state_to_tract(stfips, cxn, *columns, wait=0):
         time.sleep(waitfunc())
     return pd.concat(out)
 
+def county_to_block(stfips, ctfips, cxn, *columns, wait=0):
+    """
+    Returns all blocks underneath a county
+
+    Arguments
+    ---------
+    stfips : int or string describing the state's fips code
+    ctfips : int or string describing the county's fips code
+    *columns: splatted list of columns to grab from the API
+
+    Returns
+    -------
+    dataframe containing the entries of columns for each block. 
+    """
+    if isinstance(wait, (int, float)):
+        waitfunc = lambda : wait
+    else:
+        waitfunc = wait
+    out = []
+    for cblock in gencounty_to_block(stfips, ctfips, cxn, *columns):
+        out.append(cblock)
+        time.sleep(waitfunc())
+    return pd.concat(out)
+
 def genstate_to_block(stfips, cxn, *columns):
     """
     Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. 
@@ -180,6 +203,31 @@ def genstate_to_block(stfips, cxn, *columns):
                            geo_filter={'state':stfips, 
                                        'county':county,
                                        'tract':tract})
+        yield blocks
+
+def gencounty_to_block(stfips, ctfips, cxn, *columns):
+    """
+    Generator to handle geo-in-geo queries without the user having to worry about wrangling the tracts
+    within a county.
+
+    Arguments
+    ---------
+    stfips : string
+             fips of the state
+    ctfips : string
+             fips of the county
+    cxn    : connection to use
+    *columns: splatted list of the columns to query, all strings
+
+    Returns
+    -------
+    a Generator that yields dataframes
+    """
+    start_filter = dict(state=str(stfips).rjust(2, '0'), county=str(ctfips).rjust(3, '0'))
+    tracts = cxn.query(['NAME'], geo_unit='tract', geo_filter=start_filter)
+    for tract in tracts:
+        start_filter.update(dict(tract=tract))
+        blocks = cxn.query(['NAME'] + list(columns), geo_unit = 'block', geo_filter = start_filter)
         yield blocks
 
 def genstate_to_blockgroup(stfips, cxn, *columns):
