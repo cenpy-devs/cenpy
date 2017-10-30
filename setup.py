@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='cenpy',
-        version='0.9.4',
+        version='0.9.5',
       description='Explore and download data from Census APIs',
       url='https://github.com/ljwolf/cenpy',
       author='Levi John Wolf',
