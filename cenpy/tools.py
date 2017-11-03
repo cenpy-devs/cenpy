@@ -225,7 +225,7 @@ def gencounty_to_block(stfips, ctfips, cxn, *columns):
     """
     start_filter = dict(state=str(stfips).rjust(2, '0'), county=str(ctfips).rjust(3, '0'))
     tracts = cxn.query(['NAME'], geo_unit='tract', geo_filter=start_filter)
-    for tract in tracts:
+    for tract in tracts.tract:
         start_filter.update(dict(tract=tract))
         blocks = cxn.query(['NAME'] + list(columns), geo_unit = 'block', geo_filter = start_filter)
         yield blocks
