@@ -31,6 +31,11 @@ class APIConnection():
             self.description = curr['description']
             self.cxn = unicode(curr['distribution'][0]['accessURL'] + '?')
             self.last_query = ''
+            if apikey == '':
+                from .tools import _load_sitekey
+                apikey = _load_sitekey()
+                if apikey is None:
+                    apikey = ''
             self.apikey = apikey
 
             self.__urls__ = {k.strip('c_')[:-4]:v for k,v in iteritems(curr) if k.endswith('Link')}
