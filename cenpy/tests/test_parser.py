@@ -1,8 +1,9 @@
 import geopandas as gpd
 import pandas as pd
-from unittest import TestCase, skip
+from unittest import TestCase, skip, main
 import os
 from ..geoparser import parse_polygon_to_shapely,parse_polygon_to_pysal
+from ..base import Connection
 
 DIRPATH = os.path.dirname(__file__)
 
@@ -13,6 +14,8 @@ class Geoparser_Test(TestCase):
         tests = pd.read_json(DIRPATH + '/tests.json')
         hard_tests = pd.read_json(DIRPATH + '/degenerate.json')
         self.all = answers.merge(tests, on='names').merge(hard_tests, on='names')
+        self.conn = Connection('DecennialSF12010')
+        self.conn.set_mapservice('tigerWMS_Census2010')
 
     def test_shapely_conversion(self):
         for i,row in self.all.iterrows():
@@ -53,3 +56,27 @@ class Geoparser_Test(TestCase):
                           for ring in allrings])
             self.assertTrue(testset.issubset(allset.union(revset)), 
                              msg="Conversion fails on test shape {}".format(name))
+
+    def test_pysal_polygon(self):
+        # Isla Vista CDP, Polygon
+        geodata = self.conn.mapservice.query(layer=36, where='PLACE=36868')
+        self.assertTrue(geodata.geometry[0].bounding_box.area == 13420796.462493595)
+
+
+    def test_pysal_multi_polygon(self):
+        # East Rancho Dominguez CDP, MultiPolygon
+        geodata = self.conn.mapservice.query(layer=36, where='PLACE=21034')
+        self.assertTrue(geodata.geometry[0].bounding_box.area == 7365857.43219969)
+
+    def test_pysal_holed_polygon(self):
+        # West Modesto CDP, Polygon with Holes
+        geodata = self.conn.mapservice.query(layer=36, where='PLACE=84578')
+        self.assertTrue(geodata.geometry[0].bounding_box.area == 17856420.28653357)
+
+    def test_pysal_holed_multi_polygon(self):
+        # East Porterville CDP, MultiPolygon with Holes
+        geodata = self.conn.mapservice.query(layer=36, where='PLACE=21012')
+        self.assertTrue(geodata.geometry[0].bounding_box.area == 28608693.697475493)
+
+if __name__ == '__main__':
+    main()
