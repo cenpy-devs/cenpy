@@ -66,9 +66,9 @@ class APIConnection():
                     self.identifier+ ')' + '\nWith MapServer: ' +
                     self.mapservice.title)
         else:
-            return str('Connection to ' + self.title + ' (ID: ' + 
+            return str('Connection to ' + self.title + ' (ID: ' +
                         self.identifier + ')')
-    
+
     def explain(self, *args, **kwargs):
         """
         Explain a column or list of columns.
@@ -76,9 +76,9 @@ class APIConnection():
         Parameters
         ============
         *args : list of names of columns in the variables dataframe that require
-                explanation" 
+                explanation"
         verbose : boolean denoting whether to grab both "label" and "concept"
-                from the variable dataframe. 
+                from the variable dataframe.
 
         Returns
         ==========
@@ -95,7 +95,7 @@ class APIConnection():
         except TypeError:
             raise TypeError("Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
 
-    def query(self, cols = [], geo_unit = 'us:00', geo_filter = {}, apikey = '', **kwargs):
+    def query(self, cols = [], geo_unit = '', geo_filter = {}, apikey = '', **kwargs):
         """
         Conduct a query over the USCB api connection
 
@@ -111,23 +111,26 @@ class APIConnection():
 
         Returns
         ========
-        pandas dataframe of results 
+        pandas dataframe of results
 
         Example
         ========
         To grab the total population of all of the census blocks in a part of Arizona:
-        
+
             >>> cxn.query('P0010001', geo_unit = 'block:*', geo_filter = {'state':'04','county':'019','tract':'001802'})
 
         Notes
         ======
 
         If your list of columns exceeds the maximum query length of 50,
-        the query will be broken up and concatenates back together at 
+        the query will be broken up and concatenates back together at
         the end. Sometimes, the USCB might frown on large-column queries,
         so be careful with this. Cenpy is not liable for your key getting
-        banned if you query tens of thousands of columns at once. 
+        banned if you query tens of thousands of columns at once.
         """
+
+        if not geo_unit and 'geo_unit' in self.variables.index:
+          geo_unit = 'us:00'
 
         if len(cols) >= 50:
             return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
@@ -136,18 +139,14 @@ class APIConnection():
 
         geo_unit = geo_unit.replace(' ', '+')
         geo_filter = {k.replace(' ', '+'):v for k,v in iteritems(geo_filter)}
-            
+
         self.last_query += 'get=' + ','.join(col for col in cols)
         convert_numeric = kwargs.pop('convert_numeric', True)
         index = kwargs.pop('index', '')
 
-        if isinstance(geo_unit, dict):
-            geo_unit = geo_unit.keys()[0].replace(' ', '+') + ':' + str(list(geo_unit.values())[0])
-        else:
-            geo_unit = geo_unit.replace(' ', '+')
-            
-        self.last_query += '&for=' + geo_unit
-        
+        if geo_unit:
+            self.last_query += '&for=' + geo_unit
+
 
         if geo_filter != {}:
             self.last_query += '&in='
@@ -157,9 +156,9 @@ class APIConnection():
             self.last_query += '&key=' + apikey
         elif self.apikey != '':
             self.last_query += '&key=' + self.apikey
-        
+
         if kwargs != {}:
-            self.last_query += ''.join(['&{k}={v}'.format(k=k,v=v) 
+            self.last_query += ''.join(['&{k}={v}'.format(k=k,v=v)
                                         for k,v in iteritems(kwargs)])
 
         res = r.get(self.last_query)
@@ -179,7 +178,7 @@ class APIConnection():
             else:
                 res.raise_for_status()
 
-    def _bigcolq(self, cols=[], geo_unit='us:00', geo_filter={}, apikey=None, **kwargs):
+    def _bigcolq(self, cols=[], geo_unit='', geo_filter={}, apikey=None, **kwargs):
         """
         Helper function to manage large queries
 
@@ -214,7 +213,7 @@ class APIConnection():
         regex is the default, the python regular expressions module has some
         strange behavior if you're used to VIM or Perl-like regex. It may be
         easier to use fnmatch if regex is not providing the results you expect.
-        
+
         If you want, you can also pass an engine that is a function. If so, this
         needs to be a function that has a signature like:
 
@@ -237,7 +236,7 @@ class APIConnection():
         if engine == 'regex':
             import re
             search = re.compile(pattern)
-            return [candidate for candidate in self.variables.index 
+            return [candidate for candidate in self.variables.index
                     if re.match(pattern, candidate)]
         elif engine == 're':
             self.colslike(pattern, engine='regexp')
@@ -248,7 +247,7 @@ class APIConnection():
             return [ix for ix in self.variables.index if engine(ix, pattern)]
         else:
             raise TypeError("Engine option is not supported or not callable.")
-        
+
     def set_mapservice(self, key):
         """
         Assign a mapservice to the connection instance
@@ -265,4 +264,4 @@ class APIConnection():
         if isinstance(key, tig.TigerConnection):
             self.mapservice = key
         elif isinstance(key, str):
-            self.mapservice = tig.TigerConnection(name=key) 
+            self.mapservice = tig.TigerConnection(name=key)
