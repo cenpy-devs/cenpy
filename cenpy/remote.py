@@ -168,7 +168,8 @@ class APIConnection():
         try:
             res = res.json()
             df = pd.DataFrame().from_records(res[1:], columns=res[0])
-            df[cols] = df[cols].convert_objects(convert_numeric=convert_numeric)
+            if convert_numeric:
+                df[cols] = df[cols].infer_objects()
             if index is not '':
                 df.index = df[index]
             return df
