@@ -89,10 +89,19 @@ def parse_polygon_to_pysal(raw_feature):
     """
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
     from pysal.cg import Polygon
-    if pgon_type in ('Polygon', 'MultiPolygon'):
-        return Polygon(ogc_nest)
+    if pgon_type == 'Polygon':
+        return Polygon([(c[0],c[1]) for c in ogc_nest])
+    elif pgon_type == 'MultiPolygon':
+        polygons = []
+        for p in ogc_nest:
+            polygons.append([(c[0],c[1]) for c in p])
+        return Polygon(polygons)
     elif pgon_type == 'Polygon with Holes':
-        return Polygon(ogc_nest[0], holes=ogc_nest[1:])
+        polygon = [(c[0],c[1]) for c in ogc_nest[0]]
+        holes = []
+        for hole in ogc_nest[1:]:
+            holes.append([(c[0],c[1]) for c in hole])
+        return Polygon(polygon, holes=holes)
     elif pgon_type == 'MultiPolygon with Holes':
         # return ogc_nest
         return Polygon(vertices = [ring[0] for ring in ogc_nest], 
