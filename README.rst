@@ -65,4 +65,4 @@ ToDo:
 -----
 
 -  [ ] Recursively search for incompletely-specified hierarchies
--  [ ] Build out commonly-used data resources (like specific ACS products or Decennials)
+-  [ ] Document commonly-used data resources (like `tract_to_block` in `cenpy.tools`).
