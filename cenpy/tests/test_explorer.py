@@ -1,6 +1,7 @@
 import unittest
 import cenpy
 from six import iteritems as diter
+import pandas
 import six
 
 if six.PY3:
@@ -13,7 +14,7 @@ class TestExplorer(unittest.TestCase):
     This tests the explorer module
     """
     def setUp(self):
-        self.av = cenpy.explorer.available()
+        self.av = cenpy.explorer.available(verbose=False)
         self.avv = cenpy.explorer.available(verbose=True)
     
     def test_available(self):
@@ -22,13 +23,9 @@ class TestExplorer(unittest.TestCase):
         for name in self.av:
             self.assertIsInstance(name, testtype)
         
-        self.assertIsInstance(self.avv, dict)
+        self.assertIsInstance(self.avv, pandas.DataFrame)
         self.assertNotEqual(len(self.avv), 0)
-        for k,v in diter(self.avv):
-            self.assertIsInstance(k, testtype)
-            self.assertNotEqual(len(k), 0) 
-            self.assertIsInstance(v, testtype)
-            self.assertNotEqual(len(v), 0)
+        self.assertEqual(self.avv.columns[0].lower(), 'title')
 
     def test_explain(self):
         explaintext = cenpy.explorer.explain(self.av[0])
