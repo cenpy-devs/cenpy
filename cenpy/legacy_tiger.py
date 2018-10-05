@@ -188,7 +188,9 @@ class FTPConnection(object):
         # Cleanup
 
         shp_ds.Destroy()
+        shp_ds = None
         ds.Destroy()
+        ds = None
 
         # build a fully-qualified fips code and dissolve on it to create tract geographies
         gdf = gpd.read_file(outfile)
@@ -207,7 +209,7 @@ class FTPConnection(object):
         gdf = gdf.dissolve(by='fips')
         gdf.reset_index(inplace=True)
 
-        gdf.to_file(outfile)
+        shp_driver.DeleteDataSource(outfile)
 
         return gdf
 
