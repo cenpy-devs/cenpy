@@ -4,6 +4,11 @@ import warnings as warn
 import time
 from .explorer import fips_table as _ft
 from requests import HTTPError
+try:
+    from tqdm import tqdm
+except ImportError:
+    def tqdm(arg, **kwargs):
+        return arg
 _state_fipscodes = _ft('state')['FIPS Code']
 _state_fipscodes = [str(f).rjust(2, '0') for f in _state_fipscodes if f < 60] 
 
@@ -39,7 +44,8 @@ def national_to_block(cxn, *columns, wait_by_state=0,
     else:
         waitfunc = wait_by_state
     outs = []
-    for fp in _state_fipscodes:
+    for fp in tqdm(_state_fipscodes):
+        print(fp)
         try:
             outs.append(state_to_block(fp, cxn, *columns, 
                                        wait=wait_by_county))
@@ -198,7 +204,7 @@ def genstate_to_block(stfips, cxn, *columns):
     ctracts = ((county, tract) for county in counties 
                 for tract in cxn.query(['NAME'], geo_unit='tract', 
                                        geo_filter={'state':stfips, 'county':county}).tract)
-    for county,tract in ctracts:
+    for county,tract in tqdm(ctracts):
         blocks = cxn.query(['NAME'] + list(columns), geo_unit='block', 
                            geo_filter={'state':stfips, 
                                        'county':county,
@@ -225,7 +231,7 @@ def gencounty_to_block(stfips, ctfips, cxn, *columns):
     """
     start_filter = dict(state=str(stfips).rjust(2, '0'), county=str(ctfips).rjust(3, '0'))
     tracts = cxn.query(['NAME'], geo_unit='tract', geo_filter=start_filter)
-    for tract in tracts.tract:
+    for tract in tqdm(tracts.tract):
         start_filter.update(dict(tract=tract))
         blocks = cxn.query(['NAME'] + list(columns), geo_unit = 'block', geo_filter = start_filter)
         yield blocks
@@ -251,7 +257,7 @@ def genstate_to_blockgroup(stfips, cxn, *columns):
     ctracts = ((county, tract) for county in counties 
                 for tract in cxn.query(['NAME'], geo_unit='tract', 
                                        geo_filter={'state':stfips, 'county':county}).tract)
-    for county,tract in ctracts:
+    for county,tract in tqdm(ctracts):
         blockgroups = cxn.query(['NAME'] + list(columns), geo_unit='blockgroup', 
                            geo_filter={'state':stfips, 
                                        'county':county,
@@ -276,7 +282,7 @@ def genstate_to_tract(stfips, cxn, *columns):
     """
     counties = cxn.query(['NAME'], geo_unit='county', geo_filter={'state':stfips})
     counties = counties.county.tolist()
-    for county in counties:
+    for county in tqdm(counties):
         tract = cxn.query(['NAME'] + list(columns), geo_unit='tract', 
                            geo_filter={'state':stfips, 
                                        'county':county})

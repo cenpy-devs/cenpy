@@ -10,8 +10,9 @@ from six import iteritems, PY3
 if PY3:
     unicode = str
 
+
 class APIConnection():
-    def __init__(self, api_name = None, apikey=''):
+    def __init__(self, api_name=None, apikey=''):
         """
         Constructor for a Connection object
 
@@ -38,36 +39,41 @@ class APIConnection():
                     apikey = ''
             self.apikey = apikey
 
-            self.__urls__ = {k.strip('c_')[:-4]:v for k,v in iteritems(curr) if k.endswith('Link')}
+            self.__urls__ = {
+                k.strip('c_')[:-4]: v for k, v in iteritems(curr) if k.endswith('Link')}
 
             if 'documentation' in self.__urls__.keys():
                 self.doclink = self.__urls__['documentation']
             if 'variables' in self.__urls__.keys():
                 v = pd.DataFrame()
-                self.variables = v.from_dict(r.get(self.__urls__['variables']).json()['variables']).T
+                self.variables = v.from_dict(
+                    r.get(self.__urls__['variables']).json()['variables']).T
             if 'geography' in self.__urls__.keys():
                 res = r.get(self.__urls__['geography']).json()
-                self.geographies = {k:pd.DataFrame().from_dict(v) for k,v \
-                                                        in iteritems(res)}
+                self.geographies = {k: pd.DataFrame().from_dict(v) for k, v
+                                    in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                self.tags = list(r.get(self.__urls__['tags']).json().values())[0]
+                self.tags = list(
+                    r.get(self.__urls__['tags']).json().values())[0]
 
             if 'examples' in self.__urls__.keys():
                 self.example_entries = r.get(self.__urls__['examples']).json()
 
         elif 'eits' in api_name:
-            raise NotImplementedError('EITS datasets are not supported at this time')
+            raise NotImplementedError(
+                'EITS datasets are not supported at this time')
         else:
-            raise ValueError('Pick dataset identifier using the cenpy.explorer.available() function')
+            raise ValueError(
+                'Pick dataset identifier using the cenpy.explorer.available() function')
 
     def __repr__(self):
         if hasattr(self, 'mapservice'):
             return str('Connection to ' + self.title + '(ID: ' +
-                    self.identifier+ ')' + '\nWith MapServer: ' +
-                    self.mapservice.title)
+                       self.identifier + ')' + '\nWith MapServer: ' +
+                       self.mapservice.title)
         else:
             return str('Connection to ' + self.title + ' (ID: ' +
-                        self.identifier + ')')
+                       self.identifier + ')')
 
     def explain(self, *args, **kwargs):
         """
@@ -91,11 +97,12 @@ class APIConnection():
         if isinstance(args[0], list) and len(args) == 1:
             args = args[0]
         try:
-            return {arg :self.variables.ix[arg][grab].values[0] for arg in args}
+            return {arg: self.variables.ix[arg][grab].values[0] for arg in args}
         except TypeError:
-            raise TypeError("Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
+            raise TypeError(
+                "Cannot flatten your search into one list. Please consolidate search terms into one list, or provide each term as a separate argument.")
 
-    def query(self, cols = [], geo_unit = '', geo_filter = {}, apikey = '', **kwargs):
+    def query(self, cols=None, geo_unit='', geo_filter={}, apikey='', **kwargs):
         """
         Conduct a query over the USCB api connection
 
@@ -128,17 +135,15 @@ class APIConnection():
         so be careful with this. Cenpy is not liable for your key getting
         banned if you query tens of thousands of columns at once.
         """
+        assert (not (cols is None)), 'Columns must be provided for query!'
 
         if not geo_unit and 'geo_unit' in self.variables.index:
-          geo_unit = 'us:00'
+            geo_unit = 'us:00'
 
         if len(cols) >= 50:
             return self._bigcolq(cols, geo_unit, geo_filter, apikey, **kwargs)
 
         self.last_query = self.cxn
-
-        geo_unit = geo_unit.replace(' ', '+')
-        geo_filter = {k.replace(' ', '+'):v for k,v in iteritems(geo_filter)}
 
         self.last_query += 'get=' + ','.join(col for col in cols)
         convert_numeric = kwargs.pop('convert_numeric', True)
@@ -147,10 +152,10 @@ class APIConnection():
         if geo_unit:
             self.last_query += '&for=' + geo_unit
 
-
         if geo_filter != {}:
             self.last_query += '&in='
-            self.last_query += '+'.join([':'.join(kvpair) for kvpair in iteritems(geo_filter)])
+            self.last_query += '+'.join([':'.join(kvpair)
+                                         for kvpair in iteritems(geo_filter)])
 
         if apikey != '':
             self.last_query += '&key=' + apikey
@@ -158,28 +163,34 @@ class APIConnection():
             self.last_query += '&key=' + self.apikey
 
         if kwargs != {}:
-            self.last_query += ''.join(['&{k}={v}'.format(k=k,v=v)
-                                        for k,v in iteritems(kwargs)])
+            self.last_query += ''.join(['&{k}={v}'.format(k=k, v=v)
+                                        for k, v in iteritems(kwargs)])
 
         res = r.get(self.last_query)
         res.raise_for_status()
         if res.status_code == 204:
-            raise r.HTTPError(str(res.status_code) + ' error: no records matched your query')
+            raise r.HTTPError(str(res.status_code) +
+                              ' error: no records matched your query')
         try:
-            res = res.json()
-            df = pd.DataFrame().from_records(res[1:], columns=res[0])
+            json_content = res.json()
+            df = pd.DataFrame().from_records(json_content[1:],
+                                             columns=json_content[0])
+            assert all([col in df.columns for col in cols])
             if convert_numeric:
-                df[cols] = df[cols].infer_objects()
+                df = df.infer_objects()
             if index is not '':
                 df.index = df[index]
             return df
         except (ValueError, JSONDecodeError):
             if res.status_code == 400:
-                raise r.HTTPError(str(res.status_code) + ' ' + [l for l in res.iter_lines()][0])
+                raise r.HTTPError(str(res.status_code) + ' ' +
+                                  [l for l in res.iter_lines()][0])
             else:
+                raise Exception(
+                    'A Valid http query passed through but failed to parse!')
                 res.raise_for_status()
 
-    def _bigcolq(self, cols=[], geo_unit='', geo_filter={}, apikey=None, **kwargs):
+    def _bigcolq(self, cols=None, geo_unit='', geo_filter={}, apikey=None, **kwargs):
         """
         Helper function to manage large queries
 
@@ -187,6 +198,7 @@ class APIConnection():
         ===========
         cols : large list of columns to be grabbed in a query
         """
+        assert (not (cols is None)), 'Columns must be provided for query!'
         if len(cols) < 50:
             print('tiny query!')
             return self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
@@ -194,7 +206,8 @@ class APIConnection():
             result = pd.DataFrame()
             chunks = np.array_split(cols, math.ceil(len(cols) / 49.))
             for chunk in chunks:
-                tdf = self.query(chunk, geo_unit, geo_filter, apikey, **kwargs)
+                tdf = self.query(list(chunk), geo_unit,
+                                 geo_filter, apikey, **kwargs)
                 noreps = [x for x in tdf.columns if x not in result.columns]
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
