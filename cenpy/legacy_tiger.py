@@ -10,12 +10,16 @@ import tempfile
 
 
 class FTPConnection(object):
-
     def __init__(self, year, statenum, stateabbr, county):
 
-        url = {2000: 'ftp://ftp2.census.gov/geo/tiger/TIGER2003/{statenum}_{stateabbr}/tgr{statenum}{county}.zip' .format(statenum=statenum, stateabbr=stateabbr, county=county),
-               1990: 'ftp://ftp2.census.gov/geo/tiger/TIGER1992/{statenum}/{statenum}{county}.zip' .format(statenum=statenum, stateabbr=stateabbr, county=county)
-               }
+        url = {
+            2000:
+            'https://www2.census.gov/geo/tiger/TIGER2003/{statenum}_{stateabbr}/tgr{statenum}{county}.zip'.
+            format(statenum=statenum, stateabbr=stateabbr, county=county),
+            1990:
+            'https://www2.census.gov/geo/tiger/TIGER1992/{statenum}/{statenum}{county}.zip'.
+            format(statenum=statenum, stateabbr=stateabbr, county=county)
+        }
 
         self.url = url[year]
         self.statenum = statenum
@@ -27,10 +31,10 @@ class FTPConnection(object):
         # Modified from original at
         # https://svn.osgeo.org/gdal/tags/1.4.3/gdal/pymod/samples/tigerpoly.py
 
-        class Module:
-            def __init__(self):
-                self.lines = {}
-                self.poly_line_links = {}
+        class Module(object):
+            def __init__(mod):
+                mod.lines = {}
+                mod.poly_line_links = {}
 
         outfile = 'tracts.shp'
 
@@ -46,7 +50,8 @@ class FTPConnection(object):
         shp_driver.DeleteDataSource(outfile)
 
         shp_ds = shp_driver.CreateDataSource(outfile)
-        shp_layer = shp_ds.CreateLayer('out', geom_type=ogr.wkbPolygon, srs=nad83)
+        shp_layer = shp_ds.CreateLayer(
+            'out', geom_type=ogr.wkbPolygon, srs=nad83)
 
         src_defn = poly_layer.GetLayerDefn()
         poly_field_count = src_defn.GetFieldCount()
@@ -183,8 +188,6 @@ class FTPConnection(object):
         if degenerate_count:
             warn('Discarded %d degenerate polygons.' % degenerate_count)
 
-        print('Built %d polygons.' % poly_count)
-
         # Cleanup
 
         shp_ds.Destroy()
@@ -220,10 +223,12 @@ class FTPConnection(object):
                 shutil.copyfileobj(response, tmp_file)
                 with tempfile.TemporaryDirectory() as tempdir:
                     ZipFile(tmp_file, 'r').extractall(tempdir)
-                    fn = os.path.join(tempdir,"TGR{statenum}{county}" .format(statenum=self.statenum, county=self.county))
-                    if os.path.exists(fn+".RTA"):
-                        tracts = self._tiger_to_tract(fn+".RTA")
+                    fn = os.path.join(
+                        tempdir, "TGR{statenum}{county}".format(
+                            statenum=self.statenum, county=self.county))
+                    if os.path.exists(fn + ".RTA"):
+                        tracts = self._tiger_to_tract(fn + ".RTA")
                     else:
-                        tracts = self._tiger_to_tract(fn+".F5A")
+                        tracts = self._tiger_to_tract(fn + ".F5A")
 
         return tracts
