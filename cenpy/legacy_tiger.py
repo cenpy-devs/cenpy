@@ -203,11 +203,9 @@ class FTPConnection(object):
         gdf['COUNTY'] = gdf['COUNTY'].astype(str).str.rjust(3, "0")
         gdf['TRACT'] = gdf['TRACT'].astype(str).str.rjust(6, "0")
         gdf['BLOCK'] = gdf['BLOCK'].astype(str).str.rjust(4, "0")
-
+        gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT
         if self.geom == 'block':
-            gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT + gdf.BLOCK
-        else:
-            gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT
+            gdf['fips'] += gdf.BLOCK
 
         gdf = gdf.dropna(subset=['fips'])
         gdf.geometry = gdf.buffer(0)
