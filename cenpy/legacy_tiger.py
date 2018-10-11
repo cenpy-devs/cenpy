@@ -10,7 +10,7 @@ import tempfile
 
 
 class FTPConnection(object):
-    def __init__(self, year, statenum, stateabbr, county):
+    def __init__(self, year, statenum, stateabbr, county, geom='tract'):
 
         url = {
             2000:
@@ -25,11 +25,13 @@ class FTPConnection(object):
         self.statenum = statenum
         self.stateabbr = stateabbr
         self.county = county
+        self.geom = geom
 
     def _tiger_to_tract(self, infile):
-
-        # Modified from original at
-        # https://svn.osgeo.org/gdal/tags/1.4.3/gdal/pymod/samples/tigerpoly.py
+        """ Converts collection of Census Tiger files into a geopandas.GeoDataFrame of census tracts
+            Modified from original at
+            https://svn.osgeo.org/gdal/tags/1.4.3/gdal/pymod/samples/tigerpoly.py
+        """
 
         class Module(object):
             def __init__(mod):
@@ -140,7 +142,6 @@ class FTPConnection(object):
         tile_ref_field = feat.GetFieldIndex('MODULE')
         polyid_field = feat.GetFieldIndex('POLYID')
 
-        poly_count = 0
         degenerate_count = 0
 
         while feat is not None:
@@ -164,9 +165,6 @@ class FTPConnection(object):
                     feat = poly_layer.GetNextFeature()
                     continue
 
-                # print poly.ExportToWkt()
-                # feat.SetGeometryDirectly( poly )
-
                 feat2 = ogr.Feature(feature_def=shp_layer.GetLayerDefn())
 
                 for fld_index in range(poly_field_count):
@@ -177,7 +175,6 @@ class FTPConnection(object):
                 shp_layer.CreateFeature(feat2)
                 feat2.Destroy()
 
-                poly_count = poly_count + 1
             except:
                 warn('BuildPolygonFromEdges failed.')
 
@@ -200,12 +197,17 @@ class FTPConnection(object):
 
         if "CTBNA90" in gdf.columns:
 
-            gdf = gdf.rename(columns={"CTBNA90": 'TRACT'})
+            gdf = gdf.rename(columns={"CTBNA90": 'TRACT', "BLK90": "BLOCK"})
 
         gdf['STATE'] = gdf['STATE'].astype(str).str.rjust(2, "0")
         gdf['COUNTY'] = gdf['COUNTY'].astype(str).str.rjust(3, "0")
-        gdf['TRACT'] = gdf['TRACT'].astype(str).str.rjust(4, "0")
-        gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT + '00'
+        gdf['TRACT'] = gdf['TRACT'].astype(str).str.rjust(6, "0")
+        gdf['BLOCK'] = gdf['BLOCK'].astype(str).str.rjust(4, "0")
+
+        if self.geom == 'block':
+            gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT + gdf.BLOCK
+        else:
+            gdf['fips'] = gdf.STATE + gdf.COUNTY + gdf.TRACT
 
         gdf = gdf.dropna(subset=['fips'])
         gdf.geometry = gdf.buffer(0)
