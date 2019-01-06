@@ -167,7 +167,6 @@ class APIConnection():
                                         for k, v in iteritems(kwargs)])
 
         res = r.get(self.last_query)
-        res.raise_for_status()
         if res.status_code == 204:
             raise r.HTTPError(str(res.status_code) +
                               ' error: no records matched your query')
