@@ -1,8 +1,8 @@
 from setuptools import setup
-
+import os
 
 basepath = os.path.dirname(__file__)
-init = os.path.join(basepath, 'spenc/__init__.py')
+init = os.path.join(basepath, 'cenpy/__init__.py')
 
 with open(init, 'r') as initfile:
     firstline = initfile.readline()
