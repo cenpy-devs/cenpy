@@ -1,5 +1,12 @@
 from setuptools import setup
 
+
+basepath = os.path.dirname(__file__)
+init = os.path.join(basepath, 'spenc/__init__.py')
+
+with open(init, 'r') as initfile:
+    firstline = initfile.readline()
+init_version = firstline.split('=')[-1].strip()
 setup(name='cenpy',
       version='0.9.9',
       description='Explore and download data from Census APIs',
