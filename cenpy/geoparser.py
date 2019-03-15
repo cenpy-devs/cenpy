@@ -82,9 +82,9 @@ def convert_geometries(df, pkg='shapely', strict=False):
                                             for e in df['geometry']])
             elif 'Point' in first['type']:
                 df['geometry'] = pd.Series([g.Point(e['coordinates'][0])\
+                                            for e in df['geometry']])
             else:
                 raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
-                                            for e in df['geometry']])
     return df
 
 def parse_polygon_to_pysal(raw_feature):
