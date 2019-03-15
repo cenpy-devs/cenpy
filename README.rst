@@ -2,6 +2,10 @@ CenPy
 =====
 .. image:: https://travis-ci.org/ljwolf/cenpy.svg?branch=master
     :target: https://travis-ci.org/ljwolf/cenpy
+.. image:: https://img.shields.io/pypi/dm/cenpy.svg
+    :target: https://pypi.org/project/cenpy/
+.. image:: https://zenodo.org/badge/36956226.svg
+    :target: https://zenodo.org/badge/latestdoi/36956226
 
 An interface to explore and query the US Census API and return Pandas
 Dataframes. Ideally, this package is intended for exploratory data
