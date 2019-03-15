@@ -53,8 +53,7 @@ that you'll have to specify for the query to work.
 
 The structure of the query function maps to the Census API's use of
 ``get``, ``for``, and ``in``. The main arguments for the query function
-are ``cols``, ``geo_unit`` and ``geo_filter``, and map backwards to
-those predicates, respectively. If more predicates are required for the
+are ``cols``, ``geo_unit`` and ``geo_filter``, and map back to those predicates, respectively. If more predicates are required for the
 search, they can be added as keyword arguments at the end of the query.
 
 The ``cols`` argument must be a list of columns to retrieve from the
