@@ -16,6 +16,6 @@ setup(name='cenpy',
       license='3-Clause BSD',
       python_requires='>=3.5',
       packages=['cenpy'],
-      install_requires=['pandas', 'requests', 'pysal'],
+      install_requires=['pandas', 'requests', 'libpysal'],
       package_data={'cenpy': ['stfipstable.csv']},
       zip_safe=False)
