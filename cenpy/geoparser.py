@@ -44,10 +44,11 @@ def esriMultiPoint(egmpt):
                                   'hasZ':egmpt.pop('hasZ', False)})
     return feature
 
-def convert_geometries(df, pkg='pysal', strict=False):
+def convert_geometries(df, pkg='shapely', strict=False):
     first = df['geometry'].head(1).tolist()[0]
     if pkg.lower() == 'pysal':
-        from pysal.cg.shapes import Chain, Point, asShape
+        warnings.warn('The PySAL geometry backend is deprecated.', DeprecationWarning)
+        from libpysal.cg.shapes import Chain, Point, asShape
         try:
             df['geometry'] = pd.Series([asShape(e) for e in df['geometry']])
         except:
@@ -63,7 +64,9 @@ def convert_geometries(df, pkg='pysal', strict=False):
             elif 'Point' in first['type']:
                 df['geometry'] = pd.Series([Point(e['coordinates'][0])\
                                             for e in df['geometry']])
-    elif pkg.lower() == 'shapely':
+            else:
+                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
+    else:
         from shapely import geometry as g
         try:
             df['geometry'] = pd.Series([g.__dict__[e['type']](e) for e in df['geometry']])
@@ -79,16 +82,17 @@ def convert_geometries(df, pkg='pysal', strict=False):
                                             for e in df['geometry']])
             elif 'Point' in first['type']:
                 df['geometry'] = pd.Series([g.Point(e['coordinates'][0])\
+            else:
+                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
                                             for e in df['geometry']])
     return df
 
-from pysal.cg import is_clockwise as _is_cw
 def parse_polygon_to_pysal(raw_feature):
     """
     get an OGC polygon from an input ESRI ring array.
     """
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
-    from pysal.cg import Polygon
+    from libpysal.cg import Polygon, is_clockwise as _is_cw
     if pgon_type == 'Polygon':
         return Polygon([(c[0],c[1]) for c in ogc_nest])
     elif pgon_type == 'MultiPolygon':

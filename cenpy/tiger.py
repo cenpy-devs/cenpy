@@ -112,11 +112,12 @@ class ESRILayer(object):
                      whether to return z components of shp-z
         return_m: bool, (default: False)
                      whether to return m components of shp-m
-        pkg     :   str (default: 'pysal')
-                    what geometry type to provide in the results of the query. Uses PySAL
-                    shapes by default. Supports "shapely," which constructs shapely
-                    shapes instead of pysal shape, and "geopandas," which packs shapely
-                    shapes into a GeoPandas dataframe. 
+        pkg     :   str (default: 'geopandas')
+                    what geometry type to provide in the results of the query. Uses shapely
+                    shapes by default. Supports "pysal," which constructs a pandas dataframe
+                    with pysal shapes in a geometry column; 'shapely', which builds a pandas
+                    dataframe with shapely shapes in a geometry column, and "geopandas,"
+                    which returns a geopandas GeoDataFrame.
         strict  :   bool (default: True)
                     whether to throw an error if invalid polygons are provided from the API (True)
                     or just warn that at least one polygon is invalid (False)
@@ -135,7 +136,7 @@ class ESRILayer(object):
         overall. 
         """
     #parse args
-        pkg = kwargs.pop('pkg', 'pysal')
+        pkg = kwargs.pop('pkg', 'geopandas')
         gpize = kwargs.pop('gpize', False)
         strict = kwargs.pop('strict', False)
         if pkg.lower() == 'geopandas':
