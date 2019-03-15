@@ -68,5 +68,8 @@ Arizona, you specify ``geo_unit = 'county:*'`` and ``geo_filter =
 ToDo:
 -----
 
--  [ ] Recursively search for incompletely-specified hierarchies
--  [ ] Document commonly-used data resources (like `tract_to_block` in `cenpy.tools`).
+-  [ ] Recursively search for incompletely-specified hierarchies (partially implemented in `cenpy.tools`)
+-  [ ] Write dedicated wrappers for commonly-used data products, such as
+    - ACS
+    - Decennial censuses (2010,2000,1990)
+    - County Business Statistics
