@@ -185,7 +185,7 @@ class ESRILayer(object):
         crs = datadict.pop('spatialReference', None)
         if crs is not None:
             crs = crs.get('latestWkid', crs.get('wkid'))
-            crs = dict('init':'epsg:{}'.format(crs))
+            crs = dict(init='epsg:{}'.format(crs))
         outdf.crs = crs 
         return outdf
             
