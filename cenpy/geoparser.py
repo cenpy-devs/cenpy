@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from libpysal.cg import is_clockwise as _is_cw
 
 def esriGeometryPolygon(egpoly):
     feature = {'type':'Feature'}
@@ -82,9 +83,9 @@ def convert_geometries(df, pkg='shapely', strict=False):
                                             for e in df['geometry']])
             elif 'Point' in first['type']:
                 df['geometry'] = pd.Series([g.Point(e['coordinates'][0])\
+                                            for e in df['geometry']])
             else:
                 raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
-                                            for e in df['geometry']])
     return df
 
 def parse_polygon_to_pysal(raw_feature):
@@ -92,7 +93,7 @@ def parse_polygon_to_pysal(raw_feature):
     get an OGC polygon from an input ESRI ring array.
     """
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
-    from libpysal.cg import Polygon, is_clockwise as _is_cw
+    from libpysal.cg import Polygon 
     if pgon_type == 'Polygon':
         return Polygon([(c[0],c[1]) for c in ogc_nest])
     elif pgon_type == 'MultiPolygon':

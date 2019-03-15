@@ -1,5 +1,6 @@
 import geopandas as gpd
 import pandas as pd
+import numpy
 from unittest import TestCase, skip, main
 import os
 from ..geoparser import parse_polygon_to_shapely,parse_polygon_to_pysal
@@ -14,7 +15,7 @@ class Geoparser_Test(TestCase):
         tests = pd.read_json(DIRPATH + '/tests.json')
         hard_tests = pd.read_json(DIRPATH + '/degenerate.json')
         self.all = answers.merge(tests, on='names').merge(hard_tests, on='names')
-        self.conn = Connection('DecennialSF12010')
+        self.conn = Connection('DECENNIALSF12010')
         self.conn.set_mapservice('tigerWMS_Census2010')
 
     def test_shapely_conversion(self):
@@ -60,23 +61,34 @@ class Geoparser_Test(TestCase):
     def test_pysal_polygon(self):
         # Isla Vista CDP, Polygon
         geodata = self.conn.mapservice.query(layer=36, where='PLACE=36868')
-        self.assertTrue(geodata.geometry[0].bounding_box.area == 13420796.462493595)
-
+        numpy.testing.assert_allclose(geodata.total_bounds, numpy.array([-13345123.4905,
+                                                                         4083187.9895,
+                                                                         -13340209.9595,
+                                                                         4085919.385 ]))
 
     def test_pysal_multi_polygon(self):
         # East Rancho Dominguez CDP, MultiPolygon
         geodata = self.conn.mapservice.query(layer=36, where='PLACE=21034')
-        self.assertTrue(geodata.geometry[0].bounding_box.area == 7365857.43219969)
+        numpy.testing.assert_allclose(geodata.total_bounds, numpy.array([-13158648.204 ,
+                                                                         4012917.1367,
+                                                                         -13156433.948 ,
+                                                                         4016243.6976]))
 
     def test_pysal_holed_polygon(self):
         # West Modesto CDP, Polygon with Holes
         geodata = self.conn.mapservice.query(layer=36, where='PLACE=84578')
-        self.assertTrue(geodata.geometry[0].bounding_box.area == 17856420.28653357)
+        numpy.testing.assert_allclose(geodata.total_bounds, numpy.array([-13476102.0034,
+                                                                         4523871.6742,
+                                                                         -13471164.8727,
+                                                                         4527488.4349]))
 
     def test_pysal_holed_multi_polygon(self):
         # East Porterville CDP, MultiPolygon with Holes
         geodata = self.conn.mapservice.query(layer=36, where='PLACE=21012')
-        self.assertTrue(geodata.geometry[0].bounding_box.area == 28608693.697475493)
+        numpy.testing.assert_allclose(geodata.total_bounds, numpy.array([-13247907.9566,
+                                                                         4307142.6093,
+                                                                         -13238473.741 ,
+                                                                         4310175.0494]))
 
 if __name__ == '__main__':
     main()

@@ -149,6 +149,7 @@ def fips_table(kind, in_state = ''):
 
     print('reading {}'.format(qurl))
     if kind in ['PLACE', 'VTD']:
-        return pd.read_table(qurl, sep='|', header=None) #thanks uscb :)
+        sep = '|'
     else:
-       return pd.read_csv(qurl, header=None)
+        sep = ','
+    return pd.read_csv(qurl, sep = sep, header=None)
