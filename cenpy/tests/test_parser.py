@@ -14,7 +14,7 @@ class Geoparser_Test(TestCase):
         tests = pd.read_json(DIRPATH + '/tests.json')
         hard_tests = pd.read_json(DIRPATH + '/degenerate.json')
         self.all = answers.merge(tests, on='names').merge(hard_tests, on='names')
-        self.conn = Connection('DecennialSF12010')
+        self.conn = Connection('DECENNIALSF12010')
         self.conn.set_mapservice('tigerWMS_Census2010')
 
     def test_shapely_conversion(self):
