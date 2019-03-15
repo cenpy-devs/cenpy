@@ -22,7 +22,7 @@ install:
     - python setup.py install
 
 script:
-    - python -c 'import cenpy; print(cenpy._version)'
+    - python -c 'import cenpy; print(cenpy.__version__)'
     - python setup.py sdist > /dev/null
     - nosetests cenpy/
  
