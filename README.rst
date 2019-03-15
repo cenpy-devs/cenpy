@@ -39,7 +39,7 @@ Once done, importing ``cenpy`` will provide the ``explorer`` and
 
 ::
 
-    cxn = cenpy.base.Connection('2010sf1')
+    cxn = cenpy.base.Connection('DECENNIALSF12010')
 
 Check the variables required and geographies supported:
 
