@@ -168,8 +168,8 @@ class APIConnection():
 
         res = r.get(self.last_query)
         if res.status_code == 204:
-            raise r.HTTPError(str(res.status_code) +
-                              ' error: no records matched your query')
+            raise r.HTTPError(' '.join(str(res.status_code),
+                                       'error: no records matched your query'))
         try:
             json_content = res.json()
             df = pd.DataFrame().from_records(json_content[1:],
@@ -182,8 +182,9 @@ class APIConnection():
             return df
         except (ValueError, JSONDecodeError):
             if res.status_code == 400:
-                raise r.HTTPError(str(res.status_code) + ' ' +
-                                  [l for l in res.iter_lines()][0])
+                raise r.HTTPError('400 '
+                                  + '\n'.join(map(lambda x: x.decode(),
+                                                  res.iter_lines())))
             else:
                 raise Exception(
                     'A Valid http query passed through but failed to parse!')
@@ -278,3 +279,4 @@ class APIConnection():
             self.mapservice = key
         elif isinstance(key, str):
             self.mapservice = tig.TigerConnection(name=key)
+        return self
