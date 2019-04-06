@@ -91,7 +91,7 @@ class ESRILayer(object):
         except:
             return ''
 
-    def query(self, strict=False, **kwargs):
+    def query(self, raw=False, strict=False, **kwargs):
         """
         A query function to extract data out of MapServer layers. I've exposed
         every option here 
@@ -120,6 +120,8 @@ class ESRILayer(object):
         strict  :   bool (default: True)
                     whether to throw an error if invalid polygons are provided from the API (True)
                     or just warn that at least one polygon is invalid (False)
+        raw : bool (default: False)
+              whether to provide the raw geometries from the API
         Returns
         =======
         Dataframe or GeoDataFrame containing entries from the geodatabase
@@ -151,6 +153,8 @@ class ESRILayer(object):
         resp = r.get(self._last_query + '&f=json')
         resp.raise_for_status()
         datadict = resp.json()
+        if raw:
+            return datadict
     # convert to output format
         try:
             features = datadict['features']
