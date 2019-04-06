@@ -32,7 +32,7 @@ def available(verbose=True):
     av_apis = [api for api in APIs.keys() if 'eits' not in api]
     av_apis = [api for api in av_apis if APIs[api]['distribution'][0]['format'] == 'API']
     if verbose:
-        return _parse_results_table_from_response(raw_APIs)
+        return _parse_results_table_from_response(raw_APIs).sort_index()
     else:
         return av_apis
 
