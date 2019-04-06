@@ -214,6 +214,3 @@ class TigerConnection(object):
         if layer_idx is None:
             raise Exception('No layer selected.')
         return self.layers[layer_idx].query(**kwargs)
-
-class FTPConnection(object):
-    ...
