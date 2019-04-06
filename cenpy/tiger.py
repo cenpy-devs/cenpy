@@ -91,7 +91,7 @@ class ESRILayer(object):
         except:
             return ''
 
-    def query(self, **kwargs):
+    def query(self, strict=False, **kwargs):
         """
         A query function to extract data out of MapServer layers. I've exposed
         every option here 
@@ -117,12 +117,6 @@ class ESRILayer(object):
                      whether to return z components of shp-z
         return_m: bool, (default: False)
                      whether to return m components of shp-m
-        pkg     :   str (default: 'geopandas')
-                    what geometry type to provide in the results of the query. Uses shapely
-                    shapes by default. Supports "pysal," which constructs a pandas dataframe
-                    with pysal shapes in a geometry column; 'shapely', which builds a pandas
-                    dataframe with shapely shapes in a geometry column, and "geopandas,"
-                    which returns a geopandas GeoDataFrame.
         strict  :   bool (default: True)
                     whether to throw an error if invalid polygons are provided from the API (True)
                     or just warn that at least one polygon is invalid (False)
