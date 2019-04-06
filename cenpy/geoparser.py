@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 from libpysal.cg import is_clockwise as _is_cw
+import warnings
+
 
 def esriGeometryPolygon(egpoly):
-    feature = {'type':'Feature'}
+    feature = {'type': 'Feature'}
     egpoly['geometry']['coordinates'] = egpoly['geometry'].pop('rings', [])
     egpoly['geometry']['type'] = 'MultiPolygon'
     feature['properties'] = egpoly.pop('attributes', {})
@@ -11,8 +13,9 @@ def esriGeometryPolygon(egpoly):
     feature['geometry'] = egpoly.pop('geometry', {})
     return feature
 
+
 def esriGeometryPolyLine(egpline):
-    feature = {'type':'Feature'}
+    feature = {'type': 'Feature'}
     egpline['geometry']['coordinates'] = egpline['geometry'].pop('paths', [])
     egpline['geometry']['type'] = 'MultiLineString'
     feature['properties'] = egpline.pop('attributes', {})
@@ -125,14 +128,15 @@ def parse_polygon_to_shapely(raw_feature, strict=False):
     elif pgon_type == 'MultiPolygon':
         return MultiPolygon(Polygon(s, holes=None) for s in ogc_nest)
     elif pgon_type == 'MultiPolygon with Holes':
-        out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:]) 
-                                      for ring in ogc_nest])
+        out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:])
+                                     for ring in ogc_nest])
         if not out.is_valid:
             out = fix_rings(out, strict=strict)
         return out
     else:
         raise Exception('Unexpected Polygon kind {} provided to'
                         ' parse_polygon_to_shapely'.format(pgon_type))
+
 
 def _get_polygon_type(raw_feature):
     """
@@ -173,14 +177,16 @@ def _get_polygon_type(raw_feature):
         return "Polygon", ring_array[0]
     else:
         clockwise_sequence = list(map(_is_cw, ring_array))
-        if sum(clockwise_sequence) == 1: #only one ring is clockwise (external)
+        if sum(clockwise_sequence) == 1:  # only one ring is clockwise (external)
             return "Polygon with Holes", ring_array
         else:
-            if sum(clockwise_sequence) == len(clockwise_sequence): #all rings are clockwise (external)
+            # all rings are clockwise (external)
+            if sum(clockwise_sequence) == len(clockwise_sequence):
                 return "MultiPolygon", ring_array
             else:
-                return "MultiPolygon with Holes", _parse_clockwise_sequence(ring_array, 
-                                                                            clockwise_sequence) 
+                return "MultiPolygon with Holes", _parse_clockwise_sequence(ring_array,
+                                                                            clockwise_sequence)
+
 
 def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
     """
@@ -210,7 +216,8 @@ def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
             OGC_nest[-1].append(list(ring))
     return OGC_nest
 
-def fix_rings(multipolygon, strict=False):    
+
+def fix_rings(multipolygon, strict=False):
     """
     This resolves a multipolygon with invalid exterior/interior ring pairing. 
 
@@ -241,6 +248,7 @@ def fix_rings(multipolygon, strict=False):
     if "hole lies outside shell" not in vexplain.lower():
         if strict:
             from shapely.geos import TopologicalError
+
             def tell_user(x):
                 raise TopologicalError(x)
         else:
@@ -248,15 +256,16 @@ def fix_rings(multipolygon, strict=False):
         tell_user('Shape is invalid for a different reason than'
                   ' hole outside of shell: \n{}'.format(vexplain))
     exteriors = [geom.Polygon(part.exterior) for part in multipolygon.geoms]
-    interiors = [geom.Polygon(interior) for part in multipolygon.geoms for interior in part.interiors]
+    interiors = [geom.Polygon(
+        interior) for part in multipolygon.geoms for interior in part.interiors]
     zorder = [sum([exterior.contains(other_exterior) for other_exterior in exteriors]) - 1
-                   for exterior in exteriors]
+              for exterior in exteriors]
     sort_zorder = np.argsort(zorder)
     zordered_exteriors = np.asarray(exteriors)[sort_zorder]
     polygons = [[exterior] for exterior in exteriors]
     for i, exterior in enumerate(zordered_exteriors):
         owns = [exterior.contains(interior) for interior in interiors]
-        owned_interiors = [interior for owned,interior in zip(owns, interiors)
+        owned_interiors = [interior for owned, interior in zip(owns, interiors)
                            if owned]
         polygons[i] = exterior.difference(cascaded_union(owned_interiors))
         interiors = [interior for owned, interior in zip(owns, interiors)

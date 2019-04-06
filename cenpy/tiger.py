@@ -1,46 +1,49 @@
 from six import iteritems as diter
 import requests as r
 import pandas as pd
+from geopandas import GeoDataFrame
 import copy
 
 from . import geoparser as gpsr
 
-#all queries to a map server, mounted at
-#tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/
-#are mounted by adding <name>/<MapServer> if they're mapservers
+# all queries to a map server, mounted at
+# tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/
+# are mounted by adding <name>/<MapServer> if they're mapservers
 
-#none of the types at that url?f=json are not Mapservers.
+# none of the types at that url?f=json are not Mapservers.
 
 _baseurl = "http://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
 _pcs = "https://developers.arcgis.com/javascript/jshelp/pcs.html"
 _bcs = "https://developers.arcgis.com/javascript/jshelp/bcs.html"
 
-_basequery = {'where': '', #sql query component
-              'text':'', #raw text search
-              'objectIds': '', #only grab these objects
-              'time': '', #time instant/time extend to query
-              'geometry': '', #spatial filter to apply to query
-              'geometryType':'esriGeometryEnvelope', #spatial support
-              'inSR': '', #spatial ref of input geometry
-              'spatialRel': '', #what to do in a DE9IM spatial query
-              'relationParam': '', #used if arbitrary spatialRel is applied
-              'outFields': '*', #fields to pass from the header out
-              'returnGeometry': True , #bool describing whether to pass geometry out
-              'maxAllowableOffset': '', #set a spatial offset
-              'geometryPrecision': '', #
-              'outSR': '', #spatial reference of returned geometry
-              'returnIdsOnly': False, #bool stating to only return ObjectIDs
-              'returnCountOnly': False, #not documented, probably for the sql query
-              'orderByFields': '', #again not documented, probably for the sql
-              'groupByFieldsForStatistics': '', #not documented, probably for sql
-              'outStatistics': '', #no clue
-              'returnZ': False, # whether to return z components of shp-z
-              'returnM': False, # whether to return m components of shp-m
-              'gdbVersion': '', #geodatabase version name
-              'returnDistinctValues': ''} #no clue
+_basequery = {'where': '',  # sql query component
+              'text': '',  # raw text search
+              'objectIds': '',  # only grab these objects
+              'time': '',  # time instant/time extend to query
+              'geometry': '',  # spatial filter to apply to query
+              'geometryType': 'esriGeometryEnvelope',  # spatial support
+              'inSR': '',  # spatial ref of input geometry
+              'spatialRel': '',  # what to do in a DE9IM spatial query
+              'relationParam': '',  # used if arbitrary spatialRel is applied
+              'outFields': '*',  # fields to pass from the header out
+              'returnGeometry': True,  # bool describing whether to pass geometry out
+              'maxAllowableOffset': '',  # set a spatial offset
+              'geometryPrecision': '',
+              'outSR': '',  # spatial reference of returned geometry
+              'returnIdsOnly': False,  # bool stating to only return ObjectIDs
+              'returnCountOnly': False,  # not documented, probably for the sql query
+              'orderByFields': '',  # again not documented, probably for the sql
+              'groupByFieldsForStatistics': '',  # not documented, probably for sql
+              'outStatistics': '',  # no clue
+              'returnZ': False,  # whether to return z components of shp-z
+              'returnM': False,  # whether to return m components of shp-m
+              'gdbVersion': '',  # geodatabase version name
+              'returnDistinctValues': ''}  # no clue
+
 
 def _jget(st):
     return r.get(st + '?f=json')
+
 
 def available(verbose=False):
     """
@@ -65,17 +68,19 @@ def available(verbose=False):
         return q['services']
     else:
         print('verbose may take a bit...')
-        nexturls = ['/'.join([_baseurl, d['name'], d['type']]) for d in q['services']]
-        for i,d in enumerate(q['services']):
+        nexturls = ['/'.join([_baseurl, d['name'], d['type']])
+                    for d in q['services']]
+        for i, d in enumerate(q['services']):
             d['description'] = _jget(nexturls[i]).json()['description']
         if verbose == True:
             return q['services']
         else:
             return q
 
+
 class ESRILayer(object):
     def __init__(self, baseurl, **kwargs):
-        self.__dict__.update({'_'+k:v for k,v in diter(kwargs)})
+        self.__dict__.update({'_'+k: v for k, v in diter(kwargs)})
         if hasattr(self, '_fields'):
             self.variables = pd.DataFrame(self._fields)
         self._baseurl = baseurl + '/' + str(self._id)
@@ -135,29 +140,24 @@ class ESRILayer(object):
         In most cases, you'll be querying against layers, not MapServices
         overall. 
         """
-    #parse args
-        pkg = kwargs.pop('pkg', 'geopandas')
-        gpize = kwargs.pop('gpize', False)
-        strict = kwargs.pop('strict', False)
-        if pkg.lower() == 'geopandas':
-            pkg = 'shapely'
-            gpize = True
-        kwargs = {''.join(k.split('_')):v for k,v in diter(kwargs)}
-    
-    #construct query string
+    # parse args
+        kwargs = {''.join(k.split('_')): v for k, v in diter(kwargs)}
+
+    # construct query string
         self._basequery = copy.deepcopy(_basequery)
-        for k,v in diter(kwargs):
+        for k, v in diter(kwargs):
             try:
                 self._basequery[k] = v
             except KeyError:
                 raise KeyError("Option '{k}' not recognized, check parameters")
-        qstring = '&'.join(['{}={}'.format(k,v) for k,v in diter(self._basequery)])
+        qstring = '&'.join(['{}={}'.format(k, v)
+                            for k, v in diter(self._basequery)])
         self._last_query = self._baseurl + '/query?' + qstring
-    #run query
+    # run query
         resp = r.get(self._last_query + '&f=json')
         resp.raise_for_status()
         datadict = resp.json()
-    #convert to output format
+    # convert to output format
         try:
             features = datadict['features']
         except KeyError:
@@ -173,29 +173,27 @@ class ESRILayer(object):
         for i, feature in enumerate(features):
             locfeat = gpsr.__dict__[datadict['geometryType']](feature)
             todf.append(locfeat['properties'])
-            todf[i].update({'geometry':locfeat['geometry']})
+            todf[i].update({'geometry': locfeat['geometry']})
         df = pd.DataFrame(todf)
-        outdf = gpsr.convert_geometries(df, pkg, strict=strict)
-        if gpize:
-            try:
-                from geopandas import GeoDataFrame
-                outdf = GeoDataFrame(outdf)
-            except:
-                print('Geopandas dataframe conversion failed! Continuing...')
+        outdf = gpsr.convert_geometries(df, strict=strict)
+        outdf = GeoDataFrame(outdf)
         crs = datadict.pop('spatialReference', None)
         if crs is not None:
             crs = crs.get('latestWkid', crs.get('wkid'))
             crs = dict(init='epsg:{}'.format(crs))
-        outdf.crs = crs 
+        outdf.crs = crs
         return outdf
-            
+
+
 class TigerConnection(object):
     """
     a tiger connection
     """
-    def __init__(self, name = None):
+
+    def __init__(self, name=None):
         if name not in available(verbose=-1):
-            raise KeyError('Dataset {n} not found. Please check cenpy.tiger.available()'.format(n=name))
+            raise KeyError(
+                'Dataset {n} not found. Please check cenpy.tiger.available()'.format(n=name))
         else:
             self._baseurl = '/'.join([_baseurl, name, 'MapServer'])
             resp = _jget(self._baseurl).json()
@@ -207,8 +205,8 @@ class TigerConnection(object):
 
     def _get_layers(self):
         resp = _jget(self._baseurl + '/layers').json()
-        return {d['id']:ESRILayer(self._baseurl, **d) for d in resp['layers']}
-    
+        return [ESRILayer(self._baseurl, **d) for d in resp['layers']]
+
     def query(self, **kwargs):
         layer_idx = kwargs.pop('layer', None)
         if layer_idx is None:
