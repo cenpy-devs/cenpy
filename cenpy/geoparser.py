@@ -23,102 +23,60 @@ def esriGeometryPolyLine(egpline):
     feature['geometry'] = egpline.pop('geometry', {})
     return feature
 
+
 def esriGeometryPoint(egpt):
-    feature = {'type':'Feature', 'properties':{}}
+    feature = {'type': 'Feature', 'properties': {}}
     address = [None, None, None, None]
-    for k,v in egpt.items():
+    for k, v in egpt.items():
         try:
             address['xyzm'.index(k)] = v
         except ValueError:
             if k == 'spatialReference':
                 feature['crs'] = v
             else:
-                feature['properties'].update({k:v})
+                feature['properties'].update({k: v})
     address = [co for co in address if co is not None]
     feature['properties'].update(egpt.pop('attributes', {}))
-    feature['geometry'] = {'coordinates':address, 'type':'Point'}
+    feature['geometry'] = {'coordinates': address, 'type': 'Point'}
     return feature
+
 
 def esriMultiPoint(egmpt):
-    feature = {'type':'Feature', 'properties':{}}
-    feature['geometry'] = {'coordinates':egmpt.pop('points', [])}
+    feature = {'type': 'Feature', 'properties': {}}
+    feature['geometry'] = {'coordinates': egmpt.pop('points', [])}
     feature['crs'] = egmpt.pop('spatialReference', {})
     feature['properties'].update(egmpt.pop('attributes', {}))
-    feature['properties'].update({'hasM':egmpt.pop('hasM', False),
-                                  'hasZ':egmpt.pop('hasZ', False)})
+    feature['properties'].update({'hasM': egmpt.pop('hasM', False),
+                                  'hasZ': egmpt.pop('hasZ', False)})
     return feature
 
-def convert_geometries(df, pkg='shapely', strict=False):
-    first = df['geometry'].head(1).tolist()[0]
-    if pkg.lower() == 'pysal':
-        warnings.warn('The PySAL geometry backend is deprecated.', DeprecationWarning)
-        from libpysal.cg.shapes import Chain, Point, asShape
-        try:
-            df['geometry'] = pd.Series([asShape(e) for e in df['geometry']])
-        except:
-            if 'Polygon' in first['type']:
-                df['geometry'] = pd.Series([parse_polygon_to_pysal(e)\
-                                            for e in df['geometry']])
-            elif 'Line' in first['type']:
-                df['geometry'] = pd.Series([Chain(e['coordinates'])\
-                                            for e in df['geometry']])
-            elif 'MultiPoint' in first['type']:
-                df['geometry'] = pd.Series([[Point(c) for c in e['coordinates']]\
-                                            for e in df['geometry']])
-            elif 'Point' in first['type']:
-                df['geometry'] = pd.Series([Point(e['coordinates'][0])\
-                                            for e in df['geometry']])
-            else:
-                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
-    else:
-        from shapely import geometry as g
-        try:
-            df['geometry'] = pd.Series([g.__dict__[e['type']](e) for e in df['geometry']])
-        except:
-            if 'Polygon' in first['type']:
-                df['geometry'] = pd.Series([parse_polygon_to_shapely(e, strict=strict)\
-                                            for e in df['geometry']])
-            elif 'MultiLine' in first['type']:
-                df['geometry'] = pd.Series([g.MultiLineString(e['coordinates'])\
-                                            for e in df['geometry']])
-            elif 'MultiPoint' in first['type']:
-                df['geometry'] = pd.Series([g.MultiPoint(e['coordinates']) 
-                                            for e in df['geometry']])
-            elif 'Point' in first['type']:
-                df['geometry'] = pd.Series([g.Point(e['coordinates'][0])\
-                                            for e in df['geometry']])
-            else:
-                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
+
+def convert_geometries(df,  strict=False):
+    first = df.geometry.head(1).tolist()[0]
+    from shapely import geometry as g
+    try:
+        df.geometry = pd.Series(
+            [g.__dict__[e['type']](e) for e in df.geometry])
+    except:
+        if 'Polygon' in first['type']:
+            df.geometry = pd.Series([parse_polygon(e, strict=strict)
+                                     for e in df.geometry])
+        elif 'MultiLine' in first['type']:
+            df.geometry = pd.Series([g.MultiLineString(e['coordinates'])
+                                     for e in df.geometry])
+        elif 'MultiPoint' in first['type']:
+            df.geometry = pd.Series([g.MultiPoint(e['coordinates'])
+                                     for e in df.geometry])
+        elif 'Point' in first['type']:
+            df.geometry = pd.Series([g.Point(e['coordinates'][0])
+                                     for e in df.geometry])
+        else:
+            raise KeyError('Geometry type {} not understood '
+                           'by geoparser.'.format(first['type']))
     return df
 
-def parse_polygon_to_pysal(raw_feature):
-    """
-    get an OGC polygon from an input ESRI ring array.
-    """
-    pgon_type, ogc_nest = _get_polygon_type(raw_feature)
-    from libpysal.cg import Polygon 
-    if pgon_type == 'Polygon':
-        return Polygon([(c[0],c[1]) for c in ogc_nest])
-    elif pgon_type == 'MultiPolygon':
-        polygons = []
-        for p in ogc_nest:
-            polygons.append([(c[0],c[1]) for c in p])
-        return Polygon(polygons)
-    elif pgon_type == 'Polygon with Holes':
-        polygon = [(c[0],c[1]) for c in ogc_nest[0]]
-        holes = []
-        for hole in ogc_nest[1:]:
-            holes.append([(c[0],c[1]) for c in hole])
-        return Polygon(polygon, holes=holes)
-    elif pgon_type == 'MultiPolygon with Holes':
-        # return ogc_nest
-        return Polygon(vertices = [ring[0] for ring in ogc_nest], 
-                       holes = [list(hole) for ring in ogc_nest for hole in ring[1:]])
-    else:
-        raise Exception('Unexpected Polygon kind {} provided to'
-                        ' parse_polygon_to_pysal'.format(pgon_type)) 
 
-def parse_polygon_to_shapely(raw_feature, strict=False):
+def parse_polygon(raw_feature, strict=False):
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
     from shapely.geometry import Polygon, MultiPolygon
     if pgon_type == 'Polygon':
