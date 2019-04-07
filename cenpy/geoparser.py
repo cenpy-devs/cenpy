@@ -211,21 +211,23 @@ def fix_rings(multipolygon, strict=False):
                 raise TopologicalError(x)
         else:
             from warnings import warn as tell_user
-        tell_user('Shape is invalid for a different reason than'
-                  ' hole outside of shell: \n{}'.format(vexplain))
+        tell_user('Shape is invalid: \n{}'.format(vexplain))
     exteriors = [geom.Polygon(part.exterior) for part in multipolygon.geoms]
-    interiors = [geom.Polygon(
-        interior) for part in multipolygon.geoms for interior in part.interiors]
-    zorder = [sum([exterior.contains(other_exterior) for other_exterior in exteriors]) - 1
-              for exterior in exteriors]
+    interiors = [geom.Polygon(interior) for part in multipolygon.geoms
+                                        for interior in part.interiors]
+    zorder = [sum([exterior.contains(other_exterior)
+                   for other_exterior in exteriors]) - 1
+                   for exterior in exteriors]
     sort_zorder = np.argsort(zorder)
     zordered_exteriors = np.asarray(exteriors)[sort_zorder]
     polygons = [[exterior] for exterior in exteriors]
     for i, exterior in enumerate(zordered_exteriors):
         owns = [exterior.contains(interior) for interior in interiors]
-        owned_interiors = [interior for owned, interior in zip(owns, interiors)
+        owned_interiors = [interior for owned, interior
+                           in zip(owns, interiors)
                            if owned]
         polygons[i] = exterior.difference(cascaded_union(owned_interiors))
-        interiors = [interior for owned, interior in zip(owns, interiors)
+        interiors = [interior for owned, interior
+                     in zip(owns, interiors)
                      if not owned]
     return geom.MultiPolygon(polygons)
