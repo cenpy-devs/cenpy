@@ -13,7 +13,7 @@ with open(os.path.join(basepath, 'README.rst'), 'r') as readme:
 long_description = ''.join(long_description)
 
 setup(name='cenpy',
-      version='1.0.0rc1',
+      version='1.0.0rc2',
       description='Explore and download data from Census APIs',
       long_description=long_description,
       url='https://github.com/ljwolf/cenpy',
