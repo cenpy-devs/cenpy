@@ -26,6 +26,12 @@ class _Product(object):
         return self._api.varslike(pattern, engine=engine)
     filter_variables.__doc__ = APIConnection.varslike
 
+    def _preprocess_variables(self, columns):
+        if isinstance(columns, str):
+            columns = [columns]
+        return [col for this_pattern in columns for col in 
+                self.filter_variables(this_pattern, engine='regex')]
+
     @property
     def _layer_lookup(self):
         """
@@ -191,6 +197,7 @@ class Decennial2010(_Product):
         if variables is None:
             variables = []
         variables.append('GEO_ID')
+        variables = self._preprocess_variables(variables)
 
         caller = super(Decennial2010, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
@@ -212,6 +219,7 @@ class Decennial2010(_Product):
         if variables is None:
             variables = []
         variables.append('GEO_ID')
+        variables = self._preprocess_variables(variables)
 
         geoms, variables, *rest = super(Decennial2010, self)\
                                   .from_place(place, variables=variables, level=level,
@@ -266,6 +274,7 @@ class ACS(_Product):
         if variables is None:
             variables = []
         variables.append('GEO_ID')
+        variables = self._preprocess_variables(variables)
 
         caller = super(ACS, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
@@ -300,6 +309,7 @@ class ACS(_Product):
         if variables is None:
             variables = []
         variables.append('GEO_ID')
+        variables = self._preprocess_variables(variables)
 
         geoms, variables, *rest = super(ACS, self)\
                                   .from_place(place, variables=variables, level=level,
