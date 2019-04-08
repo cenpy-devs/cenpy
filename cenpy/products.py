@@ -129,7 +129,7 @@ class _Product(object):
                                        how='inner', op='within')
 
         data = []
-        if level == 'county'
+        if level == 'county':
             grouper = involved.groupby('STATE')
         else:
             grouper = involved.groupby(['STATE','COUNTY']) 
@@ -325,7 +325,7 @@ class ACS(_Product):
                    layername, cache_name,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
-        if level not in self._layer_lookup().keys()
+        if level not in self._layer_lookup().keys():
             raise NotImplementedError('Only levels {} are supported. You provided {}.'
                                       'Try picking the state containing that level,'
                                       ' and then selecting from that data after it is'
