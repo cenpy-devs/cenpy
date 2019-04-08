@@ -80,11 +80,20 @@ class _Product(object):
 
         if variables is None:
             variables = ['NAME']
+        
+        name = place.split(',')
+        if len(name) == 2:
+            name, state = name
+            searchtarget = _places.assign(state=_places.STATE.str.lower())\
+                                  .query('state == "{}"'.format(state.strip().lower()))\
+                                  .TARGETNAME
+        elif len(name) == 1:
+            name = name[0]
+            searchtarget = _places.TARGETNAME
+        else:
+            raise Exception()
 
-        name, state = place.split(',')
-        place_ix, placematch = _fuzzy_match(name.strip(),
-                                _places.query('STATE == "{}"'.format(state.strip()))
-                                       .TARGETNAME)
+        place_ix, placematch = _fuzzy_match(name.strip(), searchtarget)
         placerow = _places.loc[place_ix]
 
         env_idx, env_name = _fuzzy_match(placerow.TYPE,
@@ -409,7 +418,9 @@ def _fuzzy_match(matchtarget, matchlist):
                              'placename1-placename2, state1-state2-state3'.format(target))
 
     table = pandas.DataFrame({'target':matchlist})
-    table['score'] = table.target.apply(lambda x: fuzz.partial_ratio(target.strip(), x))
+    table['score'] = table.target\
+                          .apply(lambda x: fuzz.partial_ratio(target.strip().lower(),
+                                                              x.lower()))
     if len(split) == 1:
         if (table.score == table.score.max()).sum() > 1:
             ixmax, rowmax = _break_ties(matchtarget, table)
@@ -417,8 +428,9 @@ def _fuzzy_match(matchtarget, matchlist):
             ixmax = table.score.idxmax()
             rowmax = table.loc[ixmax]
         return ixmax, rowmax
+    print(state, table.target.head())
     
-    in_state = table.target.str.endswith(state.strip())
+    in_state = table.target.str.lower().str.endswith(state.strip().lower())
 
     assert any(in_state), ('State {} is not found from place {}. '
                            'Should be a standard Census abbreviation, like'
@@ -447,7 +459,8 @@ def _break_ties(matchtarget, table):
         target, state = split
     else: 
         target = split[0]
-    table['score2'] = table.target.apply(lambda x: fuzz.ratio(target.strip(), x))
+    table['score2'] = table.target.apply(lambda x: fuzz.ratio(target.strip().lower(), 
+                                                              x.lower()))
     among_winners = table[table.score == table.score.max()]
     double_winners = among_winners[among_winners.score2 == among_winners.score2.max()]
     if double_winners.shape[0] > 1:
