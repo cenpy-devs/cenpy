@@ -47,20 +47,21 @@ class _Product(object):
                                 _places.query('STATE == "{}"'.format(state.strip()))
                                        .TARGETNAME)
         placerow = _places.loc[place_ix]
-        print('Matched: {} to {}, {}'.format(place,
-                                             placerow.TARGETNAME,
-                                             placerow.STATE))
 
         env_idx, env_name = _fuzzy_match(placerow.TYPE,
                                          [layer.__repr__() for layer in
                                           self._api.mapservice.layers])
-        print('Requested place {} is a {}'.format(place, env_name.item()))
 
         env_layer = self._api.mapservice.layers[env_idx]
 
         placer = 'STATE={} AND PLACE={}'.format(placerow.STATEFP,
                                                 placerow.TARGETFP)
         env = env_layer.query(where=placer)
+
+        print('Matched: {} to {} '
+              'within layer {}'.format(place,
+                                       placematch.target,
+                                       env_layer.__repr__().replace('(ESRILayer) ', '')))
 
         geoms, data = self._from_bbox(env.to_crs(epsg=4326).total_bounds,
                                       variables=variables, level=level,
@@ -97,11 +98,10 @@ class _Product(object):
                 if level=='block':
                     geo_unit = 'block:*'
                     geo_filter['tract'] = ','.join(tracts_in_chunk)
-                elif level=='blockgroup':
-                    geo_unit = 'blockgroup:*'
-                    geo_filter['tract'] = ','.join(tracts_in_chunk)
                 elif level=='tract':
                     geo_unit = 'tract:{}'.format(','.join(tracts_in_chunk))
+                else:
+                    raise Exception('Unrecognized level: {}'.format(level))
 
                 return self._api.query(variables, geo_unit=geo_unit, geo_filter=geo_filter)
 
