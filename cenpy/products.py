@@ -129,24 +129,42 @@ class _Product(object):
                                        how='inner', op='within')
 
         data = []
-        for (state,county), chunk in involved.groupby(['STATE', 'COUNTY']):
-            these_tracts = chunk.TRACT.unique()
-            n_tracts = len(these_tracts)
-            def chunked_query(tracts_in_chunk):
-                geo_filter = dict(state=state, county=county)
+        if level == 'county'
+            grouper = involved.groupby('STATE')
+        else:
+            grouper = involved.groupby(['STATE','COUNTY']) 
+        for ix, chunk in grouper:
+            if isinstance(ix, str):
+                state = ix
+            else:
+                state, county = ix
+            if level in ('county','state'):
+                elements = chunk.COUNTY.unique()
+            else:
+                elements = chunk.TRACT.unique()
+            n_elements = len(elements)
+            def chunked_query(elements_in_chunk):
+                geo_filter = dict(state=state)
                 if level=='block':
                     geo_unit = 'block:*'
-                    geo_filter['tract'] = ','.join(tracts_in_chunk)
+                    geo_filter['tract'] = ','.join(elements_in_chunk)
+                    geo_filter['county'] = county
                 elif level=='tract':
-                    geo_unit = 'tract:{}'.format(','.join(tracts_in_chunk))
+                    geo_unit = 'tract:{}'.format(','.join(elements_in_chunk))
+                    geo_filter['county'] = county
+                elif level=='county':
+                    geo_unit = 'county:{}'.format(','.join(elements_in_chunk))
+                elif level=='state':
+                    geo_filter=None
+                    geo_unit='state:{}'.format(','.join(elements_in_chunk))
                 else:
                     raise Exception('Unrecognized level: {}'.format(level))
 
                 return self._api.query(variables, geo_unit=geo_unit, geo_filter=geo_filter)
 
-            n_chunks = numpy.ceil(n_tracts / 500)
+            n_chunks = numpy.ceil(n_elements / 500)
             data.append(pandas.concat([chunked_query(tracts_) for tracts_ in
-                                      numpy.array_split(these_tracts, n_chunks)],
+                                      numpy.array_split(elements, n_chunks)],
                                       ignore_index=True, sort=False))
         data = pandas.concat((data), ignore_index=True, sort=False)
 
@@ -209,10 +227,8 @@ class _Product(object):
 class Decennial2010(_Product):
     """The 2010 Decennial Census from the Census Bueau"""
 
-    _layer_lookup = {'state': 98,
-                     'county': 100,
+    _layer_lookup = {'county': 100,
                      'tract': 14,
-                     'blockgroup': 16,
                      'block': 18}
 
     def __init__(self):
@@ -224,6 +240,11 @@ class Decennial2010(_Product):
                    layername, cache_name,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
+        if level not in self._layer_lookup.keys():
+            raise NotImplementedError('Only levels {} are supported. You provided {}.'
+                                      'Try picking the state containing that level,'
+                                      ' and then selecting from that data after it is'
+                                      ' fetched'.format(level))
         if variables is None:
             variables = []
         variables.append('GEO_ID')
@@ -288,10 +309,8 @@ class Decennial2010(_Product):
 
 class ACS(_Product):
 
-    _layer_lookup = {'state': 82,
-                     'county': 84,
-                     'tract': 8,
-                     'blockgroup': 10}
+    _layer_lookup = {'county': 84,
+                     'tract': 8}
 
     def __init__(self, year='latest'):
         if year == 'latest':
@@ -306,6 +325,11 @@ class ACS(_Product):
                    layername, cache_name,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
+        if level not in self._layer_lookup().keys()
+            raise NotImplementedError('Only levels {} are supported. You provided {}.'
+                                      'Try picking the state containing that level,'
+                                      ' and then selecting from that data after it is'
+                                      ' fetched'.format(level))
         if level == 'block':
             raise ValueError('The American Community Survey is only administered'
                              ' at the blockgroup level or higher. Please select a'
