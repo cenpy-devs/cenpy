@@ -14,13 +14,16 @@ _places.drop(['PLACEFP', 'FUNCSTAT', 'COUNTY', 'PLACENAME'], inplace=True, axis=
 
 class _Product(object):
 
-    @property
-    def variables(self):
-        return self._api.variables
+    def __repr__(self):
+        return self._api.__repr__()
 
     @property
-    def filter_variables(self,*args,**kwargs):
-        return self._api.varslike(*args, **kwargs)
+    def variables(self):
+        return self._api.variables.sort_index()
+    
+
+    def filter_variables(self, pattern, engine='regex'):
+        return self._api.varslike(pattern, engine=engine)
     filter_variables.__doc__ = APIConnection.varslike
 
     @property
@@ -229,24 +232,89 @@ class Decennial2010(_Product):
     def from_csa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Combined Statistical Area', '_csas', **kwargs)
-    def from_county2(self, name, variables=None, level='tract', **kwargs):
+    def from_county(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Counties', '_counties', **kwargs)
     def from_state(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'States', '_states', **kwargs)
 
+class ACS(_Product):
 
+    _layer_lookup = {'state': 82,
+                     'county': 84,
+                     'tract': 8,
+                     'blockgroup': 10}
 
-
-
-class ACS(object):
     def __init__(self, year='latest'):
         if year == 'latest':
             year = 2018
-        self._api = None
+        if year < 2013:
+            raise NotImplementedError('The requested year {} is too early. '
+                                      'Only 2013 and onwards is supported.'.format(year))
+        self._api = APIConnection('ACSDT{}Y{}'.format(5, year)) 
+        self._api.set_mapservice('tigerWMS_ACS{}'.format(year))
+    
+    def _from_name(self, place, variables, level,
+                   layername, cache_name,
+                   strict_within=True,
+                   return_bounds=False, geometry_precision=2):
+        if level == 'block':
+            raise ValueError('The American Community Survey is only administered'
+                             ' at the blockgroup level or higher. Please select a'
+                             ' level at or above the blockgroup level.')
+        if variables is None:
+            variables = []
+        variables.append('GEO_ID')
 
+        caller = super(ACS, self)._from_name
+        geoms, variables, *rest = caller(place, variables, level,
+                                         layername, cache_name,
+                                         strict_within=strict_within,
+                                         return_bounds=return_bounds,
+                                         geometry_precision=geometry_precision)
+        variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
+        return_table = geoms[['GEOID', 'geometry']]\
+                            .merge(variables.drop('GEO_ID', axis=1),
+                                                  how='left', on='GEOID')
+        if not return_bounds:
+            return return_table
+        else:
+            return (return_table, *rest)
+    
+    def from_msa(self, name, variables=None, level='tract', **kwargs):
+        return self._from_name(name, variables, level,
+                               'Metropolitan Statistical Area', '_msas', **kwargs)
+    def from_csa(self, name, variables=None, level='tract', **kwargs):
+        return self._from_name(name, variables, level,
+                               'Combined Statistical Area', '_csas', **kwargs)
+    def from_county(self, name, variables=None, level='tract', **kwargs):
+        return self._from_name(name, variables, level,
+                               'Counties', '_counties', **kwargs)
+    def from_state(self, name, variables=None, level='tract', **kwargs):
+        return self._from_name(name, variables, level,
+                               'States', '_states', **kwargs)
+    
+    def from_place(self, place, variables=None, level='tract',
+                   strict_within=True, return_bounds=False):
+        if variables is None:
+            variables = []
+        variables.append('GEO_ID')
 
+        geoms, variables, *rest = super(ACS, self)\
+                                  .from_place(place, variables=variables, level=level,
+                                              strict_within=strict_within,
+                                              return_bounds=return_bounds)
+        variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
+        return_table = geoms[['GEOID', 'geometry']]\
+                            .merge(variables.drop('GEO_ID', axis=1),
+                                                  how='left', on='GEOID')
+        if not return_bounds:
+            return return_table
+        else:
+            return (return_table, *rest)
+
+    
 def _fuzzy_match(matchtarget, matchlist):
     split = matchtarget.split(',')
     if len(split) == 2:
