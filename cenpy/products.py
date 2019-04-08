@@ -11,17 +11,6 @@ _places['TARGETFP'] = _places.PLACEFP.apply(lambda x: str(x).rjust(5, '0'))
 _places['TARGETNAME'] = _places.PLACENAME
 _places['STATEFP'] = _places.STATEFP.apply(lambda x: str(x).rjust(2, '0'))
 _places.drop(['PLACEFP', 'FUNCSTAT', 'COUNTY', 'PLACENAME'], inplace=True, axis=1)
-_counties = _ft('county')
-_counties.columns = ['STATE', 'STATEFP',
-                     'COUNTYFP', 'COUNTYNAME', 'KIND']
-_counties['TARGETFP'] = _counties.COUNTYFP.apply(lambda x: str(x).rjust(3, '0'))
-_counties['STATEFP'] = _counties.STATEFP.apply(lambda x: str(x).rjust(2, '0'))
-_counties['TYPE'] = 'County'
-_counties['TARGETNAME'] = _counties.COUNTYNAME
-_counties.drop(['KIND', 'COUNTYFP', 'COUNTYNAME'], inplace=True, axis=1)
-
-
-_targets = pandas.concat((_places, _counties), ignore_index=True, sort=False)
 
 class _Product(object):
 
@@ -129,51 +118,6 @@ class _Product(object):
             return involved, data, geopandas.GeoDataFrame(geometry=[geometry.box(*bounding_box)])
         return involved, data
 
-    def from_county(self, place, variables=None, level='tract', geometry_precision=2):
-
-        if variables is None:
-            variables = ['NAME']
-
-        name, state = place.split(', ')
-        place_ix, placematch = _fuzzy_match(name.strip(),
-                                            _counties.query('STATE == "{}"'
-                                                            .format(state.strip()))
-                                            .TARGETNAME)
-        placerow = _counties.iloc[place_ix]
-        print('Matched: {} to {}'.format(place, placerow.TARGETNAME))
-
-        layer = self._api.mapservice.layers[self._layer_lookup[level]]
-
-        geoms = layer.query(where='STATE={} AND COUNTY={}'.format(placerow.STATEFP,
-                                                                  placerow.TARGETFP),
-                            geometryPrecision=geometry_precision)
-
-        tracts = geoms.TRACT.unique()
-        n_tracts = len(tracts)
-        def chunked_query(tracts):
-            geo_filter = dict(state=placerow.STATEFP,
-                              county=placerow.TARGETFP)
-            if level=='block':
-                geo_unit = 'block:*'
-                geo_filter['tract'] = ','.join(tracts)
-            elif level=='blockgroup':
-                geo_unit = 'blockgroup:*'
-                geo_filter['tract'] = ','.join(tracts)
-            elif level=='tract':
-                geo_unit = 'tract:{}'.format(','.join(tracts))
-
-            return self._api.query(variables, geo_unit=geo_unit, geo_filter=geo_filter)
-
-        # Max query size is 1000 rows, so let's have some headroom
-        n_chunks = numpy.ceil(n_tracts / 500)
-        data = pandas.concat([chunked_query(tracts_) for tracts_
-                              in numpy.array_split(tracts, n_chunks)],
-                              ignore_index=True)
-
-        for variable in variables:
-            data[variable] = coerce(data[variable], float)
-        return geoms, data
-
     def _environment_from_layer(self, place, layername,
                                 cache_name, geometry_precision):
         ix, name = _fuzzy_match(layername, [f.__repr__()
@@ -259,16 +203,25 @@ class Decennial2010(_Product):
             return return_table
         else:
             return (return_table, *rest)
-    
-    def from_county(self, place, variables=None, level='tract'):
-        return self._from_name(place, super(Decennial2010, self).from_county,
-                               variables=variables, level=level)
 
     def from_place(self, place, variables=None, level='tract',
                    strict_within=True, return_bounds=False):
-        return self._from_name(place, super(Decennial2010, self).from_place,
-                               variables=variables, level=level, strict_within=strict_within,
-                               return_bounds=return_bounds)
+        if variables is None:
+            variables = []
+        variables.append('GEO_ID')
+
+        geoms, variables, *rest = super(Decennial2010, self)\
+                                  .from_place(place, variables=variables, level=level,
+                                              strict_within=strict_within,
+                                              return_bounds=return_bounds)
+        variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
+        return_table = geoms[['GEOID', 'geometry']]\
+                            .merge(variables.drop('GEO_ID', axis=1),
+                                                  how='left', on='GEOID')
+        if not return_bounds:
+            return return_table
+        else:
+            return (return_table, *rest)
 
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
