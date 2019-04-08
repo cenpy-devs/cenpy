@@ -168,8 +168,8 @@ class APIConnection():
 
         res = r.get(self.last_query)
         if res.status_code == 204:
-            raise r.HTTPError(' '.join(str(res.status_code),
-                                       'error: no records matched your query'))
+            raise r.HTTPError(' '.join((str(res.status_code),
+                                       'error: no records matched your query')))
         try:
             json_content = res.json()
             df = pd.DataFrame().from_records(json_content[1:],
