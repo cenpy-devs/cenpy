@@ -3,7 +3,8 @@ __author__ = 'Levi John Wolf levi.john.wolf@gmail.com'
 
 from . import explorer
 from .remote import APIConnection as _APIConnection
-from .tools import _load_sitekey
+from .tools import _load_sitekey, set_sitekey
+from .products import *
 
 SITEKEY = _load_sitekey()
 

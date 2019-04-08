@@ -12,6 +12,8 @@ _places['TARGETNAME'] = _places.PLACENAME
 _places['STATEFP'] = _places.STATEFP.apply(lambda x: str(x).rjust(2, '0'))
 _places.drop(['PLACEFP', 'FUNCSTAT', 'COUNTY', 'PLACENAME'], inplace=True, axis=1)
 
+__all__ = ['Decennial2010', 'ACS']
+
 class _Product(object):
 
     def __repr__(self):
@@ -19,12 +21,14 @@ class _Product(object):
 
     @property
     def variables(self):
+        """All variables, including columns and search predictates,
+         available from the API"""
         return self._api.variables.sort_index()
     
 
     def filter_variables(self, pattern, engine='regex'):
         return self._api.varslike(pattern, engine=engine)
-    filter_variables.__doc__ = APIConnection.varslike
+    filter_variables.__doc__ = APIConnection.varslike.__doc__
 
     def _preprocess_variables(self, columns):
         if isinstance(columns, str):
@@ -44,9 +48,35 @@ class _Product(object):
     def _layer_lookup(self):
         raise NotImplementedError('This must be implemented on children '
                                   'of this class!')
+
     def from_place(self, place, variables=None,
                    level='tract', geometry_precision=2,
                    strict_within=True, return_bounds=False):
+        """
+        Query the Census for the given place. 
+
+        Arguments
+        ---------
+        place               : str
+                              description of the place. Should be of the form
+                              "place, state" or "place"
+        variables           : list or str
+                              variable or set of variables to extract from the
+                              API. Can include regex columns, which will match
+                              to any column in the product. So, ['P001001', '^P002']
+                              will match to P001001 and any column that starts with P002.
+        level               : str (default: 'tract')
+                              level at which to extract the geographic data. May be 
+                              limited by some products to only involve tracts. 
+        geometry_precision  : int (default: 2)
+                              number of decimal places to preserve when getting the geometric
+                              information around each observation in `level`.
+        strict_within       : bool (default: True)
+                              whether to retain only geometries that are fully within the 
+                              target place. 
+        return_bounds       : bool (default: False)
+                              whether to return the boundary of the place being queried.
+        """
 
         if variables is None:
             variables = ['NAME']
@@ -177,7 +207,7 @@ class _Product(object):
         return geoms, data
 
 class Decennial2010(_Product):
-    """docstring for Decennial2010"""
+    """The 2010 Decennial Census from the Census Bueau"""
 
     _layer_lookup = {'state': 98,
                      'county': 100,
@@ -233,19 +263,28 @@ class Decennial2010(_Product):
             return return_table
         else:
             return (return_table, *rest)
+    from_place.__doc__ = _Product.from_place.__doc__
 
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Metropolitan Statistical Area', '_msas', **kwargs)
+    from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
     def from_csa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Combined Statistical Area', '_csas', **kwargs)
+    from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
     def from_county(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Counties', '_counties', **kwargs)
+    from_county.__doc__ = _Product\
+                                    .from_place.__doc__\
+                                    .replace('place', 'county')
     def from_state(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'States', '_states', **kwargs)
+    from_state.__doc__ = _Product\
+                                    .from_place.__doc__\
+                                    .replace('place', 'state')
 
 class ACS(_Product):
 
@@ -294,15 +333,23 @@ class ACS(_Product):
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Metropolitan Statistical Area', '_msas', **kwargs)
+    from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
     def from_csa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Combined Statistical Area', '_csas', **kwargs)
+    from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
     def from_county(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Counties', '_counties', **kwargs)
+    from_county.__doc__ = _Product\
+                                    .from_place.__doc__\
+                                    .replace('place', 'county')
     def from_state(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'States', '_states', **kwargs)
+    from_state.__doc__ = _Product\
+                                    .from_place.__doc__\
+                                    .replace('place', 'state')
     
     def from_place(self, place, variables=None, level='tract',
                    strict_within=True, return_bounds=False):
@@ -323,7 +370,7 @@ class ACS(_Product):
             return return_table
         else:
             return (return_table, *rest)
-
+    from_place.__doc__ =_Product.from_place.__doc__
     
 def _fuzzy_match(matchtarget, matchlist):
     split = matchtarget.split(',')
@@ -361,6 +408,10 @@ def _fuzzy_match(matchtarget, matchlist):
     return ixmax, rowmax
 
 def coerce(column, kind):
+    """
+    Converty type of column to kind, or keep column unchanged
+    if that conversion fails.
+    """
     try:
         return column.astype(kind)
     except ValueError:
