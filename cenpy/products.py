@@ -2,6 +2,7 @@ from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
 from fuzzywuzzy import fuzz
+from warnings import warn
 import geopandas
 import pandas
 import numpy
@@ -308,20 +309,47 @@ def _fuzzy_match(matchtarget, matchlist):
     table = pandas.DataFrame({'target':matchlist})
     table['score'] = table.target.apply(lambda x: fuzz.partial_ratio(target.strip(), x))
     if len(split) == 1:
-        ixmax = table.score.idxmax()
-        return ixmax, table.loc[ixmax]
+        if (table.score == table.score.max()).sum() > 1:
+            ixmax, rowmax = _break_ties(matchtarget, table)
+        else:
+            ixmax = table.score.idxmax()
+            rowmax = table.loc[ixmax]
+        return ixmax, rowmax
     
     in_state = table.target.str.endswith(state.strip())
 
     assert any(in_state), ('State {} is not found from place {}. '
                            'Should be a standard Census abbreviation, like'
                            ' CA, AZ, NC, or PR'.format(state, matchtarget))
-    ixmax = table[in_state].score.idxmax()
-
-    return ixmax, table.loc[ixmax]
+    table = table[in_state]
+    if (table.score == table.score.max()).sum() > 1:
+        ixmax, rowmax = _break_ties(matchtarget, table)
+    else:
+        ixmax = table.score.idxmax()
+        rowmax = table.loc[ixmax]
+    return ixmax, rowmax
 
 def coerce(column, kind):
     try:
         return column.astype(kind)
     except ValueError:
         return column
+
+def _break_ties(matchtarget, table):
+    split = matchtarget.split(',')
+    if len(split) == 2:
+        target, state = split
+    else: 
+        target = split[0]
+    table['score2'] = table.target.apply(lambda x: fuzz.ratio(target.strip(), x))
+    among_winners = table[table.score == table.score.max()]
+    double_winners = among_winners[among_winners.score2 == among_winners.score2.max()]
+    if double_winners.shape[0] > 1:
+        ixmax = double_winners.score2.idxmax()
+        ixmax_row = double_winners.loc[ixmax]
+        warn('Cannot disambiguate placename {}. Picking the shortest, best '
+             'matched placename, {}, from {}'.format(matchtarget, ixmax_row.target.item(),
+                                                     ', '.join(double_winners.target.tolist())))
+        return ixmax, ixmax_row
+    ixmax = double_winners.score2.idxmax()
+    return ixmax, double_winners.loc[ixmax]
