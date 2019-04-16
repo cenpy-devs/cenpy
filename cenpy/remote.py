@@ -249,7 +249,6 @@ class APIConnection():
 
         if engine == 'regex':
             import re
-            search = re.compile(pattern)
             return [candidate for candidate in self.variables.index
                     if re.match(pattern, candidate)]
         elif engine == 're':
