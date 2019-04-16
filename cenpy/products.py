@@ -33,8 +33,9 @@ class _Product(object):
     def _preprocess_variables(self, columns):
         if isinstance(columns, str):
             columns = [columns]
-        return [col for this_pattern in columns for col in 
-                self.filter_variables(this_pattern, engine='regex')]
+        expanded = [col for this_pattern in columns for col in 
+                    self.filter_variables(this_pattern, engine='regex')]
+        return numpy.unique(expanded).tolist()
 
     @property
     def _layer_lookup(self):
