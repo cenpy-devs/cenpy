@@ -428,7 +428,6 @@ def _fuzzy_match(matchtarget, matchlist):
             ixmax = table.score.idxmax()
             rowmax = table.loc[ixmax]
         return ixmax, rowmax
-    print(state, table.target.head())
     
     in_state = table.target.str.lower().str.endswith(state.strip().lower())
 
