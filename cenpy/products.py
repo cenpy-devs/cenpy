@@ -14,6 +14,9 @@ _places.drop(['PLACEFP', 'FUNCSTAT', 'COUNTY', 'PLACENAME'], inplace=True, axis=
 
 __all__ = ['Decennial2010', 'ACS']
 
+_ACS_MISSING = (-999999999, -888888888, -666666666,
+                -555555555, -333333333, -222222222)
+
 class _Product(object):
 
     def __repr__(self):
@@ -24,7 +27,6 @@ class _Product(object):
         """All variables, including columns and search predictates,
          available from the API"""
         return self._api.variables.sort_index()
-    
 
     def filter_variables(self, pattern, engine='regex'):
         return self._api.varslike(pattern, engine=engine)
@@ -33,7 +35,7 @@ class _Product(object):
     def _preprocess_variables(self, columns):
         if isinstance(columns, str):
             columns = [columns]
-        expanded = [col for this_pattern in columns for col in 
+        expanded = [col for this_pattern in columns for col in
                     self.filter_variables(this_pattern, engine='regex')]
         return numpy.unique(expanded).tolist()
 
@@ -41,7 +43,7 @@ class _Product(object):
     def _layer_lookup(self):
         """
         The lookup table relating the layers in the WMS service and the levels
-        supported by this API product. 
+        supported by this API product.
         """
         pass
 
@@ -67,21 +69,21 @@ class _Product(object):
                               to any column in the product. So, ['P001001', '^P002']
                               will match to P001001 and any column that starts with P002.
         level               : str (default: 'tract')
-                              level at which to extract the geographic data. May be 
-                              limited by some products to only involve tracts. 
+                              level at which to extract the geographic data. May be
+                              limited by some products to only involve tracts.
         geometry_precision  : int (default: 2)
                               number of decimal places to preserve when getting the geometric
                               information around each observation in `level`.
         strict_within       : bool (default: True)
-                              whether to retain only geometries that are fully within the 
-                              target place. 
+                              whether to retain only geometries that are fully within the
+                              target place.
         return_bounds       : bool (default: False)
                               whether to return the boundary of the place being queried.
         """
 
         if variables is None:
             variables = ['NAME']
-        
+
         name = place.split(',')
         if len(name) == 2:
             name, state = name
@@ -120,7 +122,7 @@ class _Product(object):
             geoms = geopandas.sjoin(geoms, env[['geometry']],
                                      how='inner', op='within')
         if return_bounds:
-            return (geoms, data, env) 
+            return (geoms, data, env)
         return geoms, data
 
     def _from_bbox(self, bounding_box, variables=None, level='tract',
@@ -142,7 +144,7 @@ class _Product(object):
         if level == 'county':
             grouper = involved.groupby('STATE')
         else:
-            grouper = involved.groupby(['STATE','COUNTY']) 
+            grouper = involved.groupby(['STATE','COUNTY'])
         for ix, chunk in grouper:
             if isinstance(ix, str):
                 state = ix
@@ -179,7 +181,7 @@ class _Product(object):
         data = pandas.concat((data), ignore_index=True, sort=False)
 
         for variable in variables:
-            data[variable] = coerce(data[variable], float)
+            data[variable] = replace_missing(coerce(data[variable], float))
 
         if return_bounds:
             return involved, data, geopandas.GeoDataFrame(geometry=[geometry.box(*bounding_box)])
@@ -328,9 +330,9 @@ class ACS(_Product):
         if year < 2013:
             raise NotImplementedError('The requested year {} is too early. '
                                       'Only 2013 and onwards is supported.'.format(year))
-        self._api = APIConnection('ACSDT{}Y{}'.format(5, year)) 
+        self._api = APIConnection('ACSDT{}Y{}'.format(5, year))
         self._api.set_mapservice('tigerWMS_ACS{}'.format(year))
-    
+
     def _from_name(self, place, variables, level,
                    layername, cache_name,
                    strict_within=True,
@@ -363,7 +365,7 @@ class ACS(_Product):
             return return_table
         else:
             return (return_table, *rest)
-    
+
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
                                'Metropolitan Statistical Area', '_msas', **kwargs)
@@ -384,7 +386,7 @@ class ACS(_Product):
     from_state.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'state')
-    
+
     def from_place(self, place, variables=None, level='tract',
                    strict_within=True, return_bounds=False):
         if variables is None:
@@ -405,7 +407,7 @@ class ACS(_Product):
         else:
             return (return_table, *rest)
     from_place.__doc__ =_Product.from_place.__doc__
-    
+
 def _fuzzy_match(matchtarget, matchlist):
     split = matchtarget.split(',')
     if len(split) == 2:
@@ -429,7 +431,7 @@ def _fuzzy_match(matchtarget, matchlist):
             ixmax = table.score.idxmax()
             rowmax = table.loc[ixmax]
         return ixmax, rowmax
-    
+
     in_state = table.target.str.lower().str.endswith(state.strip().lower())
 
     assert any(in_state), ('State {} is not found from place {}. '
@@ -453,13 +455,18 @@ def coerce(column, kind):
     except ValueError:
         return column
 
+def replace_missing(column, missings=ACS_MISSING):
+    for val in ACS_MISSING:
+        column.replace(val, numpy.nan, inplace=True)
+    return column
+
 def _break_ties(matchtarget, table):
     split = matchtarget.split(',')
     if len(split) == 2:
         target, state = split
-    else: 
+    else:
         target = split[0]
-    table['score2'] = table.target.apply(lambda x: fuzz.ratio(target.strip().lower(), 
+    table['score2'] = table.target.apply(lambda x: fuzz.ratio(target.strip().lower(),
                                                               x.lower()))
     among_winners = table[table.score == table.score.max()]
     double_winners = among_winners[among_winners.score2 == among_winners.score2.max()]
