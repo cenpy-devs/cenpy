@@ -455,8 +455,8 @@ def coerce(column, kind):
     except ValueError:
         return column
 
-def replace_missing(column, missings=ACS_MISSING):
-    for val in ACS_MISSING:
+def replace_missing(column, missings=_ACS_MISSING):
+    for val in _ACS_MISSING:
         column.replace(val, numpy.nan, inplace=True)
     return column
 
