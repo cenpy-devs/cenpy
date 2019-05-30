@@ -50,7 +50,7 @@ class _Product(object):
         raise NotImplementedError('This must be implemented on children '
                                   'of this class!')
 
-    def from_place(self, place, variables=None,
+    def from_place(self, place, variables=None, place_type=None,
                    level='tract', geometry_precision=2,
                    strict_within=True, return_bounds=False):
         """
@@ -61,6 +61,8 @@ class _Product(object):
         place               : str
                               description of the place. Should be of the form
                               "place, state" or "place"
+        place_type          : str
+                              type of place to focus on, Incorporated Place, County Subdivision etc. 
         variables           : list or str
                               variable or set of variables to extract from the
                               API. Can include regex columns, which will match
@@ -83,14 +85,24 @@ class _Product(object):
             variables = ['NAME']
         
         name = place.split(',')
+
+        if(place_type != None):
+            if(place_type in ['Census Designated Place', 'Incorporated Place',
+                              'County Subdivision']):
+                searchtarget = _places[_places['TYPE']==place_type]
+            else:
+                raise Exception('place_type must be on of Census Designated Place, Incorporated Place,County Subdivision')
+        else:
+            searchtarget = _places.assign(TypeOrder = _places['TYPE'].apply(lambda x : {}) )
+
         if len(name) == 2:
             name, state = name
-            searchtarget = _places.assign(state=_places.STATE.str.lower())\
+            searchtarget = searchtarget.assign(state=_places.STATE.str.lower())\
                                   .query('state == "{}"'.format(state.strip().lower()))\
                                   .TARGETNAME
         elif len(name) == 1:
             name = name[0]
-            searchtarget = _places.TARGETNAME
+            searchtarget = searchtarget.TARGETNAME
         else:
             raise Exception()
 
@@ -102,7 +114,6 @@ class _Product(object):
                                           self._api.mapservice.layers])
 
         env_layer = self._api.mapservice.layers[env_idx]
-
         placer = 'STATE={} AND PLACE={}'.format(placerow.STATEFP,
                                                 placerow.TARGETFP)
         env = env_layer.query(where=placer)
@@ -275,7 +286,7 @@ class Decennial2010(_Product):
         else:
             return (return_table, *rest)
 
-    def from_place(self, place, variables=None, level='tract',
+    def from_place(self, place, variables=None, level='tract',place_type=None,
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
@@ -284,6 +295,7 @@ class Decennial2010(_Product):
 
         geoms, variables, *rest = super(Decennial2010, self)\
                                   .from_place(place, variables=variables, level=level,
+                                              place_type=place_type,
                                               strict_within=strict_within,
                                               return_bounds=return_bounds)
         variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
@@ -385,7 +397,7 @@ class ACS(_Product):
                                     .from_place.__doc__\
                                     .replace('place', 'state')
     
-    def from_place(self, place, variables=None, level='tract',
+    def from_place(self, place, variables=None, level='tract',place_type=None,
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
@@ -394,6 +406,7 @@ class ACS(_Product):
 
         geoms, variables, *rest = super(ACS, self)\
                                   .from_place(place, variables=variables, level=level,
+                                              place_type=place_type,
                                               strict_within=strict_within,
                                               return_bounds=return_bounds)
         variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
@@ -467,7 +480,7 @@ def _break_ties(matchtarget, table):
         ixmax = double_winners.score2.idxmax()
         ixmax_row = double_winners.loc[ixmax]
         warn('Cannot disambiguate placename {}. Picking the shortest, best '
-             'matched placename, {}, from {}'.format(matchtarget, ixmax_row.target.item(),
+             'matched placename, {}, from {}'.format(matchtarget, ixmax_row.target,
                                                      ', '.join(double_winners.target.tolist())))
         return ixmax, ixmax_row
     ixmax = double_winners.score2.idxmax()
