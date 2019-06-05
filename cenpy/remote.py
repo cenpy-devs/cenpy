@@ -10,6 +10,10 @@ from six import iteritems, PY3
 if PY3:
     unicode = str
 
+class ParseException(Exception):
+    def __init__(self, *args, response=None):
+        Exception.__init__(self, *args)
+        self.response = response
 
 class APIConnection():
     def __init__(self, api_name=None, apikey=''):
@@ -186,8 +190,11 @@ class APIConnection():
                                   + '\n'.join(map(lambda x: x.decode(),
                                                   res.iter_lines())))
             else:
-                raise Exception(
-                    'A Valid http query passed through but failed to parse!')
+                raise ParseException(
+                    'A Valid http query passed through but failed to parse!'
+                    ' For more information, inspect the `response` attribute '
+                    'of this exception.',
+                    response=res)
                 res.raise_for_status()
 
     def _bigcolq(self, cols=None, geo_unit='', geo_filter={}, apikey=None, **kwargs):
