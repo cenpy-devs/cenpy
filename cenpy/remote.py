@@ -190,12 +190,12 @@ class APIConnection():
                                   + '\n'.join(map(lambda x: x.decode(),
                                                   res.iter_lines())))
             else:
+                res.raise_for_status()
                 raise ParseException(
                     'A Valid http query passed through but failed to parse!'
                     ' For more information, inspect the `response` attribute '
                     'of this exception.',
                     response=res)
-                res.raise_for_status()
 
     def _bigcolq(self, cols=None, geo_unit='', geo_filter={}, apikey=None, **kwargs):
         """
