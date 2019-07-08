@@ -93,7 +93,7 @@ class _Product(object):
                               'County Subdivision']):
                 searchtarget = _places[_places['TYPE']==place_type]
             else:
-                raise Exception('place_type must be on of Census Designated Place, Incorporated Place,County Subdivision')
+                raise Exception('place_type must be on of Census Designated Place, Incorporated Place, County Subdivision')
         else:
             searchtarget = _places.assign(TypeOrder = _places['TYPE'].apply(lambda x : {}) )
 
@@ -116,8 +116,13 @@ class _Product(object):
                                           self._api.mapservice.layers])
 
         env_layer = self._api.mapservice.layers[env_idx]
-        placer = 'STATE={} AND PLACE={}'.format(placerow.STATEFP,
-                                                placerow.TARGETFP)
+        if place_type == 'County Subdivision':
+            placer = 'STATE={} AND COUSUB={}'.format(placerow.STATEFP,
+                                                    placerow.TARGETFP)
+        else:
+
+            placer = 'STATE={} AND PLACE={}'.format(placerow.STATEFP,
+                                                    placerow.TARGETFP)
         env = env_layer.query(where=placer)
 
         print('Matched: {} to {} '
