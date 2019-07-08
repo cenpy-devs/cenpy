@@ -87,6 +87,12 @@ class _Product(object):
             variables = ['NAME']
 
         name = place.split(',')
+        assert isinstance(name, list)
+        assert len(name) == 2, ('Uncertain place identifier "{}". The place identifier should '
+                                'look something like "placename, state" or, for larger areas, '
+                                'like Combined Statistical Areas or Metropolitan Statistical Areas,'
+                                '"placename1-placename2, state1-state2-state3"'.format(place))
+
 
         if(place_type != None):
             if(place_type in ['Census Designated Place', 'Incorporated Place',
