@@ -6,6 +6,7 @@ from warnings import warn
 import geopandas
 import pandas
 import numpy
+
 _places = _ft('place')
 _places['TARGETFP'] = _places.PLACEFP.apply(lambda x: str(x).rjust(5, '0'))
 _places['TARGETNAME'] = _places.PLACENAME
@@ -87,6 +88,13 @@ class _Product(object):
             variables = ['NAME']
 
         name = place.split(',')
+        assert isinstance(name, list)
+        if len(name) < 2:
+            warn('Uncertain place identifier "{}". The place identifier should '
+                 'look something like "placename, state" or, for larger areas, '
+                 'like Combined Statistical Areas or Metropolitan Statistical Areas,'
+                 '"placename1-placename2, state1-state2-state3"'.format(place), stacklevel=2)
+
 
         if(place_type != None):
             if(place_type in ['Census Designated Place', 'Incorporated Place',
