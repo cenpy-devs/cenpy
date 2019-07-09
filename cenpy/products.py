@@ -6,6 +6,7 @@ from warnings import warn
 import geopandas
 import pandas
 import numpy
+import copy
 
 _places = _ft('place')
 _places['TARGETFP'] = _places.PLACEFP.apply(lambda x: str(x).rjust(5, '0'))
@@ -247,6 +248,8 @@ class _Product(object):
                    strict_within, return_bounds, geometry_precision):
         if variables is None:
             variables = []
+        else:
+            variables = copy.copy(variables)
         variables.append('NAME')
         env = self._environment_from_layer(place, layername,
                                            cache_name, geometry_precision)
@@ -283,6 +286,8 @@ class Decennial2010(_Product):
                                       ' fetched'.format(level))
         if variables is None:
             variables = []
+        else:
+            variables = copy.copy(variables)
         variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
 
@@ -305,6 +310,8 @@ class Decennial2010(_Product):
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
+        else:
+            variables = copy.copy(variables)
         variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
 
@@ -373,6 +380,8 @@ class ACS(_Product):
                              ' level at or above the blockgroup level.')
         if variables is None:
             variables = []
+        else:
+            variables = copy.copy(variables)
         variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
 
@@ -416,6 +425,8 @@ class ACS(_Product):
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
+        else:
+            variables = copy.copy(variables)
         variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
 

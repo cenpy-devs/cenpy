@@ -35,7 +35,7 @@ class APIConnection():
             except KeyError:
                 raise KeyError('The requested Census Product shortcode ({}) was not found in the '
                                'list of API shortcodes. Please check cenpy.explorer.available()'
-                               ' to determine whether the API shortcode you have requested is correct.')
+                               ' to determine whether the API shortcode you have requested is correct.'.format(api_name))
             self.title = curr['title']
             self.identifier = curr['identifier']
             self.description = curr['description']
