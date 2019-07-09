@@ -165,10 +165,13 @@ class ESRILayer(object):
             details = datadict['error']['details']
             if details is []:
                 details = 'Mapserver provided no detailed error'
-            raise KeyError(('Response from API is malformed. You may have '
-                            'submitted too many queries, or experienced '
-                            'significant network connectivity issues.\n'
-                            '(API ERROR {}:{}({}))'.format(code, msg, details)))
+            raise KeyError((r'Response from API is malformed. You may have '
+                            r'submitted too many queries, formatted the request incorrectly, '
+                            r'or experienced significant network connectivity issues.'
+                            r' Check to make sure that your inputs, like placenames, are spelled'
+                            r' correctly, and that your geographies match the level at which you'
+                            r' intend to query. The original error from the Census is:\n'
+                            r'(API ERROR {}:{}({}))'.format(code, msg, details)))
         todf = []
         for i, feature in enumerate(features):
             locfeat = gpsr.__dict__[datadict['geometryType']](feature)
