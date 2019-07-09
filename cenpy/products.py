@@ -66,7 +66,7 @@ class _Product(object):
                               description of the place. Should be of the form
                               "place, state" or "place"
         place_type          : str
-                              type of place to focus on, Incorporated Place, County Subdivision etc. 
+                              type of place to focus on, Incorporated Place, County Subdivision, or Census Designated Place. 
         variables           : list or str
                               variable or set of variables to extract from the
                               API. Can include regex columns, which will match
@@ -83,11 +83,17 @@ class _Product(object):
                               target place.
         return_bounds       : bool (default: False)
                               whether to return the boundary of the place being queried.
+        
+        Notes
+        ------
+
+        You should always try to provide a place_type. There is a significant amount of vagueness in what is meant
+        by "place" that you may not get the match you intend if you do not provide a place_type.
         """
 
         if variables is None:
             variables = ['NAME']
-
+        
         name = place.split(',')
         assert isinstance(name, list)
         if len(name) < 2:
