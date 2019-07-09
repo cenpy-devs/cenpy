@@ -1,4 +1,5 @@
 import requests as r
+from json import JSONDecodeError
 from six import iteritems as diter
 import pandas as pd
 import os
@@ -9,11 +10,18 @@ if six.PY3:
 
 fp = os.path.dirname(os.path.realpath(__file__))
 
-raw_APIs = r.get('https://api.census.gov/data.json').json()['dataset']
-
-APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key,
-                                                          value in diter(entry) if key != entry['identifier']} for entry in raw_APIs}
-
+resp = raw_APIs = r.get('https://api.census.gov/data.json')
+try:
+    resp.raise_for_status()
+    raw_APIs = resp.json()['dataset']
+    APIs = {entry['identifier'].split('id')[-1].lstrip('/'): {key: value for key,
+                                                              value in diter(entry) if key != entry['identifier']} for entry in raw_APIs}
+except r.HTTPError:
+    raise r.HTTPError('The main Census API Endpoint (https://api.census.gov/data.json) is not available.'
+                      ' Try visiting https://api.census.gov/data.json in a web browser to verify connectivity.')
+except JSONDecodeError:
+    raise JSONDecodeError('The main Census API Endpoint (https://api.census.gov/data.json) returned malformed content.'
+                          ' Try visiting https://api.census.gov/data.json in a web browser to verify connectivity.')
 
 def available(verbose=True):
     """
