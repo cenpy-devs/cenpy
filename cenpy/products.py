@@ -415,26 +415,27 @@ class Decennial2010(_Product):
             return (return_table, *rest)
     from_place.__doc__ = _Product.from_place.__doc__
 
-    def from_msa(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_msa(self, msa, variables=None, level='tract', **kwargs):
+        return self._from_name(msa, variables, level,
                                'Metropolitan Statistical Area', **kwargs)
     from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
-    def from_csa(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_csa(self, csa, variables=None, level='tract', **kwargs):
+        return self._from_name(csa, variables, level,
                                'Combined Statistical Area', **kwargs)
     from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
-    def from_county(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_county(self, county, variables=None, level='tract', **kwargs):
+        return self._from_name(county, variables, level,
                                'Counties', **kwargs)
     from_county.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'county')
-    def from_state(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_state(self, state, variables=None, level='tract', **kwargs):
+        return self._from_name(state, variables, level,
                                'States', **kwargs)
     from_state.__doc__ = _Product\
                                     .from_place.__doc__\
-                                    .replace('place', 'state')
+                                    .replace('place', 'state')\
+                                    .replace('"state, state" or "state"', '"state, abbreviation" or "state"')
 
 class ACS(_Product):
 
@@ -486,24 +487,25 @@ class ACS(_Product):
         else:
             return (return_table, *rest)
 
-    def from_msa(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_msa(self, msa, variables=None, level='tract', **kwargs):
+        return self._from_name(msa, variables, level,
                                'Metropolitan Statistical Area', **kwargs)
     from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
-    def from_csa(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
+    def from_csa(self, csa, variables=None, level='tract', **kwargs):
+        return self._from_name(csa, variables, level,
                                'Combined Statistical Area', **kwargs)
     from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
-    def from_county(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level, 'Counties', **kwargs)
+    def from_county(self, county, variables=None, level='tract', **kwargs):
+        return self._from_name(county, variables, level, 'Counties', **kwargs)
     from_county.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'county')
-    def from_state(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level, 'States', **kwargs)
+    def from_state(self, state, variables=None, level='tract', **kwargs):
+        return self._from_name(state, variables, level, 'States', **kwargs)
     from_state.__doc__ = _Product\
                                     .from_place.__doc__\
-                                    .replace('place', 'state')
+                                    .replace('place', 'state')\
+                                    .replace('"state, state" or "state"', '"state, abbreviation" or "state"')
     
     def from_place(self, place, variables=None, level='tract',place_type=None,
                    strict_within=True, return_bounds=False):
