@@ -151,7 +151,14 @@ class _Product(object):
 
     def _from_bbox(self, bounding_box, variables=None, level='tract',
                    geometry_precision=2, strict_within=False, return_bounds=False):
+        """
+        This is an internal method to handle querying the Census API and the GeoAPI using
+        bounding boxes. This first gets the target records in the given level that fall within
+        the provided bounding box using the GeoAPI. Then, it gets the variables for each record
+        from the Census API. 
+        """
 
+        # Regularize the bounding box for the web request
         env = geopandas.GeoDataFrame(geometry=[geometry.box(*bounding_box)])
         envelope = '%2C'.join(map(lambda x: '{:.6f}'.format(x), bounding_box))
 
@@ -160,10 +167,13 @@ class _Product(object):
                                geometry=envelope, returnGeometry='true', inSR=4326,
                                spatialRel='esriSpatialRelIntersects',
                                geometryPrecision=geometry_precision)
+        # filter the records by a strict "within" query if needed
         if strict_within:
             involved = geopandas.sjoin(involved, env[['geometry']],
                                        how='inner', op='within')
-
+        
+        # Construct a "query" translator between the GeoAPI and the Census API
+        # in chunks using a closure around chunked_query. 
         data = []
         if level == 'county':
             grouper = involved.groupby('STATE')
@@ -501,7 +511,20 @@ class ACS(_Product):
             return (return_table, *rest)
     from_place.__doc__ =_Product.from_place.__doc__
 
-def _fuzzy_match(matchtarget, matchlist):
+def _fuzzy_match(matchtarget, matchlist, return_table=False):
+    """
+    Conduct a fuzzy match with matchtarget, within the list of possible match candidates in matchlist. 
+
+    Arguments
+    ---------
+    matchtarget :   str
+                 a string to be matched to a set of possible candidates
+    matchlist   :   list of str
+                 a list (or iterable) containing strings we are interested in matching
+    return_table:   bool
+                 whether to return the full table of scored candidates, or to return only the single
+                 best match. If False (the default), only the best match is returned.
+    """
     split = matchtarget.split(',')
     if len(split) == 2:
         target, state = split
@@ -552,12 +575,19 @@ def coerce(column, kind):
     except ValueError:
         return column
 
-def replace_missing(column, missings=_ACS_MISSING):
+def _replace_missing(column, missings=_ACS_MISSING):
+    """
+    replace ACS missing values using numpy.nan. 
+    """
     for val in _ACS_MISSING:
         column.replace(val, numpy.nan, inplace=True)
     return column
 
 def _break_ties(matchtarget, table):
+    """
+    break ties in the fuzzy matching algorithm using a second scoring method 
+    which prioritizes full string matches over substring matches.  
+    """
     split = matchtarget.split(',')
     if len(split) == 2:
         target, state = split
