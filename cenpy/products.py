@@ -29,6 +29,53 @@ class _Product(object):
         """All variables, including columns and search predictates,
          available from the API"""
         return self._api.variables.sort_index()
+    
+    @property
+    def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
+        pass
+
+    @tables.getter
+    def tables(self):
+        try:
+            return self._tables
+        except AttributeError:
+            splits = pandas.Series(self.variables.index.str.split('_'))
+            stems = self.variables.assign(split_len=splits.apply(len).values, 
+                                          table_name=splits.apply(lambda x: x[0]).values)\
+                                  .query('split_len == 2')\
+                                  .groupby('table_name').concept.unique().to_frame('description')
+            assert stems.description.apply(len).unique() == 1, 'some variables have failed to parse into tables'
+            stems['description'] = stems.description.apply(lambda x: x[0])
+            result = stems.drop('GEO', axis=0, errors='ignore')
+            self._stems = result
+            # keep around the main tables only if they're not crosstabs (ending in alphanumeric)
+            self._tables = result.loc[[ix for ix in result.index if _can_int(ix[-1])]]
+            return self._tables
+
+    @property
+    def crosstab_tables(self):
+        """
+        All of the crosstab table codes in the Census API for this product. 
+        
+        These *do not* include main tables, like "Race", whose table numbers
+        end in integers (like B02001).
+        """
+        pass
+
+    @crosstab_tables.getter
+    def crosstab_tables(self):
+        try:
+            return self._crosstabs
+        except AttributeError:
+            tables = self.tables # needs to be instantiated first
+            self._crosstabs = self._stems.loc[self._stems.index.difference(tables.index)]
+            return self._crosstabs
 
     def filter_variables(self, pattern, engine='regex'):
         return self._api.varslike(pattern, engine=engine)
@@ -664,3 +711,11 @@ def _break_ties(matchtarget, table):
         return ixmax, ixmax_row
     ixmax = double_winners.score2.idxmax()
     return ixmax, double_winners.loc[ixmax]
+
+def _can_int(char):
+    """check if a character can be turned into an integer"""
+    try:
+        int(char)
+        return True
+    except ValueError:
+        return False
