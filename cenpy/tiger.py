@@ -155,7 +155,7 @@ class ESRILayer(object):
         datadict = resp.json()
         if raw:
             return datadict
-        if kwargs.get('returnGeometry', True) is False:
+        if kwargs.get('returnGeometry', 'true') is 'false':
             return pd.DataFrame.from_records([x['attributes'] for x in datadict['features']])
     # convert to output format
         try:
