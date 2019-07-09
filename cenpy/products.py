@@ -55,7 +55,8 @@ class _Product(object):
                                   'of this class!')
 
     def from_place(self, place, variables=None, place_type=None,
-                   level='tract', geometry_precision=2,
+                   level='tract', return_geometry=True,
+                   geometry_precision=2,
                    strict_within=True, return_bounds=False):
         """
         Query the Census for the given place. 
@@ -75,6 +76,10 @@ class _Product(object):
         level               : str (default: 'tract')
                               level at which to extract the geographic data. May be
                               limited by some products to only involve tracts.
+        return_geometry     : bool (default: True)
+                              whether to return the geometries of the queried records. True by default, this will ensure
+                              that the return type of from_place is a geopandas.GeoDataFrame. If False, then only the 
+                              records are fetched; none of the records' geometries are requested from the server. 
         geometry_precision  : int (default: 2)
                               number of decimal places to preserve when getting the geometric
                               information around each observation in `level`.
@@ -146,6 +151,7 @@ class _Product(object):
 
         geoms, data = self._from_bbox(env.to_crs(epsg=4326).total_bounds,
                                       variables=variables, level=level,
+                                      return_geometry=return_geometry,
                                       geometry_precision=geometry_precision,
                                       strict_within=False, return_bounds=False)
         if strict_within:
@@ -155,7 +161,7 @@ class _Product(object):
             return (geoms, data, env)
         return geoms, data
 
-    def _from_bbox(self, bounding_box, variables=None, level='tract',
+    def _from_bbox(self, bounding_box, variables=None, level='tract', return_geometry=True,
                    geometry_precision=2, strict_within=False, return_bounds=False):
         """
         This is an internal method to handle querying the Census API and the GeoAPI using
@@ -170,7 +176,9 @@ class _Product(object):
 
         layer = self._api.mapservice.layers[self._layer_lookup[level]]
         involved = layer.query(geometryType='esriGeometryEnvelope',
-                               geometry=envelope, returnGeometry='true', inSR=4326,
+                               geometry=envelope, 
+                               returnGeometry='true',
+                               inSR=4326,
                                spatialRel='esriSpatialRelIntersects',
                                geometryPrecision=geometry_precision)
         # filter the records by a strict "within" query if needed
@@ -224,8 +232,12 @@ class _Product(object):
         for variable in variables:
             data[variable] = _replace_missing(coerce(data[variable], float))
 
+        if return_geometry:
+            data = geopandas.GeoDataFrame(data)
+
         if return_bounds:
             return involved, data, geopandas.GeoDataFrame(geometry=[geometry.box(*bounding_box)])
+
         return involved, data
 
     def _environment_from_layer(self, place, layername, geometry_precision, 
@@ -245,7 +257,7 @@ class _Product(object):
         return layer.query(where='GEOID={}'.format(row.GEOID),
                            geometryPrecision=geometry_precision)
 
-    def _from_name(self, place, variables, level,
+    def _from_name(self, place, variables, level, return_geometry,
                    layername, strict_within, return_bounds, 
                    geometry_precision, cache_name=None):
         """
@@ -361,7 +373,9 @@ class Decennial2010(_Product):
         self._cache = dict()
 
     def _from_name(self, place, variables, level,
-                   layername, cache_name=None,
+                   layername, 
+                   return_geometry=True,
+                   cache_name=None,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
         if level not in self._layer_lookup.keys():
@@ -379,6 +393,7 @@ class Decennial2010(_Product):
         caller = super(Decennial2010, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
                                          layername, cache_name=cache_name,
+                                         return_geometry=return_geometry,
                                          strict_within=strict_within,
                                          return_bounds=return_bounds,
                                          geometry_precision=geometry_precision)
@@ -386,12 +401,16 @@ class Decennial2010(_Product):
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
                                                   how='left', on='GEOID')
+        if return_geometry is False:
+            return_table = pandas.DataFrame(return_table.drop(return_table.geometry.name, axis=1))
         if not return_bounds:
             return return_table
         else:
             return (return_table, *rest)
 
-    def from_place(self, place, variables=None, level='tract',place_type=None,
+    def from_place(self, place, variables=None, level='tract', 
+                   return_geometry=True,
+                   place_type=None,
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
@@ -402,6 +421,7 @@ class Decennial2010(_Product):
 
         geoms, variables, *rest = super(Decennial2010, self)\
                                   .from_place(place, variables=variables, level=level,
+                                              return_geometry=return_geometry,
                                               place_type=place_type,
                                               strict_within=strict_within,
                                               return_bounds=return_bounds)
@@ -409,6 +429,8 @@ class Decennial2010(_Product):
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
                                                   how='left', on='GEOID')
+        if return_geometry is False:
+            return_table = pandas.DataFrame(return_table.drop(return_table.geometry.name, axis=1))
         if not return_bounds:
             return return_table
         else:
@@ -453,7 +475,9 @@ class ACS(_Product):
         self._api.set_mapservice('tigerWMS_ACS{}'.format(year))
 
     def _from_name(self, place, variables, level,
-                   layername, cache_name=None,
+                   layername, 
+                   return_geometry=True,
+                   cache_name=None,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
         if level not in self._layer_lookup.keys():
@@ -474,7 +498,9 @@ class ACS(_Product):
 
         caller = super(ACS, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
-                                         layername, cache_name=cache_name,
+                                         layername, 
+                                         return_geometry=return_geometry,
+                                         cache_name=cache_name,
                                          strict_within=strict_within,
                                          return_bounds=return_bounds,
                                          geometry_precision=geometry_precision)
@@ -482,6 +508,8 @@ class ACS(_Product):
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
                                                   how='left', on='GEOID')
+        if return_geometry is False:
+            return_table = pandas.DataFrame(return_table.drop(return_table.geometry.name, axis=1))
         if not return_bounds:
             return return_table
         else:
@@ -507,7 +535,9 @@ class ACS(_Product):
                                     .replace('place', 'state')\
                                     .replace('"state, state" or "state"', '"state, abbreviation" or "state"')
     
-    def from_place(self, place, variables=None, level='tract',place_type=None,
+    def from_place(self, place, variables=None, level='tract',
+                   return_geometry=True,
+                   place_type=None,
                    strict_within=True, return_bounds=False):
         if variables is None:
             variables = []
@@ -518,6 +548,7 @@ class ACS(_Product):
 
         geoms, variables, *rest = super(ACS, self)\
                                   .from_place(place, variables=variables, level=level,
+                                              return_geometry=return_geometry,
                                               place_type=place_type,
                                               strict_within=strict_within,
                                               return_bounds=return_bounds)
@@ -525,6 +556,8 @@ class ACS(_Product):
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
                                                   how='left', on='GEOID')
+        if return_geometry is False:
+            return_table = pandas.DataFrame(return_table.drop(return_table.geometry.name, axis=1))
         if not return_bounds:
             return return_table
         else:
