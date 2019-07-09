@@ -117,14 +117,13 @@ class _Product(object):
         else:
             raise Exception()
 
-        place_ix, placematch = _fuzzy_match(name.strip(), searchtarget)
-        placerow = _places.loc[place_ix]
+        placematch = _fuzzy_match(name.strip(), searchtarget)
+        placerow = _places.loc[placematch.name]
 
-        env_idx, env_name = _fuzzy_match(placerow.TYPE,
-                                         [layer.__repr__() for layer in
-                                          self._api.mapservice.layers])
+        env_name = _fuzzy_match(placerow.TYPE, [layer.__repr__() for layer in
+                                self._api.mapservice.layers])
 
-        env_layer = self._api.mapservice.layers[env_idx]
+        env_layer = self._api.mapservice.layers[env_name.name]
         if place_type == 'County Subdivision':
             placer = 'STATE={} AND COUSUB={}'.format(placerow.STATEFP,
                                                     placerow.TARGETFP)
@@ -198,61 +197,53 @@ class _Product(object):
                     raise Exception('Unrecognized level: {}'.format(level))
 
                 return self._api.query(variables, geo_unit=geo_unit, geo_filter=geo_filter)
-
+            
+            # Run each of these chunks of the query in order to avoid requesting too much data. 
             n_chunks = numpy.ceil(n_elements / 500)
             data.append(pandas.concat([chunked_query(tracts_) for tracts_ in
                                       numpy.array_split(elements, n_chunks)],
                                       ignore_index=True, sort=False))
         data = pandas.concat((data), ignore_index=True, sort=False)
-
+        
         for variable in variables:
-            data[variable] = replace_missing(coerce(data[variable], float))
+            data[variable] = _replace_missing(coerce(data[variable], float))
 
         if return_bounds:
             return involved, data, geopandas.GeoDataFrame(geometry=[geometry.box(*bounding_box)])
         return involved, data
 
-    def _environment_from_layer(self, place, layername,
-                                cache_name, geometry_precision):
-        ix, name = _fuzzy_match(layername, [f.__repr__()
+    def _environment_from_layer(self, place, layername, geometry_precision, 
+                                cache_name=None):
+        """
+        A helper function to extract the right "container", or "environment" to
+        conduct a query against. 
+        """
+        layername_match = _fuzzy_match(layername, [f.__repr__()
                                         for f in self._api.mapservice.layers])
-        layer = self._api.mapservice.layers[ix]
-        cache = getattr(self, cache_name, None)
-        if cache is None:
-            out_fields = 'BASENAME,GEOID'
-            if 'Statistical' not in layername:
-                out_fields += ',STATE'
-            cache = layer.query(returnGeometry=False,
-                                outFields=out_fields,
-                                where='AREALAND>0')
-            if 'Statistical' not in layername:
-                _states = _ft('state')
-                _states.columns = ['abbreviation', 'statefp', 'name']
-                _states['STATE'] = _states.statefp.apply(lambda x: str(x).rjust(2, '0'))
-                cache = cache.merge(_states[['abbreviation', 'STATE']],
-                                    how='left', on='STATE')
-                cache['BASENAME'] = cache[['BASENAME', 'abbreviation']].apply(lambda x:
-                                                                      ', '.join(x), axis=1)
-            self.__dict__[cache_name] = cache
-        item_ix, item_name = _fuzzy_match(place, cache.BASENAME)
-        print('Matched: {} to {} '
-              'within layer {}'.format(place,
-                                       item_name.target,
-                                       layer.__repr__().replace('(ESRILayer) ', '')))
-        row = cache.loc[item_ix]
+        layer = self._api.mapservice.layers[layername_match.name]
+        item_name, table = self.check_match(place, layername, cache_name=cache_name, 
+                                            return_table=True)
+        if cache_name is None:
+            cache_name = layername_match.target.lstrip('(ESRILayer) ')
+        row = self._cache[cache_name].loc[item_name.name]
         return layer.query(where='GEOID={}'.format(row.GEOID),
                            geometryPrecision=geometry_precision)
 
     def _from_name(self, place, variables, level,
-                   layername, cache_name,
-                   strict_within, return_bounds, geometry_precision):
+                   layername, strict_within, return_bounds, 
+                   geometry_precision, cache_name=None):
+        """
+        A helper function, internal to the product, which pieces together the 
+        construction of a bounding box (from environment_from_layer) and 
+        the querying of the GeoAPI using that bounding box in (from_bbox)
+        """
         if variables is None:
             variables = []
         else:
             variables = copy.copy(variables)
         variables.append('NAME')
-        env = self._environment_from_layer(place, layername,
-                                           cache_name, geometry_precision)
+        env = self._environment_from_layer(place, layername, geometry_precision, 
+                                           cache_name=cache_name)
         geoms, data = self._from_bbox(env.to_crs(epsg=4326).total_bounds,
                                       variables=variables, level=level,
                                       strict_within=False, return_bounds=False)
@@ -263,9 +254,74 @@ class _Product(object):
             return geoms, data, env
         return geoms, data
 
+    def check_match(self, name, level, return_level=False, return_table=False, cache_name=None):
+        """
+        A helper function to verify the match used by the product API. 
+
+        Arguments
+        ----------
+        name        : string
+                      the name of the place/query string to be searched. Should be in the form
+                      "placename, stateabbreviation" (like "Los Angeles, CA"). For multiply-named
+                      locations, the format should be town1-town2, state1-state2, like Kansas City, KS-MO. 
+        level       : string
+                      the name of the census hierarchy in which the name should be searched. Should be
+                      something like "Incorporated Places" or "States". 
+        return_level: bool
+                      Whether to return the level match. If you are uncertain as to which level the name
+                      is matching, set this flag to `True` to see the Census API layer that matches. 
+        return_table: bool
+                      Whether to return the full table of possible matches for the queried name or level. 
+                      If this is true, the return values are converted to be tuples, containing (match, table),
+                      where "match" is the entity in the Census API that matches the requested name or level,
+                      and table is the set of *all* possible values that could have been matched. If the matching
+                      fails for your first run, try inspecting table using return_table=True. Find the place/name
+                      you intend to match, and then input exactly that string. 
+        Returns
+        -------
+        the row of the match table that records the matched name. 
+        If return_table is True, this becomes a tuple of (row, table). 
+        If return_level is True, the result is returned for both the match on the name and on the level.
+        If both return_table and return_level are true, then two tuples are returned. The first contains the
+        match for the name and the full table of possible names, and the second contains the match of the level and 
+        the full table of possible levels. 
+        """
+        layer_result = _fuzzy_match(level, [f.__repr__() for f in self._api.mapservice.layers], 
+                                   return_table=return_table)
+        if return_table:
+            layer_name, layer_matchtable = layer_result
+        else:
+            layer_name = layer_result
+        layer_ix = layer_name.name
+        if cache_name is None:
+            cache_name = layer_name.target.lstrip('(ESRILayer) ')
+        cache = self._cache.get(cache_name, None)
+        if cache is None:
+            layer = self._api.mapservice.layers[layer_ix]
+            out_fields = 'BASENAME,GEOID'
+            if 'Statistical' not in layer_name.target:
+                out_fields += ',STATE'
+            cache = layer.query(returnGeometry=False,
+                                outFields=out_fields,
+                                where='AREALAND>0')
+            if 'Statistical' not in layer_name.target:
+                _states = _ft('state')
+                _states.columns = ['abbreviation', 'statefp', 'name']
+                _states['STATE'] = _states.statefp.apply(lambda x: str(x).rjust(2, '0'))
+                cache = cache.merge(_states[['abbreviation', 'STATE']],
+                                    how='left', on='STATE')
+                cache['BASENAME'] = cache[['BASENAME', 'abbreviation']].apply(lambda x:
+                                                                      ', '.join(x), axis=1)
+            self._cache.update({cache_name: cache})
+        result = _fuzzy_match(name, cache.BASENAME, return_table=return_table)
+        if return_level:
+            return result, layer_result
+        else:
+            return result
+
+
 class Decennial2010(_Product):
     """The 2010 Decennial Census from the Census Bueau"""
-
     _layer_lookup = {'county': 100,
                      'tract': 14,
                      'block': 18}
@@ -274,9 +330,10 @@ class Decennial2010(_Product):
         super(Decennial2010, self).__init__()
         self._api = APIConnection('DECENNIALSF12010')
         self._api.set_mapservice('tigerWMS_Census2010')
+        self._cache = dict()
 
     def _from_name(self, place, variables, level,
-                   layername, cache_name,
+                   layername, cache_name=None,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
         if level not in self._layer_lookup.keys():
@@ -293,7 +350,7 @@ class Decennial2010(_Product):
 
         caller = super(Decennial2010, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
-                                         layername, cache_name,
+                                         layername, cache_name=cache_name,
                                          strict_within=strict_within,
                                          return_bounds=return_bounds,
                                          geometry_precision=geometry_precision)
@@ -332,21 +389,21 @@ class Decennial2010(_Product):
 
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'Metropolitan Statistical Area', '_msas', **kwargs)
+                               'Metropolitan Statistical Area', **kwargs)
     from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
     def from_csa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'Combined Statistical Area', '_csas', **kwargs)
+                               'Combined Statistical Area', **kwargs)
     from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
     def from_county(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'Counties', '_counties', **kwargs)
+                               'Counties', **kwargs)
     from_county.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'county')
     def from_state(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'States', '_states', **kwargs)
+                               'States', **kwargs)
     from_state.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'state')
@@ -357,6 +414,7 @@ class ACS(_Product):
                      'tract': 8}
 
     def __init__(self, year='latest'):
+        self._cache = dict()
         if year == 'latest':
             year = 2018
         if year < 2013:
@@ -366,7 +424,7 @@ class ACS(_Product):
         self._api.set_mapservice('tigerWMS_ACS{}'.format(year))
 
     def _from_name(self, place, variables, level,
-                   layername, cache_name,
+                   layername, cache_name=None,
                    strict_within=True,
                    return_bounds=False, geometry_precision=2):
         if level not in self._layer_lookup.keys():
@@ -387,7 +445,7 @@ class ACS(_Product):
 
         caller = super(ACS, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
-                                         layername, cache_name,
+                                         layername, cache_name=cache_name,
                                          strict_within=strict_within,
                                          return_bounds=return_bounds,
                                          geometry_precision=geometry_precision)
@@ -402,21 +460,19 @@ class ACS(_Product):
 
     def from_msa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'Metropolitan Statistical Area', '_msas', **kwargs)
+                               'Metropolitan Statistical Area', **kwargs)
     from_msa.__doc__ = _Product.from_place.__doc__.replace('place', 'MSA')
     def from_csa(self, name, variables=None, level='tract', **kwargs):
         return self._from_name(name, variables, level,
-                               'Combined Statistical Area', '_csas', **kwargs)
+                               'Combined Statistical Area', **kwargs)
     from_csa.__doc__ = _Product.from_place.__doc__.replace('place', 'CSA')
     def from_county(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
-                               'Counties', '_counties', **kwargs)
+        return self._from_name(name, variables, level, 'Counties', **kwargs)
     from_county.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'county')
     def from_state(self, name, variables=None, level='tract', **kwargs):
-        return self._from_name(name, variables, level,
-                               'States', '_states', **kwargs)
+        return self._from_name(name, variables, level, 'States', **kwargs)
     from_state.__doc__ = _Product\
                                     .from_place.__doc__\
                                     .replace('place', 'state')
@@ -467,7 +523,9 @@ def _fuzzy_match(matchtarget, matchlist):
         else:
             ixmax = table.score.idxmax()
             rowmax = table.loc[ixmax]
-        return ixmax, rowmax
+        if return_table:
+            return rowmax, table.sort_values('score')
+        return rowmax
 
     in_state = table.target.str.lower().str.endswith(state.strip().lower())
 
@@ -480,7 +538,9 @@ def _fuzzy_match(matchtarget, matchlist):
     else:
         ixmax = table.score.idxmax()
         rowmax = table.loc[ixmax]
-    return ixmax, rowmax
+    if return_table:
+        return rowmax, table.sort_values('score')
+    return rowmax
 
 def coerce(column, kind):
     """
