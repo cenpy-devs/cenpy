@@ -295,6 +295,18 @@ class _Product(object):
         If both return_table and return_level are true, then two tuples are returned. The first contains the
         match for the name and the full table of possible names, and the second contains the match of the level and 
         the full table of possible levels. 
+
+        Notes
+        -----
+        matches are made based on the `partial_ratio` and `ratio` scorings from the fuzzywuzzy package. The `partial_ratio` 
+        prioritizes the "target" being fully contained in the match. So, a string like `Chicago, IL` would be a perfect 
+        match for `Chicago, IL` as well as 'North Chicago, IL' or `Chicago Heights, IL`. If there are ties (which happens often),
+        the `ratio` percentage is used to break them. This considers the full string similarity, so that the closest
+        full strings are matched. This ensures that `Chicago, IL` is matched to `Chicago, IL`, and not `West Chicago, IL`. 
+
+        Consult the fuzzywuzzy package documentation for more information on the `partial_ratio`
+        and `ratio` matches. 
+
         """
         layer_result = _fuzzy_match(level, [f.__repr__() for f in self._api.mapservice.layers], 
                                    return_table=return_table)
