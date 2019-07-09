@@ -536,6 +536,11 @@ def _fuzzy_match(matchtarget, matchlist, return_table=False):
     return_table:   bool
                  whether to return the full table of scored candidates, or to return only the single
                  best match. If False (the default), only the best match is returned.
+    
+    Notes
+    -----
+    consult the docstring for Product.check_match for more information on how the actual matching
+    algorithm works. 
     """
     split = matchtarget.split(',')
     if len(split) == 2:
