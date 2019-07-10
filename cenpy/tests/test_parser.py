@@ -3,8 +3,8 @@ import pandas as pd
 import numpy
 from unittest import TestCase, skip, main
 import os
-from ..geoparser import parse_polygon_to_shapely,parse_polygon_to_pysal
-from ..base import Connection
+from ..geoparser import parse_polygon_to_shapely, parse_polygon_to_pysal
+from ..remote import APIConnection
 
 DIRPATH = os.path.dirname(__file__)
 
@@ -15,7 +15,7 @@ class Geoparser_Test(TestCase):
         tests = pd.read_json(DIRPATH + '/tests.json')
         hard_tests = pd.read_json(DIRPATH + '/degenerate.json')
         self.all = answers.merge(tests, on='names').merge(hard_tests, on='names')
-        self.conn = Connection('DECENNIALSF12010')
+        self.conn = APIConnection('DECENNIALSF12010')
         self.conn.set_mapservice('tigerWMS_Census2010')
 
     def test_shapely_conversion(self):

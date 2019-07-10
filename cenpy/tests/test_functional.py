@@ -39,7 +39,7 @@ def test_all():
     # In[4]:
 
 
-    conn = c.base.Connection('DECENNIALSF12010')
+    conn = c.remote.APIConnection('DECENNIALSF12010')
 
 
     # That may have taken longer than you'd've expected. This is because, when the `Connection` constructor is called, it populates the connection object with a bit of metadata that makes it possible to construct queries without referring to the census handbooks. 
