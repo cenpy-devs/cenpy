@@ -505,6 +505,54 @@ class Decennial2010(_Product):
                                     .from_place.__doc__\
                                     .replace('place', 'state')\
                                     .replace('"state, state" or "state"', '"state, abbreviation" or "state"')
+    
+    @property
+    def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
+        pass
+    
+    @tables.getter
+    def tables(self):
+        try:
+            return self._tables
+        except AttributeError:
+            groups = self.variables.groupby('group')
+            unique_concepts = groups.concept.unique()
+            
+            single_unique_concepts = unique_concepts[unique_concepts.apply(len) == 1]
+
+            self._stems = single_unique_concepts.apply(lambda x: x[0]).to_frame('description')
+            self._stems['columns'] = groups.apply(lambda x: x.index.tolist())
+            
+            is_table = numpy.asarray([_can_int(x[-1]) for x in self._stems.index])
+            self._tables = self._stems[is_table]
+            self._crosstabs = self._stems[~is_table]
+            
+            return self._tables
+
+    @property
+    def crosstab_tables(self):
+        """
+        All of the crosstab table codes in the Census API for this product. 
+        
+        These *do not* include main tables, like "Race", whose table numbers
+        end in integers (like B02001).
+        """
+        pass
+
+    @crosstab_tables.getter
+    def crosstab_tables(self):
+        try:
+            return self._crosstabs
+        except AttributeError:
+            _ = self.tables #compute the divisions
+            return self._crosstabs
+
 
 class ACS(_Product):
 
@@ -610,6 +658,59 @@ class ACS(_Product):
         else:
             return (return_table, *rest)
     from_place.__doc__ =_Product.from_place.__doc__
+    
+    @property
+    def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
+        pass
+    
+    @tables.getter
+    def tables(self):
+        try:
+            return self._tables
+        except AttributeError:
+            splits = pandas.Series(self.variables.index.str.split('_'))
+            grouper = self.variables.assign(split_len=splits.apply(len).values, 
+                                          table_name=splits.apply(lambda x: x[0]).values)\
+                                  .query('split_len == 2')\
+                                  .groupby('table_name')
+            stems = grouper.concept.unique().to_frame('description')
+            stems['columns'] = grouper.apply(lambda x: x.index.copy().tolist())
+            assert stems.description.apply(len).unique() == 1, 'some variables have failed to parse into tables'
+            stems['description'] = stems.description.apply(lambda x: x[0])
+            result = stems.drop('GEO', axis=0, errors='ignore')
+            self._stems = result
+            # keep around the main tables only if they're not crosstabs (ending in alphanumeric)
+            self._tables = result.loc[[ix for ix in result.index if _can_int(ix[-1])]]
+            return self._tables
+
+    @property
+    def crosstab_tables(self):
+        """
+        All of the crosstab table codes in the Census API for this product. 
+        
+        These *do not* include main tables, like "Race", whose table numbers
+        end in integers (like B02001).
+        """
+        pass
+
+    @crosstab_tables.getter
+    def crosstab_tables(self):
+        try:
+            return self._crosstabs
+        except AttributeError:
+            tables = self.tables # needs to be instantiated first
+            self._crosstabs = self._stems.loc[self._stems.index.difference(tables.index)]
+            return self._crosstabs
+
+#############
+# UTILITIES #
+#############
 
 def _fuzzy_match(matchtarget, matchlist, return_table=False):
     """
