@@ -77,8 +77,8 @@ class _Product(object):
             self._crosstabs = self._stems.loc[self._stems.index.difference(tables.index)]
             return self._crosstabs
 
-    def filter_variables(self, pattern, engine='regex'):
-        return self._api.varslike(pattern, engine=engine)
+    def filter_variables(self, pattern=None, by=None, engine='re'):
+        return self._api.varslike(pattern=pattern, by=by, engine=engine)
     filter_variables.__doc__ = APIConnection.varslike.__doc__
 
     def _preprocess_variables(self, columns):
