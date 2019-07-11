@@ -104,7 +104,8 @@ class _Product(object):
     def from_place(self, place, variables=None, place_type=None,
                    level='tract', return_geometry=True,
                    geometry_precision=2,
-                   strict_within=True, return_bounds=False):
+                   strict_within=True, return_bounds=False,
+                   replace_missing=True):
         """
         Query the Census for the given place. 
 
@@ -135,6 +136,9 @@ class _Product(object):
                               target place.
         return_bounds       : bool (default: False)
                               whether to return the boundary of the place being queried.
+        replace_missing     : bool (default: True)
+                              whether to replace missing values in the data with numpy.nan,
+                              according to the standard missing values used by the ACS.
         
         Notes
         ------
@@ -200,7 +204,8 @@ class _Product(object):
                                       variables=variables, level=level,
                                       return_geometry=return_geometry,
                                       geometry_precision=geometry_precision,
-                                      strict_within=False, return_bounds=False)
+                                      strict_within=False, return_bounds=False,
+                                      replace_missing=replace_missing)
         if strict_within:
             geoms = geopandas.sjoin(geoms, env[['geometry']],
                                      how='inner', op='within')
@@ -209,7 +214,8 @@ class _Product(object):
         return geoms, data
 
     def _from_bbox(self, bounding_box, variables=None, level='tract', return_geometry=True,
-                   geometry_precision=2, strict_within=False, return_bounds=False):
+                   geometry_precision=2, strict_within=False, return_bounds=False, 
+                   replace_missing=True):
         """
         This is an internal method to handle querying the Census API and the GeoAPI using
         bounding boxes. This first gets the target records in the given level that fall within
@@ -275,9 +281,10 @@ class _Product(object):
                                       numpy.array_split(elements, n_chunks)],
                                       ignore_index=True, sort=False))
         data = pandas.concat((data), ignore_index=True, sort=False)
-        
-        for variable in variables:
-            data[variable] = _replace_missing(coerce(data[variable], float))
+       
+        if replace_missing:
+            for variable in variables:
+                data[variable] = _replace_missing(coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
@@ -306,7 +313,7 @@ class _Product(object):
 
     def _from_name(self, place, variables, level, return_geometry,
                    layername, strict_within, return_bounds, 
-                   geometry_precision, cache_name=None):
+                   geometry_precision, cache_name=None, replace_missing=True):
         """
         A helper function, internal to the product, which pieces together the 
         construction of a bounding box (from environment_from_layer) and 
@@ -321,7 +328,8 @@ class _Product(object):
                                            cache_name=cache_name)
         geoms, data = self._from_bbox(env.to_crs(epsg=4326).total_bounds,
                                       variables=variables, level=level,
-                                      strict_within=False, return_bounds=False)
+                                      strict_within=False, return_bounds=False,
+                                      replace_missing=replace_missing)
         if strict_within:
             geoms = geopandas.sjoin(geoms, env[['geometry']],
                                     how='inner', op='within')
