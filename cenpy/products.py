@@ -514,7 +514,7 @@ class ACS(_Product):
     def __init__(self, year='latest'):
         self._cache = dict()
         if year == 'latest':
-            year = 2018
+            year = 2017
         if year < 2013:
             raise NotImplementedError('The requested year {} is too early. '
                                       'Only 2013 and onwards is supported.'.format(year))
