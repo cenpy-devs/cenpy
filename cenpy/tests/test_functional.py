@@ -61,7 +61,7 @@ def test_all():
     # In[6]:
 
 
-    conn.variables.loc[conn.varslike('H011[AB]')]
+    conn.variables.loc[conn.varslike('H011[AB]').index.tolist()]
 
 
     # Likewise, the different levels of geographic scale are determined from the metadata in the overall API listing and recorded. 
@@ -93,7 +93,7 @@ def test_all():
     # In[9]:
 
 
-    cols = conn.varslike('H00[012]*', engine='fnmatch')
+    cols = conn.varslike('H00[012]*', engine='fnmatch').index.tolist()
 
 
     # In[10]:
@@ -332,7 +332,7 @@ def test_all():
     # In[36]:
 
 
-    data2 = conn2.query(cols=cols, geo_unit='county:*', geo_filter={'state':'06'})
+    data2 = conn2.query(cols=cols.index.tolist(), geo_unit='county:*', geo_filter={'state':'06'})
 
 
     # In[37]:
