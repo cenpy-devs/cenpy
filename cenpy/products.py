@@ -85,7 +85,7 @@ class _Product(object):
         if isinstance(columns, str):
             columns = [columns]
         expanded = [col for this_pattern in columns for col in
-                    self.filter_variables(this_pattern, engine='regex')]
+                    self.filter_variables(this_pattern, engine='regex').index]
         return numpy.unique(expanded).tolist()
 
     @property
@@ -442,8 +442,8 @@ class Decennial2010(_Product):
             variables = []
         else:
             variables = copy.copy(variables)
-        variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
+        variables.append('GEO_ID')
 
         caller = super(Decennial2010, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
@@ -466,20 +466,22 @@ class Decennial2010(_Product):
     def from_place(self, place, variables=None, level='tract', 
                    return_geometry=True,
                    place_type=None,
-                   strict_within=True, return_bounds=False):
+                   strict_within=True, return_bounds=False,
+                   replace_missing=True):
         if variables is None:
             variables = []
         else:
             variables = copy.copy(variables)
-        variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
+        variables.append('GEO_ID')
 
         geoms, variables, *rest = super(Decennial2010, self)\
                                   .from_place(place, variables=variables, level=level,
                                               return_geometry=return_geometry,
                                               place_type=place_type,
                                               strict_within=strict_within,
-                                              return_bounds=return_bounds)
+                                              return_bounds=return_bounds,
+                                              replace_missing=replace_missing)
         variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
@@ -596,8 +598,8 @@ class ACS(_Product):
             variables = []
         else:
             variables = copy.copy(variables)
-        variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
+        variables.append('GEO_ID')
 
         caller = super(ACS, self)._from_name
         geoms, variables, *rest = caller(place, variables, level,
@@ -641,20 +643,22 @@ class ACS(_Product):
     def from_place(self, place, variables=None, level='tract',
                    return_geometry=True,
                    place_type=None,
-                   strict_within=True, return_bounds=False):
+                   strict_within=True, return_bounds=False,
+                   replace_missing=True):
         if variables is None:
             variables = []
         else:
             variables = copy.copy(variables)
-        variables.append('GEO_ID')
         variables = self._preprocess_variables(variables)
+        variables.append('GEO_ID')
 
         geoms, variables, *rest = super(ACS, self)\
                                   .from_place(place, variables=variables, level=level,
                                               return_geometry=return_geometry,
                                               place_type=place_type,
                                               strict_within=strict_within,
-                                              return_bounds=return_bounds)
+                                              return_bounds=return_bounds,
+                                              replace_missing=replace_missing)
         variables['GEOID'] = variables.GEO_ID.str.split('US').apply(lambda x: x[1])
         return_table = geoms[['GEOID', 'geometry']]\
                             .merge(variables.drop('GEO_ID', axis=1),
