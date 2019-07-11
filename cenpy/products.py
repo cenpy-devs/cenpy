@@ -315,9 +315,10 @@ class _Product(object):
         return layer.query(where='GEOID={}'.format(row.GEOID),
                            geometryPrecision=geometry_precision)
 
-    def _from_name(self, place, variables, level, return_geometry,
+    def _from_name(self, place, variables, level,
                    layername, strict_within, return_bounds, 
-                   geometry_precision, cache_name=None, replace_missing=True):
+                   geometry_precision, cache_name=None, replace_missing=True, 
+                   return_geometry=True):
         """
         A helper function, internal to the product, which pieces together the 
         construction of a bounding box (from environment_from_layer) and 
@@ -400,7 +401,7 @@ class _Product(object):
             out_fields = 'BASENAME,GEOID'
             if 'Statistical' not in layer_name.target:
                 out_fields += ',STATE'
-            cache = layer.query(returnGeometry=False,
+            cache = layer.query(returnGeometry='false',
                                 outFields=out_fields,
                                 where='AREALAND>0')
             if 'Statistical' not in layer_name.target:
