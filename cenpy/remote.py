@@ -224,7 +224,7 @@ class APIConnection():
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
 
-    def varslike(self, pattern=None, by=None, engine='regex'):
+    def varslike(self, pattern=None, by=None, engine='regex', within=None):
         """
         Grabs columns that match a particular search pattern.
 
@@ -233,7 +233,7 @@ class APIConnection():
         pattern : string containing a search pattern
         description : string containing the description which should be matched.
         engine  : string describing backend string matching module to use.
-
+        within  : dataframe containing the variables over which to search.
 
         Notes
         ======
@@ -260,7 +260,9 @@ class APIConnection():
 
             >>> cxn.colslike('*_100M', engine='fnmatch')
         """
-        search_in = self.variables.get(by, self.variables.index).fillna('')
+        if within is None:
+            within = self.variables
+        search_in = within.get(by, within.index).fillna('')
 
         if (engine == 'regex') or (engine == 're'):
             import re
@@ -268,14 +270,14 @@ class APIConnection():
                         for candidate in search_in]
         elif engine == 'fnmatch':
             import fnmatch
-            matches = fnmatch.filter(self.variables.index, pattern)
+            matches = fnmatch.filter(search_in, pattern)
             mask = search_in.isin(matches)
         elif callable(engine):
-            matches = [ix for ix in self.variables.index if engine(ix, pattern)]
+            matches = [ix for ix in search_in if engine(ix, pattern)]
             mask = search_in.isin(matches)
         else:
             raise TypeError("Engine option is not supported or not callable.")
-        return self.variables[mask]
+        return within[mask]
 
     def set_mapservice(self, key):
         """

@@ -81,6 +81,10 @@ class _Product(object):
         return self._api.varslike(pattern=pattern, by=by, engine=engine)
     filter_variables.__doc__ = APIConnection.varslike.__doc__
 
+    def filter_tables(self, pattern=None, by=None, engine='re'):
+        return self._api.varslike(pattern=pattern, by=by, engine=engine, 
+                                  within=self.tables)
+
     def _preprocess_variables(self, columns):
         if isinstance(columns, str):
             columns = [columns]
