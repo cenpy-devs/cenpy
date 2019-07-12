@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>cenpy.products._Product.from_place &#8212; cenpy v1.0.0dev Manual</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pysal-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cenpy.products._Product.variables" href="cenpy.products._Product.variables.html" />
+    <link rel="prev" title="cenpy.products._Product.filter_variables" href="cenpy.products._Product.filter_variables.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          cenpy</a>
+        <span class="navbar-text navbar-version pull-left"><b>1.0.0dev</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../api.html">API</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#exploration-tools">Exploration Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#product-american-community-survey">Product: American Community Survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#product-decennial-2010-census">Product: Decennial 2010 Census</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#architectural-component-apiconnection">Architectural Component: APIConnection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#architectural-component-tigerconnection">Architectural Component: TigerConnection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#architectural-component-esrilayer">Architectural Component: ESRILayer</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#id1">Architectural Component: APIConnection</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">cenpy.products._Product.from_place</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <div class="section" id="cenpy-products-product-from-place">
+<h1>cenpy.products._Product.from_place<a class="headerlink" href="#cenpy-products-product-from-place" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="cenpy.products._Product.from_place">
+<code class="sig-prename descclassname">_Product.</code><code class="sig-name descname">from_place</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">place</em>, <em class="sig-param">variables=None</em>, <em class="sig-param">place_type=None</em>, <em class="sig-param">level='tract'</em>, <em class="sig-param">return_geometry=True</em>, <em class="sig-param">geometry_precision=2</em>, <em class="sig-param">strict_within=True</em>, <em class="sig-param">return_bounds=False</em>, <em class="sig-param">replace_missing=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cenpy/products.html#_Product.from_place"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cenpy.products._Product.from_place" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query the Census for the given place.</p>
+<dl class="simple">
+<dt>place<span class="classifier">str</span></dt><dd><p>description of the place. Should be of the form
+“place, state” or “place”</p>
+</dd>
+<dt>place_type<span class="classifier">str</span></dt><dd><p>type of place to focus on, Incorporated Place, County Subdivision, or Census Designated Place.</p>
+</dd>
+<dt>variables<span class="classifier">list or str</span></dt><dd><p>variable or set of variables to extract from the
+API. Can include regex columns, which will match
+to any column in the product. So, [‘P001001’, ‘^P002’]
+will match to P001001 and any column that starts with P002.</p>
+</dd>
+<dt>level<span class="classifier">str (default: ‘tract’)</span></dt><dd><p>level at which to extract the geographic data. May be
+limited by some products to only involve tracts. (default: ‘tract’)</p>
+</dd>
+<dt>return_geometry<span class="classifier">bool</span></dt><dd><p>whether to return the geometries of the queried records. True by default, this will ensure
+that the return type of from_place is a geopandas.GeoDataFrame. If False, then only the 
+records are fetched; none of the records’ geometries are requested from the server. (default: True)</p>
+</dd>
+<dt>geometry_precision<span class="classifier">int </span></dt><dd><p>number of decimal places to preserve when getting the geometric
+information around each observation in <cite>level</cite>. (default: 2)</p>
+</dd>
+<dt>strict_within<span class="classifier">bool</span></dt><dd><p>whether to retain only geometries that are fully within the
+target place.</p>
+</dd>
+<dt>return_bounds<span class="classifier">bool </span></dt><dd><p>whether to return the boundary of the place being queried. (default: False)</p>
+</dd>
+<dt>replace_missing<span class="classifier">bool </span></dt><dd><p>whether to replace missing values in the data with numpy.nan,
+according to the standard missing values used by the ACS. (default: True)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>You should always try to provide a place_type. There is a significant amount of vagueness in what is meant
+by “place” that you may not get the match you intend if you do not provide a place_type.</p>
+</dd></dl>
+
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+<div id="sourcelink">
+  <a href="../_sources/generated/cenpy.products._Product.from_place.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, cenpy developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

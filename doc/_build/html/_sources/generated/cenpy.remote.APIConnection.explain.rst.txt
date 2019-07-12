@@ -1,0 +1,6 @@
+cenpy.remote.APIConnection.explain
+==================================
+
+.. currentmodule:: cenpy.remote
+
+.. automethod:: APIConnection.explain

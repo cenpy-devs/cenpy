@@ -1,0 +1,6 @@
+cenpy.remote.APIConnection.set\_mapservice
+==========================================
+
+.. currentmodule:: cenpy.remote
+
+.. automethod:: APIConnection.set_mapservice

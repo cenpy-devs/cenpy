@@ -1,0 +1,6 @@
+cenpy.remote.APIConnection.query
+================================
+
+.. currentmodule:: cenpy.remote
+
+.. automethod:: APIConnection.query

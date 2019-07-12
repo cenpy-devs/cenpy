@@ -6,3 +6,4 @@ cenpy.egg*
 SITEKEY.txt
 .cache
 .pytest_cache
+doc/generated

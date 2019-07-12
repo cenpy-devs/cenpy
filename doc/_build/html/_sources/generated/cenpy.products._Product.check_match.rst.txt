@@ -1,0 +1,6 @@
+cenpy.products.\_Product.check\_match
+=====================================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: _Product.check_match

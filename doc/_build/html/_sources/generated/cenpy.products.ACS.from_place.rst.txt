@@ -1,0 +1,6 @@
+cenpy.products.ACS.from\_place
+==============================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: ACS.from_place

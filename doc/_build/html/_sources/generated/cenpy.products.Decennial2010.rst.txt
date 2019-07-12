@@ -1,0 +1,38 @@
+cenpy.products.Decennial2010
+============================
+
+.. currentmodule:: cenpy.products
+
+.. autoclass:: Decennial2010
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Decennial2010.__init__
+      ~Decennial2010.check_match
+      ~Decennial2010.filter_tables
+      ~Decennial2010.filter_variables
+      ~Decennial2010.from_county
+      ~Decennial2010.from_csa
+      ~Decennial2010.from_msa
+      ~Decennial2010.from_place
+      ~Decennial2010.from_state
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Decennial2010.crosstab_tables
+      ~Decennial2010.tables
+      ~Decennial2010.variables
+   
+   

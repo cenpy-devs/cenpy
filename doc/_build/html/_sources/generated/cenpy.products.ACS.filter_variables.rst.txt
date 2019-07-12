@@ -1,0 +1,6 @@
+cenpy.products.ACS.filter\_variables
+====================================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: ACS.filter_variables

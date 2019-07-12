@@ -1,0 +1,6 @@
+cenpy.remote.APIConnection.\_\_init\_\_
+=======================================
+
+.. currentmodule:: cenpy.remote
+
+.. automethod:: APIConnection.__init__

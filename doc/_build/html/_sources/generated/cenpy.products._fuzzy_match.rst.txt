@@ -1,0 +1,6 @@
+cenpy.products.\_fuzzy\_match
+=============================
+
+.. currentmodule:: cenpy.products
+
+.. autofunction:: _fuzzy_match

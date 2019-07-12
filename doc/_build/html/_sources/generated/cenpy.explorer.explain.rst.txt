@@ -1,0 +1,6 @@
+cenpy.explorer.explain
+======================
+
+.. currentmodule:: cenpy.explorer
+
+.. autofunction:: explain

@@ -1,0 +1,6 @@
+cenpy.products.\_Product.filter\_tables
+=======================================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: _Product.filter_tables
