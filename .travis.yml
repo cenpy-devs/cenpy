@@ -12,9 +12,10 @@ before_install:
     - ./miniconda.sh -b -p ./miniconda
     - export PATH=`pwd`/miniconda/bin:$PATH
     - conda update --yes conda
-    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy scipy pandas six pip requests nose
-    - source activate test-env
-    - pip install geopandas pysal
+    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION 
+    - conda activate test-env
+    - conda install -c conda-forge numpy scipy pandas six pip requests nose geopandas
+    - pip install pysal
     - python -c 'import requests; print(requests.__version__)'
     - python -c 'import pandas; print(pandas.__version__)'
 
@@ -24,7 +25,7 @@ install:
 script:
     - python -c 'import cenpy; print(cenpy.__version__)'
     - python setup.py sdist > /dev/null
-    - nosetests cenpy/
+    - pytest cenpy/
  
 notifications:
     email:
