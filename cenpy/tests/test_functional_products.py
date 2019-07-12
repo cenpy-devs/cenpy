@@ -7,7 +7,7 @@
 
 # In[1]:
 
-def test_all()
+def test_all():
     from cenpy import products
 
 
@@ -127,8 +127,7 @@ def test_all()
     # In[13]:
 
 
-    ma, ma_bounds = dectest.from_state('Massachusetts', 
-                                       return_bounds=True)
+    ma, ma_bounds = dectest.from_state('Massachusetts', return_bounds=True)
 
 
     # In[14]:
