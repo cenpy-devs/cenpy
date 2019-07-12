@@ -15,7 +15,7 @@ before_install:
     - conda update --yes conda
     - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION 
     - source activate test-env
-    - conda install -c conda-forge -y numpy scipy pandas six pip requests nose 
+    - conda install -y numpy scipy pandas six pip requests pytest
     - pip install -r REQUIREMENTS.txt
     - python -c 'import requests; print(requests.__version__)'
     - python -c 'import pandas; print(pandas.__version__)'
