@@ -13,7 +13,7 @@ before_install:
     - export PATH=`pwd`/miniconda/bin:$PATH
     - conda update --yes conda
     - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION 
-    - conda activate test-env
+    - source activate test-env
     - conda install -c conda-forge numpy scipy pandas six pip requests nose geopandas
     - pip install pysal
     - python -c 'import requests; print(requests.__version__)'
