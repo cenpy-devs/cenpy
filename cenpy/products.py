@@ -265,7 +265,7 @@ class _Product(object):
        
         if replace_missing:
             for variable in variables:
-                data[variable] = _replace_missing(coerce(data[variable], float))
+                data[variable] = _replace_missing(_coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
@@ -791,7 +791,7 @@ def _fuzzy_match(matchtarget, matchlist, return_table=False):
         return rowmax, table.sort_values('score')
     return rowmax
 
-def coerce(column, kind):
+def _coerce(column, kind):
     """
     Converty type of column to kind, or keep column unchanged
     if that conversion fails.
