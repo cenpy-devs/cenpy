@@ -15,8 +15,8 @@ before_install:
     - conda update --yes conda
     - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION 
     - source activate test-env
-    - conda install -c conda-forge -y numpy scipy pandas six pip requests nose geopandas
-    - pip install libpysal
+    - conda install -c conda-forge -y numpy scipy pandas six pip requests nose 
+    - pip install libpysal geopandas
     - python -c 'import requests; print(requests.__version__)'
     - python -c 'import pandas; print(pandas.__version__)'
     - python -c 'import cenpy; print(cenpy.__version__)'
