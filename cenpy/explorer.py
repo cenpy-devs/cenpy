@@ -28,15 +28,16 @@ def available(verbose=True):
     Returns available identifiers for Census Data APIs. 
     NOTE: we do not support the Economic Indicators Time Series API yet.
 
-    Arguments
-    ==========
-    verbose : boolean governing whether to provide ID and title
-              or just ID
+    Parameters
+    ----------
+    verbose : bool
+              whether to provide ID and title or just ID (default: True)
 
     Returns
-    ========
-
-    identifiers (if verbose: and dataset names)
+    --------
+    
+    list
+        identifiers (if verbose: and dataset names)
 
     """
     av_apis = [api for api in APIs.keys() if 'eits' not in api]
@@ -85,16 +86,18 @@ def explain(identifier=None, verbose=False):
     """
     Explains datasets currently available via the census API
 
-    Arguments
-    ==========
-    identifier : string identifying which dataset in the API to use
-    verbose : boolean governing whether to provide full API record
-              or just title and description.
+    Parameters
+    ----------
+    identifier : string 
+                 shortcode identifying which dataset in the API to use
+    verbose : bool
+              flag governing whether to provide full API record
+              or just title and description. (default: False)
 
     Returns
-    ========
-
-    title and description (if verbose: and full API information)
+    --------
+    dict
+        title and description (if verbose: and full API information)
     """
     if identifier is None:
         raise ValueError(
@@ -109,17 +112,21 @@ def fips_table(kind, in_state=''):
     """
     Pulls a table of FIPS codes for reference
 
-    Arguments
-    ==========
-    kind : string identifying the kind of census geography needed, down
-            to sub-county or VTD fips
-    in_state : filter to only grab fips codes from within a state. Use to 
-            avoid large data downloads if you're looking for specific data
+    Parameters
+    ----------
+    kind : str
+           identifying the kind of census geography needed, down
+           to sub-county or VTD fips
+    in_state : str
+                filter to only grab fips codes from within a state. Use to 
+                avoid large data downloads if you're looking for specific data.
+                (default: '')
 
     Returns
-    ========
+    --------
 
-    Pandas dataframe of fips codes and names of the geographies in question
+    pandas.DataFrame
+        fips codes and names of the geographies in question
 
 
     """

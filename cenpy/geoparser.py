@@ -188,12 +188,12 @@ def fix_rings(multipolygon, strict=False):
 
     Requires shapely, may take a bit for shapes with many exteriors/interiors. 
 
-    Argument:
+    Parameters
     ---------
     multipolygon: a shapely polygon. (should be invalid due to ring ordering)
 
-    Returns:
-    --------
+    Returns
+    -------
     multipolygon: a shapely polygon that should have valid ring ordering. 
                   May be invalid due to other reasons.
 

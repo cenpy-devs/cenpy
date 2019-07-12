@@ -21,13 +21,11 @@ class APIConnection():
         Constructor for a Connection object
 
         Parameters
-        ============
-        api_name : shortcode identifying which api to connect to
-
-        Returns
-        ========
-
-        a Cenpy Connection object
+        ------------
+        api_name : str
+                   shortcode identifying which api to connect to
+        api_key  : str
+                   US Census bureau API key
         """
         if 'eits' not in api_name and api_name is not None:
             try:
@@ -97,22 +95,23 @@ class APIConnection():
             return str('Connection to ' + self.title + ' (ID: ' +
                        self.identifier + ')')
 
-    def explain(self, *args, **kwargs):
+    def explain(self, *args, verbose=True):
         """
         Explain a column or list of columns.
 
         Parameters
-        ============
-        *args : list of names of columns in the variables dataframe that require
-                explanation"
-        verbose : boolean denoting whether to grab both "label" and "concept"
-                from the variable dataframe.
+        ------------
+        *args : str or sequence of strs
+                name or list of names for columns in the `variables` dataframe that require
+                explanation. lists will be unpacked by default. 
+        verbose : bool
+                  whether to grab both "label" and "concept" from the variable dataframe.
+                  (default: True)
 
         Returns
-        ==========
+        ----------
         dictionary of explanatory texts about variables inputted.
         """
-        verbose = kwargs.pop('verbose', True)
         grab = ['concept']
         if not verbose:
             grab = ['label']
@@ -129,30 +128,34 @@ class APIConnection():
         Conduct a query over the USCB api connection
 
         Parameters
-        ===========
-        cols : census field identifiers to pull
-        geo_unit : dict or string identifying what the basic spatial
-                    unit of the query should be
-        geo_filter : dict of required geometries above the specified
-                      geo_unit needed to complete the query
-        apikey : USCB-issued key for your query.
+        -----------
+        cols : list of str
+               census column names to request
+        geo_unit : dict or str 
+                   identifiers for the basic spatial unit of the query
+        geo_filter : dict 
+                     required geometries above the specified geo_unit needed 
+                     to complete the query
+        apikey : str
+                 USCB-issued API key for your query.
         **kwargs : additional search predicates can be passed here
 
         Returns
-        ========
-        pandas dataframe of results
+        --------
+        pandas.DataFrame
+            results from the API
 
         Example
-        ========
+        --------
         To grab the total population of all of the census blocks in a part of Arizona:
 
             >>> cxn.query('P0010001', geo_unit = 'block:*', geo_filter = {'state':'04','county':'019','tract':'001802'})
 
         Notes
-        ======
+        ------
 
         If your list of columns exceeds the maximum query length of 50,
-        the query will be broken up and concatenates back together at
+        the query will be broken up and concatenated back together at
         the end. Sometimes, the USCB might frown on large-column queries,
         so be careful with this. Cenpy is not liable for your key getting
         banned if you query tens of thousands of columns at once.
@@ -220,7 +223,7 @@ class APIConnection():
         Helper function to manage large queries
 
         Parameters
-        ===========
+        -----------
         cols : large list of columns to be grabbed in a query
         """
         assert (not (cols is None)), 'Columns must be provided for query!'
@@ -237,19 +240,25 @@ class APIConnection():
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
 
-    def varslike(self, pattern=None, by=None, engine='regex', within=None):
+    def varslike(self, pattern=None, by=None, engine='re', within=None):
         """
         Grabs columns that match a particular search pattern.
 
         Parameters
-        ==========
-        pattern : string containing a search pattern
-        description : string containing the description which should be matched.
-        engine  : string describing backend string matching module to use.
-        within  : dataframe containing the variables over which to search.
+        ----------
+        pattern : str
+                  a search pattern to match
+        by      : str
+                  a column in the APIConnection.variables to conduct the search
+                  within
+        engine  : {'re', 'fnmatch', callable}
+                  backend string matching module to use, or a function of the form
+                  match(candidate, pattern). (default: 're')
+        within  : pandas.DataFrame 
+                  the variables over which to search.
 
         Notes
-        ======
+        ------
         Only regex and fnmatch will be supported modules. Note that, while
         regex is the default, the python regular expressions module has some
         strange behavior if you're used to VIM or Perl-like regex. It may be
@@ -297,12 +306,12 @@ class APIConnection():
         Assign a mapservice to the connection instance
 
         Parameters
-        ===========
+        -----------
         key : str
                 string describing the shortcode of the Tiger mapservice
 
         Returns
-        ========
+        --------
         adds a mapservice attribute to the connection object, returns none.
         """
         if isinstance(key, tig.TigerConnection):

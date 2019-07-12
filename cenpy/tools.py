@@ -18,7 +18,8 @@ def national_to_block(cxn, *columns, wait_by_state=0,
     A helper function to grab all blocks by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_block for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
-    Arguments
+
+    Parameters
     ---------
     cxn     :   cenpy.base.Connection object
                     the connection to use to query.
@@ -130,9 +131,9 @@ def state_to_blockgroup(stfips, cxn, *columns, wait=0):
 def state_to_tract(stfips, cxn, *columns, wait=0):
     """
     Casts the generator constructed by genstate_to_tract to a full dataframe. 
-    Arguments
+    Parameters
     ---------
-    stfips  :   string
+    stfips  :   str
                 two-digit state fips code used to grab tracts
     cxn     :   cenpy.base.Connection
                 connection object against which the query occurs
@@ -163,10 +164,10 @@ def county_to_block(stfips, ctfips, cxn, *columns, wait=0):
     """
     Returns all blocks underneath a county
 
-    Arguments
+    Parameters
     ---------
-    stfips : int or string describing the state's fips code
-    ctfips : int or string describing the county's fips code
+    stfips : int or str describing the state's fips code
+    ctfips : int or str describing the county's fips code
     *columns: splatted list of columns to grab from the API
 
     Returns
@@ -187,13 +188,13 @@ def genstate_to_block(stfips, cxn, *columns):
     """
     Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. 
 
-    Arguments
+    Parameters
     ----------
-    stfips  :   string
+    stfips  :   str
                 fips of the state 
     cxn     :   cenpy.base.Connection
                 connection instance
-    *columns:   strings
+    *columns:   str
                 columns that are desired by the user to grab for each block. 
     Returns
     -------
@@ -216,11 +217,11 @@ def gencounty_to_block(stfips, ctfips, cxn, *columns):
     Generator to handle geo-in-geo queries without the user having to worry about wrangling the tracts
     within a county.
 
-    Arguments
+    Parameters
     ---------
-    stfips : string
+    stfips : str
              fips of the state
-    ctfips : string
+    ctfips : str
              fips of the county
     cxn    : connection to use
     *columns: splatted list of the columns to query, all strings
@@ -240,13 +241,13 @@ def genstate_to_blockgroup(stfips, cxn, *columns):
     """
     Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. 
 
-    Arguments
+    Parameters
     ----------
-    stfips  :   string
+    stfips  :   str
                 fips of the state 
     cxn     :   cenpy.base.Connection
                 connection instance
-    *columns:   strings
+    *columns:   str
                 columns that are desired by the user to grab for each blockgroup. 
     Returns
     -------
@@ -268,13 +269,13 @@ def genstate_to_tract(stfips, cxn, *columns):
     """
     Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. 
 
-    Arguments
+    Parameters
     ----------
-    stfips  :   string
+    stfips  :   str
                 fips of the state 
     cxn     :   cenpy.base.Connection
                 connection instance
-    *columns:   strings
+    *columns:   str
                 columns that are desired by the user to grab for each tract. 
     Returns
     -------
@@ -293,10 +294,10 @@ def set_sitekey(sitekey, overwrite=False):
     Save the sitekey so that users can access it via cenpy.SITEKEY. 
     This lets users bind an API key to a given installation. 
 
-    Arguments
+    Parameters
     -----------
-    sitekey     :   string
-                    string containing the census data api key the user wants to bind
+    sitekey     :   str
+                    str containing the census data api key the user wants to bind
     overwrite   :   bool
                     flag denoting whether to overwrite existing sitekey. Defaults to False. 
 

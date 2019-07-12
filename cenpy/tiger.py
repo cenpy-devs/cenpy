@@ -51,9 +51,8 @@ def available(verbose=False):
 
     Parameters
     -----------
-    verbose :   int
-                int/bool describing verbosity level. Accepts levels -1, 0, 1, and
-                greater.
+    verbose :   int or bool
+                indicator for the verbosity level. Accepts levels -1, 0, 1, and greater.
 
     Returns
     -------
@@ -84,6 +83,15 @@ def available(verbose=False):
 
 class ESRILayer(object):
     def __init__(self, baseurl, **kwargs):
+        """
+        Class representing the ESRI Layer in the TIGER API
+
+        Parameters
+        ----------
+        baseurl :   str
+                    the url for the Layer. 
+
+        """
         self.__dict__.update({'_'+k: v for k, v in diter(kwargs)})
         if hasattr(self, '_fields'):
             self.variables = pd.DataFrame(self._fields)
@@ -101,37 +109,38 @@ class ESRILayer(object):
         every option here 
 
         Parameters
-        ==========
+        ---------- 
         where: str, required
                     sql query string. 
-        out_fields: list or str, (default: '*') 
-                    fields to pass from the header out
-        return_geometry: bool, (default: True)
+        out_fields: list or str
+                    fields to pass from the header out (default: '*')
+        return_geometry: bool
                     bool describing whether to return geometry or just the
-                    dataframe
-        geometry_precision: str, (default: None)
+                    dataframe. (default: True)
+        geometry_precision: str
                     a number of significant digits to which the output of the
-                    query should be truncated
-        out_sr: int or str, (default: None)
+                    query should be truncated (default: None)
+        out_sr: int or str
                     ESRI WKID spatial reference into which to reproject 
-                    the geodata
-        return_ids_only: bool, (default: False)
-                    bool stating to only return ObjectIDs
-        return_z: bool, (default: False)
-                     whether to return z components of shp-z
-        return_m: bool, (default: False)
-                     whether to return m components of shp-m
-        strict  :   bool (default: True)
+                    the geodata (default: None)
+        return_ids_only: bool
+                    bool stating to only return ObjectIDs. (default: False)
+        return_z: bool
+                     whether to return z components of shp-z, (default: False)
+        return_m: bool
+                     whether to return m components of shp-m, (default: False)
+        strict  :   bool
                     whether to throw an error if invalid polygons are provided from the API (True)
-                    or just warn that at least one polygon is invalid (False)
-        raw : bool (default: False)
-              whether to provide the raw geometries from the API
+                    or just warn that at least one polygon is invalid (default: False)
+        raw : bool
+              whether to provide the raw geometries from the API  (default: False)
+        
         Returns
-        =======
+        ------- 
         Dataframe or GeoDataFrame containing entries from the geodatabase
 
         Notes
-        =====
+        -----
         Most of the time, this should be used leaning on the SQL "where"
         argument: 
 
@@ -194,10 +203,17 @@ class ESRILayer(object):
 
 class TigerConnection(object):
     """
-    a tiger connection
+    Connection to the ESRI Tiger API
     """
 
     def __init__(self, name=None):
+        """
+        Parameters
+        ----------
+        name    :   str
+                    string describing the API to connect to
+
+        """
         if name not in available(verbose=-1):
             raise KeyError(
                 'Dataset {n} not found. Please check cenpy.tiger.available()'.format(n=name))
@@ -219,7 +235,13 @@ class TigerConnection(object):
         return [ESRILayer(self._baseurl, **d) for d in resp['layers']]
 
     def query(self, **kwargs):
+        """
+        method to query the ESRI API. Passes down to an appropriately-chosen layer. 
+        """
         layer_idx = kwargs.pop('layer', None)
+        if isinstance(layer_idx, str):
+            from .products import _fuzzy_match
+            layer_result = _fuzzy_match(layer_idx, [f.__repr__() for f in self.layers]).index
         if layer_idx is None:
             raise Exception('No layer selected.')
         return self.layers[layer_idx].query(**kwargs)

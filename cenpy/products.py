@@ -113,7 +113,7 @@ class _Product(object):
         """
         Query the Census for the given place. 
 
-        Arguments
+        Parameters
         ---------
         place               : str
                               description of the place. Should be of the form
@@ -127,22 +127,22 @@ class _Product(object):
                               will match to P001001 and any column that starts with P002.
         level               : str (default: 'tract')
                               level at which to extract the geographic data. May be
-                              limited by some products to only involve tracts.
-        return_geometry     : bool (default: True)
+                              limited by some products to only involve tracts. (default: 'tract')
+        return_geometry     : bool
                               whether to return the geometries of the queried records. True by default, this will ensure
                               that the return type of from_place is a geopandas.GeoDataFrame. If False, then only the 
-                              records are fetched; none of the records' geometries are requested from the server. 
-        geometry_precision  : int (default: 2)
+                              records are fetched; none of the records' geometries are requested from the server. (default: True) 
+        geometry_precision  : int 
                               number of decimal places to preserve when getting the geometric
-                              information around each observation in `level`.
-        strict_within       : bool (default: True)
+                              information around each observation in `level`. (default: 2)
+        strict_within       : bool
                               whether to retain only geometries that are fully within the
                               target place.
-        return_bounds       : bool (default: False)
-                              whether to return the boundary of the place being queried.
-        replace_missing     : bool (default: True)
+        return_bounds       : bool 
+                              whether to return the boundary of the place being queried. (default: False)
+        replace_missing     : bool 
                               whether to replace missing values in the data with numpy.nan,
-                              according to the standard missing values used by the ACS.
+                              according to the standard missing values used by the ACS. (default: True)
         
         Notes
         ------
@@ -346,13 +346,13 @@ class _Product(object):
         """
         A helper function to verify the match used by the product API. 
 
-        Arguments
+        Parameters
         ----------
-        name        : string
+        name        : str
                       the name of the place/query string to be searched. Should be in the form
                       "placename, stateabbreviation" (like "Los Angeles, CA"). For multiply-named
                       locations, the format should be town1-town2, state1-state2, like Kansas City, KS-MO. 
-        level       : string
+        level       : str
                       the name of the census hierarchy in which the name should be searched. Should be
                       something like "Incorporated Places" or "States". 
         return_level: bool
@@ -367,11 +367,12 @@ class _Product(object):
                       you intend to match, and then input exactly that string. 
         Returns
         -------
-        the row of the match table that records the matched name. 
-        If return_table is True, this becomes a tuple of (row, table). 
-        If return_level is True, the result is returned for both the match on the name and on the level.
-        If both return_table and return_level are true, then two tuples are returned. The first contains the
-        match for the name and the full table of possible names, and the second contains the match of the level and 
+        int
+            the row of the match table that records the matched name. 
+            If return_table is True, this becomes a tuple of (row, table). 
+            If return_level is True, the result is returned for both the match on the name and on the level.
+            If both return_table and return_level are true, then two tuples are returned. The first contains the
+            match for the name and the full table of possible names, and the second contains the match of the level and 
         the full table of possible levels. 
 
         Notes
@@ -733,7 +734,7 @@ def _fuzzy_match(matchtarget, matchlist, return_table=False):
     """
     Conduct a fuzzy match with matchtarget, within the list of possible match candidates in matchlist. 
 
-    Arguments
+    Parameters
     ---------
     matchtarget :   str
                  a string to be matched to a set of possible candidates
