@@ -14,10 +14,10 @@ analysis and draws inspiration from sqlalchemy-like interfaces and
 
 A few examples are available in the ``notebooks`` repository. 
 
-- `developer building blocks <http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/product/notebooks/automatic-wrapper.ipynb>`__.
 - `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb>`__.
 - `analyzing segregation over time & across space <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/segregation.ipynb>`__
 - `a road to frictionless urban data science <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb>`__
+- `developer building blocks <http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/product/notebooks/automatic-wrapper.ipynb>`__.
 
 Also, a great example on how to grab work with cenpy, moving from nothing to
 data to map, `is here <https://gist.github.com/dfolch/2440ba28c2ddf5192ad7>`__, 
