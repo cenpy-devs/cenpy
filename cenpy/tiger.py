@@ -82,6 +82,7 @@ def available(verbose=False):
 
 
 class ESRILayer(object):
+    """The fundamental building block to access a single Geography/Layer in an ESRI MapService"""
     def __init__(self, baseurl, **kwargs):
         """
         Class representing the ESRI Layer in the TIGER API
@@ -202,9 +203,7 @@ class ESRILayer(object):
 
 
 class TigerConnection(object):
-    """
-    Connection to the ESRI Tiger API
-    """
+    """The fundamental building block for US Census Bureau's Geographic, an ESRI MapService"""
 
     def __init__(self, name=None):
         """

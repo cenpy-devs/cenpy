@@ -20,6 +20,7 @@ _ACS_MISSING = (-999999999, -888888888, -666666666,
                 -555555555, -333333333, -222222222)
 
 class _Product(object):
+    """The fundamental building block to make pre-configured Census Products, like ACS or Decennial2010."""
 
     def __repr__(self):
         return self._api.__repr__()
@@ -42,40 +43,7 @@ class _Product(object):
 
     @tables.getter
     def tables(self):
-        try:
-            return self._tables
-        except AttributeError:
-            splits = pandas.Series(self.variables.index.str.split('_'))
-            stems = self.variables.assign(split_len=splits.apply(len).values, 
-                                          table_name=splits.apply(lambda x: x[0]).values)\
-                                  .query('split_len == 2')\
-                                  .groupby('table_name').concept.unique().to_frame('description')
-            assert stems.description.apply(len).unique() == 1, 'some variables have failed to parse into tables'
-            stems['description'] = stems.description.apply(lambda x: x[0])
-            result = stems.drop('GEO', axis=0, errors='ignore')
-            self._stems = result
-            # keep around the main tables only if they're not crosstabs (ending in alphanumeric)
-            self._tables = result.loc[[ix for ix in result.index if _can_int(ix[-1])]]
-            return self._tables
-
-    @property
-    def crosstab_tables(self):
-        """
-        All of the crosstab table codes in the Census API for this product. 
-        
-        These *do not* include main tables, like "Race", whose table numbers
-        end in integers (like B02001).
-        """
-        pass
-
-    @crosstab_tables.getter
-    def crosstab_tables(self):
-        try:
-            return self._crosstabs
-        except AttributeError:
-            tables = self.tables # needs to be instantiated first
-            self._crosstabs = self._stems.loc[self._stems.index.difference(tables.index)]
-            return self._crosstabs
+        raise NotImplementedError('This must be implemented on children of this class!')
 
     def filter_variables(self, pattern=None, by=None, engine='re'):
         return self._api.varslike(pattern=pattern, by=by, engine=engine)
@@ -571,6 +539,7 @@ class Decennial2010(_Product):
 
 
 class ACS(_Product):
+    """The American Community Survey (5-year vintages) from the Census Bueau"""
 
     _layer_lookup = {'county': 84,
                      'tract': 8}

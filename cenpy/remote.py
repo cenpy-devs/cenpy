@@ -16,6 +16,7 @@ class ParseException(Exception):
         self.response = response
 
 class APIConnection():
+    """The fundamental building block for US Census Bureau data API Endpoints"""
     def __init__(self, api_name=None, apikey=''):
         """
         Constructor for a Connection object
