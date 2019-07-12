@@ -1,13 +1,13 @@
 CenPy
 =====
-.. image:: https://travis-ci.org/ljwolf/cenpy.svg?branch=master
-    :target: https://travis-ci.org/ljwolf/cenpy
+.. image:: https://travis-ci.org/cenpy-devs/cenpy.svg?branch=master
+    :target: https://travis-ci.org/cenpy-devs/cenpy
 .. image:: https://img.shields.io/pypi/dm/cenpy.svg
     :target: https://pypi.org/project/cenpy/
 .. image:: https://zenodo.org/badge/36956226.svg
     :target: https://zenodo.org/badge/latestdoi/36956226
 
-**A new interface for cenpy is under construction for the 1.0 release.** `Please consider reading this <https://nbviewer.jupyter.org/gist/ljwolf/3481aeadf1b0fbb46b72553a08bfc4e6?flush_cache=true>`__, and using the prerelease/beta version of cenpy 1.0 using:
+**A new interface for cenpy is under construction for the 1.0 release.** `Please consider reading this <https://nbviewer.jupyter.org/gist/cenpy-devs/3481aeadf1b0fbb46b72553a08bfc4e6?flush_cache=true>`__, and using the prerelease/beta version of cenpy 1.0 using:
 ``pip install --pre cenpy``
 
 ---------
@@ -19,10 +19,10 @@ analysis and draws inspiration from sqlalchemy-like interfaces and
 
 A few examples are available in the ``notebooks`` repository. 
 
-- `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb>`__.
-- `analyzing segregation over time & across space <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/segregation.ipynb>`__
-- `a road to frictionless urban data science <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb>`__
-- `developer building blocks <http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/product/notebooks/automatic-wrapper.ipynb>`__.
+- `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/product-api.ipynb>`__.
+- `analyzing segregation over time & across space <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/segregation.ipynb>`__
+- `a road to frictionless urban data science <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb>`__
+- `developer building blocks <http://nbviewer.ipython.org/github/cenpy-devs/cenpy/blob/product/notebooks/automatic-wrapper.ipynb>`__.
 
 Also, a great example on how to grab work with cenpy, moving from nothing to
 data to map, `is here <https://gist.github.com/dfolch/2440ba28c2ddf5192ad7>`__, 
@@ -56,7 +56,7 @@ Likewise, the decennial census can be accessed using:
     decennial = cenpy.products.Decennial2010()
     decennial.from_place('Seattle, WA')
 
-For more information on how the product API works, consult the `notebook on the topic <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb>`.
+For more information on how the product API works, consult the `notebook on the topic <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/product-api.ipynb>`.
 
 
 For Developers
