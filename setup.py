@@ -12,6 +12,10 @@ with open(os.path.join(basepath, 'README.rst'), 'r') as readme:
     long_description = readme.readlines()
 long_description = ''.join(long_description)
 
+with open(os.path.join(basepath, 'REQUIREMENTS.txt'), 'r') as reqfile:
+    reqs = reqfile.readlines()
+reqs = [req.strip() for req in reqs]
+
 setup(name='cenpy',
       version='1.0.0rc2',
       description='Explore and download data from Census APIs',
@@ -22,8 +26,6 @@ setup(name='cenpy',
       license='3-Clause BSD',
       python_requires='>=3.5',
       packages=['cenpy'],
-      install_requires=['pandas', 'requests',
-                        'libpysal', 'geopandas',
-                        'fuzzywuzzy'],
+      install_requires=reqs,
       package_data={'cenpy': ['stfipstable.csv']},
       zip_safe=False)

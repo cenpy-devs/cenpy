@@ -1,6 +1,7 @@
 pandas
 geopandas
-request
+requests
 numpy
 six
-
+fuzzywuzzy
+libpysal
