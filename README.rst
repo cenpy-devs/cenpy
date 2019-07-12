@@ -12,8 +12,12 @@ Dataframes. Ideally, this package is intended for exploratory data
 analysis and draws inspiration from sqlalchemy-like interfaces and
 ``acs.R``.
 
-An `intro notebook is
-available <http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/notebooks/automatic-wrapper`.ipynb>`__.
+A few examples are available in the ``notebooks`` repository. 
+
+- `developer building blocks <http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/notebooks/automatic-wrapper.ipynb>`__.
+- `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb>`__.
+- `analyzing segregation over time & across space <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/segregation.ipynb>`__
+- `a road to frictionless urban data science <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb>`__
 
 Also, a great example on how to grab work with cenpy, moving from nothing to
 data to map, `is here <https://gist.github.com/dfolch/2440ba28c2ddf5192ad7>`__, 
@@ -28,18 +32,37 @@ install ``cenpy`` and other dependencies using ``pip``:
 
 ``pip install cenpy``
 
-If you do not have ``pip``, simply copy the module somewhere in your
-python path.
 
-Usage
------
-
-Once done, importing ``cenpy`` will provide the ``explorer`` and
-``base`` modules. To create a connection:
+For Users
+----------
+Most of the time, users want a simple and direct interface to the US Census Bureau's main products: the 2010 Census and the American Community Survey. Fortunately, cenpy provides a direct interface to these products. For instance, the American Community Survey's most recent 5-year estimates can be accessed using:
 
 ::
 
-    cxn = cenpy.base.Connection('DECENNIALSF12010')
+    import cenpy
+    acs = cenpy.products.ACS()
+    acs.from_place('Chicago, IL')
+
+Likewise, the decennial census can be accessed using:
+
+::
+
+    import cenpy
+    decennial = cenpy.products.Decennial2010()
+    decennial.from_place('Seattle, WA')
+
+For more information on how the product API works, consult the `notebook on the topic <https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb>`.
+
+
+For Developers
+----------------
+
+Once done, importing ``cenpy`` will provide the ``explorer`` and
+``remote`` modules. To create a connection:
+
+::
+
+    cxn = cenpy.remote.APIConnection('DECENNIALSF12010')
 
 Check the variables required and geographies supported:
 
