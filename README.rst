@@ -7,6 +7,11 @@ CenPy
 .. image:: https://zenodo.org/badge/36956226.svg
     :target: https://zenodo.org/badge/latestdoi/36956226
 
+**A new interface for cenpy is under construction for the 1.0 release.** `Please consider reading this <https://nbviewer.jupyter.org/gist/ljwolf/3481aeadf1b0fbb46b72553a08bfc4e6?flush_cache=true>`__, and using the prerelease/beta version of cenpy 1.0 using:
+``pip install --pre cenpy``
+
+---------
+
 An interface to explore and query the US Census API and return Pandas
 Dataframes. Ideally, this package is intended for exploratory data
 analysis and draws inspiration from sqlalchemy-like interfaces and
