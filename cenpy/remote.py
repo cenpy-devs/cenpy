@@ -273,15 +273,15 @@ class APIConnection():
         and return True or False if the candidate matches the pattern. So, for
         instance, you can use any string processing function:
 
-            >>> cxn.colslike('_100M', engine = lambda c,p: c.endswith(p)
+            >>> cxn.varslike('_100M', engine = lambda c,p: c.endswith(p)
 
         which may also be expressed as a regexp:
 
-            >>> cxn.colslike('_100M$', engine='re')
+            >>> cxn.varslike('_100M$', engine='re')
 
         or an fnmatch pattern:
 
-            >>> cxn.colslike('*_100M', engine='fnmatch')
+            >>> cxn.varslike('*_100M', engine='fnmatch')
         """
         if within is None:
             within = self.variables
