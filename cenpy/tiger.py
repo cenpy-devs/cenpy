@@ -237,10 +237,11 @@ class TigerConnection(object):
         """
         method to query the ESRI API. Passes down to an appropriately-chosen layer. 
         """
-        layer_idx = kwargs.pop('layer', None)
-        if isinstance(layer_idx, str):
+        layer_result = kwargs.pop('layer', None)
+        if isinstance(layer_result, str):
             from .products import _fuzzy_match
-            layer_result = _fuzzy_match(layer_idx, [f.__repr__() for f in self.layers]).index
+            layer_result = _fuzzy_match(layer_result, 
+                                        [f.__repr__() for f in self.layers]).index
         if layer_result is None:
             raise Exception('No layer selected.')
         return self.layers[layer_result].query(**kwargs)
