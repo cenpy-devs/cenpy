@@ -55,18 +55,25 @@ class APIConnection():
                 self.doclink = self.__urls__['documentation']
             if 'variables' in self.__urls__.keys():
                 v = pd.DataFrame()
-                self.variables = v.from_dict(
-                    r.get(self.__urls__['variables']).json()['variables']).T
+                variables = r.get(self.__urls__['variables'])
+                variables.raise_for_status()
+
+                self.variables = v.from_dict(variables.json()['variables']).T
             if 'geography' in self.__urls__.keys():
-                res = r.get(self.__urls__['geography']).json()
+                res = r.get(self.__urls__['geography'])
+                res.raise_for_status()
+                res = res.json()
                 self.geographies = {k: pd.DataFrame().from_dict(v) for k, v
                                     in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                self.tags = list(
-                    r.get(self.__urls__['tags']).json().values())[0]
+                tags = r.get(self.__urls__['tags'])
+                tags.raise_for_status()
+                self.tags = list(tags.json().values())[0]
 
             if 'examples' in self.__urls__.keys():
-                self.example_entries = r.get(self.__urls__['examples']).json()
+                examples = r.get(self.__urls__['examples'])
+                examples.raise_for_status()
+                self.example_entries = examples.json()
 
         elif 'eits' in api_name:
             raise NotImplementedError(

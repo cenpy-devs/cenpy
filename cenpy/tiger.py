@@ -59,7 +59,9 @@ def available(verbose=False):
     -------
     list or dict of available MapServers through TIGERweb
     """
-    q = _jget(_baseurl).json()
+    q = _jget(_baseurl)
+    q.raise_for_status()
+    q = q.json()
     for d in q['services']:
         d['name'] = d['name'].split('/')[-1]
     if verbose == -1:
@@ -71,7 +73,9 @@ def available(verbose=False):
         nexturls = ['/'.join([_baseurl, d['name'], d['type']])
                     for d in q['services']]
         for i, d in enumerate(q['services']):
-            d['description'] = _jget(nexturls[i]).json()['description']
+            resp = _jget(nexturls[i])
+            resp.raise_for_status()
+            d['description'] = resp.json()['description']
         if verbose == True:
             return q['services']
         else:
@@ -199,7 +203,9 @@ class TigerConnection(object):
                 'Dataset {n} not found. Please check cenpy.tiger.available()'.format(n=name))
         else:
             self._baseurl = '/'.join([_baseurl, name, 'MapServer'])
-            resp = _jget(self._baseurl).json()
+            resp = _jget(self._baseurl)
+            resp.raise_for_status()
+            resp = resp.json()
             self._key = name
             self.title = resp.pop('mapName', name)
             self.layers = self._get_layers()
@@ -207,7 +213,9 @@ class TigerConnection(object):
             self.projection = resp['spatialReference']['latestWkid']
 
     def _get_layers(self):
-        resp = _jget(self._baseurl + '/layers').json()
+        resp = _jget(self._baseurl + '/layers')
+        resp.raise_for_status()
+        resp = resp.json()
         return [ESRILayer(self._baseurl, **d) for d in resp['layers']]
 
     def query(self, **kwargs):
