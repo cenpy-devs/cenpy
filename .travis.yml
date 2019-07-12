@@ -4,27 +4,29 @@ branches:
 only:
     - master
 python:
-    - 3.5
     - 3.6
+
 before_install:
-    - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
     - chmod +x miniconda.sh
     - ./miniconda.sh -b -p ./miniconda
     - export PATH=`pwd`/miniconda/bin:$PATH
     - conda update --yes conda
-    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION numpy scipy pandas six pip requests nose
+    - conda config --set channel_priority strict
+    - conda create -y -q -n test-env python=$TRAVIS_PYTHON_VERSION 
     - source activate test-env
-    - pip install geopandas pysal
+    - conda install -c conda-forge -y numpy scipy pandas six pip requests pytest geopandas rtree
+    - pip install -r requirements.txt
     - python -c 'import requests; print(requests.__version__)'
     - python -c 'import pandas; print(pandas.__version__)'
+    - python -c 'import cenpy; print(cenpy.__version__)'
 
 install:
     - python setup.py install
 
 script:
-    - python -c 'import cenpy; print(cenpy.__version__)'
     - python setup.py sdist > /dev/null
-    - nosetests cenpy/
+    - pytest cenpy/
  
 notifications:
     email:

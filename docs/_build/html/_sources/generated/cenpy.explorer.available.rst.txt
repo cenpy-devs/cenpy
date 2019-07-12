@@ -1,0 +1,6 @@
+cenpy.explorer.available
+========================
+
+.. currentmodule:: cenpy.explorer
+
+.. autofunction:: available

@@ -10,23 +10,31 @@ from six import iteritems, PY3
 if PY3:
     unicode = str
 
+class ParseException(Exception):
+    def __init__(self, *args, response=None):
+        Exception.__init__(self, *args)
+        self.response = response
 
 class APIConnection():
+    """The fundamental building block for US Census Bureau data API Endpoints"""
     def __init__(self, api_name=None, apikey=''):
         """
         Constructor for a Connection object
 
         Parameters
-        ============
-        api_name : shortcode identifying which api to connect to
-
-        Returns
-        ========
-
-        a Cenpy Connection object
+        ------------
+        api_name : str
+                   shortcode identifying which api to connect to
+        api_key  : str
+                   US Census bureau API key
         """
         if 'eits' not in api_name and api_name is not None:
-            curr = exp.APIs[api_name]
+            try:
+                curr = exp.APIs[api_name]
+            except KeyError:
+                raise KeyError('The requested Census Product shortcode ({}) was not found in the '
+                               'list of API shortcodes. Please check cenpy.explorer.available()'
+                               ' to determine whether the API shortcode you have requested is correct.'.format(api_name))
             self.title = curr['title']
             self.identifier = curr['identifier']
             self.description = curr['description']
@@ -46,18 +54,31 @@ class APIConnection():
                 self.doclink = self.__urls__['documentation']
             if 'variables' in self.__urls__.keys():
                 v = pd.DataFrame()
-                self.variables = v.from_dict(
-                    r.get(self.__urls__['variables']).json()['variables']).T
+                variables = r.get(self.__urls__['variables'])
+                variables.raise_for_status()
+
+                self.variables = v.from_dict(variables.json()['variables']).T
             if 'geography' in self.__urls__.keys():
-                res = r.get(self.__urls__['geography']).json()
+                res = r.get(self.__urls__['geography'])
+                res.raise_for_status()
+                res = res.json()
                 self.geographies = {k: pd.DataFrame().from_dict(v) for k, v
                                     in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                self.tags = list(
-                    r.get(self.__urls__['tags']).json().values())[0]
+                try:
+                    tags = r.get(self.__urls__['tags'])
+                    tags.raise_for_status()
+                    self.tags = list(tags.json().values())[0]
+                except r.HTTPError:
+                    pass
 
             if 'examples' in self.__urls__.keys():
-                self.example_entries = r.get(self.__urls__['examples']).json()
+                try:
+                    examples = r.get(self.__urls__['examples'])
+                    examples.raise_for_status()
+                    self.example_entries = examples.json()
+                except r.HTTPError:
+                    pass
 
         elif 'eits' in api_name:
             raise NotImplementedError(
@@ -75,22 +96,23 @@ class APIConnection():
             return str('Connection to ' + self.title + ' (ID: ' +
                        self.identifier + ')')
 
-    def explain(self, *args, **kwargs):
+    def explain(self, *args, verbose=True):
         """
         Explain a column or list of columns.
 
         Parameters
-        ============
-        *args : list of names of columns in the variables dataframe that require
-                explanation"
-        verbose : boolean denoting whether to grab both "label" and "concept"
-                from the variable dataframe.
+        ------------
+        *args : str or sequence of strs
+                name or list of names for columns in the `variables` dataframe that require
+                explanation. lists will be unpacked by default. 
+        verbose : bool
+                  whether to grab both "label" and "concept" from the variable dataframe.
+                  (default: True)
 
         Returns
-        ==========
+        ----------
         dictionary of explanatory texts about variables inputted.
         """
-        verbose = kwargs.pop('verbose', True)
         grab = ['concept']
         if not verbose:
             grab = ['label']
@@ -107,30 +129,34 @@ class APIConnection():
         Conduct a query over the USCB api connection
 
         Parameters
-        ===========
-        cols : census field identifiers to pull
-        geo_unit : dict or string identifying what the basic spatial
-                    unit of the query should be
-        geo_filter : dict of required geometries above the specified
-                      geo_unit needed to complete the query
-        apikey : USCB-issued key for your query.
+        -----------
+        cols : list of str
+               census column names to request
+        geo_unit : dict or str 
+                   identifiers for the basic spatial unit of the query
+        geo_filter : dict 
+                     required geometries above the specified geo_unit needed 
+                     to complete the query
+        apikey : str
+                 USCB-issued API key for your query.
         **kwargs : additional search predicates can be passed here
 
         Returns
-        ========
-        pandas dataframe of results
+        --------
+        pandas.DataFrame
+            results from the API
 
         Example
-        ========
+        --------
         To grab the total population of all of the census blocks in a part of Arizona:
 
             >>> cxn.query('P0010001', geo_unit = 'block:*', geo_filter = {'state':'04','county':'019','tract':'001802'})
 
         Notes
-        ======
+        ------
 
         If your list of columns exceeds the maximum query length of 50,
-        the query will be broken up and concatenates back together at
+        the query will be broken up and concatenated back together at
         the end. Sometimes, the USCB might frown on large-column queries,
         so be careful with this. Cenpy is not liable for your key getting
         banned if you query tens of thousands of columns at once.
@@ -168,8 +194,8 @@ class APIConnection():
 
         res = r.get(self.last_query)
         if res.status_code == 204:
-            raise r.HTTPError(str(res.status_code) +
-                              ' error: no records matched your query')
+            raise r.HTTPError(' '.join((str(res.status_code),
+                                       'error: no records matched your query')))
         try:
             json_content = res.json()
             df = pd.DataFrame().from_records(json_content[1:],
@@ -182,19 +208,23 @@ class APIConnection():
             return df
         except (ValueError, JSONDecodeError):
             if res.status_code == 400:
-                raise r.HTTPError(str(res.status_code) + ' ' +
-                                  [l for l in res.iter_lines()][0])
+                raise r.HTTPError('400 '
+                                  + '\n'.join(map(lambda x: x.decode(),
+                                                  res.iter_lines())))
             else:
-                raise Exception(
-                    'A Valid http query passed through but failed to parse!')
                 res.raise_for_status()
+                raise ParseException(
+                    'A Valid http query passed through but failed to parse!'
+                    ' For more information, inspect the `response` attribute '
+                    'of this exception.',
+                    response=res)
 
     def _bigcolq(self, cols=None, geo_unit='', geo_filter={}, apikey=None, **kwargs):
         """
         Helper function to manage large queries
 
         Parameters
-        ===========
+        -----------
         cols : large list of columns to be grabbed in a query
         """
         assert (not (cols is None)), 'Columns must be provided for query!'
@@ -211,17 +241,25 @@ class APIConnection():
                 result = pd.concat([result, tdf[noreps]], axis=1)
             return result
 
-    def varslike(self, pattern, engine='regex'):
+    def varslike(self, pattern=None, by=None, engine='re', within=None):
         """
         Grabs columns that match a particular search pattern.
 
         Parameters
-        ==========
-        pattern : string containing a search pattern
-        engine  : string describing backend string matching module to use.
+        ----------
+        pattern : str
+                  a search pattern to match
+        by      : str
+                  a column in the APIConnection.variables to conduct the search
+                  within
+        engine  : {'re', 'fnmatch', callable}
+                  backend string matching module to use, or a function of the form
+                  match(candidate, pattern). (default: 're')
+        within  : pandas.DataFrame 
+                  the variables over which to search.
 
         Notes
-        ======
+        ------
         Only regex and fnmatch will be supported modules. Note that, while
         regex is the default, the python regular expressions module has some
         strange behavior if you're used to VIM or Perl-like regex. It may be
@@ -235,46 +273,50 @@ class APIConnection():
         and return True or False if the candidate matches the pattern. So, for
         instance, you can use any string processing function:
 
-            >>> cxn.colslike('_100M', engine = lambda c,p: c.endswith(p)
+            >>> cxn.varslike('_100M', engine = lambda c,p: c.endswith(p)
 
         which may also be expressed as a regexp:
 
-            >>> cxn.colslike('_100M$', engine='re')
+            >>> cxn.varslike('_100M$', engine='re')
 
         or an fnmatch pattern:
 
-            >>> cxn.colslike('*_100M', engine='fnmatch')
+            >>> cxn.varslike('*_100M', engine='fnmatch')
         """
+        if within is None:
+            within = self.variables
+        search_in = within.get(by, within.index).fillna('')
 
-        if engine == 'regex':
+        if (engine == 'regex') or (engine == 're'):
             import re
-            search = re.compile(pattern)
-            return [candidate for candidate in self.variables.index
-                    if re.match(pattern, candidate)]
-        elif engine == 're':
-            self.colslike(pattern, engine='regexp')
+            mask = [(re.search(pattern, candidate) is not None)
+                        for candidate in search_in]
         elif engine == 'fnmatch':
             import fnmatch
-            return fnmatch.filter(self.variables.index, pattern)
+            matches = fnmatch.filter(search_in, pattern)
+            mask = search_in.isin(matches)
         elif callable(engine):
-            return [ix for ix in self.variables.index if engine(ix, pattern)]
+            matches = [ix for ix in search_in if engine(ix, pattern)]
+            mask = search_in.isin(matches)
         else:
             raise TypeError("Engine option is not supported or not callable.")
+        return within[mask]
 
     def set_mapservice(self, key):
         """
         Assign a mapservice to the connection instance
 
         Parameters
-        ===========
+        -----------
         key : str
                 string describing the shortcode of the Tiger mapservice
 
         Returns
-        ========
+        --------
         adds a mapservice attribute to the connection object, returns none.
         """
         if isinstance(key, tig.TigerConnection):
             self.mapservice = key
         elif isinstance(key, str):
             self.mapservice = tig.TigerConnection(name=key)
+        return self

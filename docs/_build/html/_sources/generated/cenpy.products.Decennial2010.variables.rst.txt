@@ -1,0 +1,6 @@
+cenpy.products.Decennial2010.variables
+======================================
+
+.. currentmodule:: cenpy.products
+
+.. autoproperty:: Decennial2010.variables

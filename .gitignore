@@ -4,3 +4,6 @@ dist
 .ipynb_checkpoints
 cenpy.egg*
 SITEKEY.txt
+.cache
+.pytest_cache
+docs/generated

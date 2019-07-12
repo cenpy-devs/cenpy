@@ -1,9 +1,10 @@
-__version__ = '0.9.9dev'
-__author__ = 'Levi John Wolf ljw2@asu.edu'
+__version__ = '1.0.0dev'
+__author__ = 'Levi John Wolf levi.john.wolf@gmail.com'
 
 from . import explorer
-from . import base
-from .tools import _load_sitekey
+from .remote import APIConnection as _APIConnection
+from .tools import _load_sitekey, set_sitekey
+from .products import *
 
 SITEKEY = _load_sitekey()
 

@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
 from libpysal.cg import is_clockwise as _is_cw
+import warnings
+
 
 def esriGeometryPolygon(egpoly):
-    feature = {'type':'Feature'}
+    feature = {'type': 'Feature'}
     egpoly['geometry']['coordinates'] = egpoly['geometry'].pop('rings', [])
     egpoly['geometry']['type'] = 'MultiPolygon'
     feature['properties'] = egpoly.pop('attributes', {})
@@ -11,8 +13,9 @@ def esriGeometryPolygon(egpoly):
     feature['geometry'] = egpoly.pop('geometry', {})
     return feature
 
+
 def esriGeometryPolyLine(egpline):
-    feature = {'type':'Feature'}
+    feature = {'type': 'Feature'}
     egpline['geometry']['coordinates'] = egpline['geometry'].pop('paths', [])
     egpline['geometry']['type'] = 'MultiLineString'
     feature['properties'] = egpline.pop('attributes', {})
@@ -20,102 +23,60 @@ def esriGeometryPolyLine(egpline):
     feature['geometry'] = egpline.pop('geometry', {})
     return feature
 
+
 def esriGeometryPoint(egpt):
-    feature = {'type':'Feature', 'properties':{}}
+    feature = {'type': 'Feature', 'properties': {}}
     address = [None, None, None, None]
-    for k,v in egpt.items():
+    for k, v in egpt.items():
         try:
             address['xyzm'.index(k)] = v
         except ValueError:
             if k == 'spatialReference':
                 feature['crs'] = v
             else:
-                feature['properties'].update({k:v})
+                feature['properties'].update({k: v})
     address = [co for co in address if co is not None]
     feature['properties'].update(egpt.pop('attributes', {}))
-    feature['geometry'] = {'coordinates':address, 'type':'Point'}
+    feature['geometry'] = {'coordinates': address, 'type': 'Point'}
     return feature
+
 
 def esriMultiPoint(egmpt):
-    feature = {'type':'Feature', 'properties':{}}
-    feature['geometry'] = {'coordinates':egmpt.pop('points', [])}
+    feature = {'type': 'Feature', 'properties': {}}
+    feature['geometry'] = {'coordinates': egmpt.pop('points', [])}
     feature['crs'] = egmpt.pop('spatialReference', {})
     feature['properties'].update(egmpt.pop('attributes', {}))
-    feature['properties'].update({'hasM':egmpt.pop('hasM', False),
-                                  'hasZ':egmpt.pop('hasZ', False)})
+    feature['properties'].update({'hasM': egmpt.pop('hasM', False),
+                                  'hasZ': egmpt.pop('hasZ', False)})
     return feature
 
-def convert_geometries(df, pkg='shapely', strict=False):
-    first = df['geometry'].head(1).tolist()[0]
-    if pkg.lower() == 'pysal':
-        warnings.warn('The PySAL geometry backend is deprecated.', DeprecationWarning)
-        from libpysal.cg.shapes import Chain, Point, asShape
-        try:
-            df['geometry'] = pd.Series([asShape(e) for e in df['geometry']])
-        except:
-            if 'Polygon' in first['type']:
-                df['geometry'] = pd.Series([parse_polygon_to_pysal(e)\
-                                            for e in df['geometry']])
-            elif 'Line' in first['type']:
-                df['geometry'] = pd.Series([Chain(e['coordinates'])\
-                                            for e in df['geometry']])
-            elif 'MultiPoint' in first['type']:
-                df['geometry'] = pd.Series([[Point(c) for c in e['coordinates']]\
-                                            for e in df['geometry']])
-            elif 'Point' in first['type']:
-                df['geometry'] = pd.Series([Point(e['coordinates'][0])\
-                                            for e in df['geometry']])
-            else:
-                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
-    else:
-        from shapely import geometry as g
-        try:
-            df['geometry'] = pd.Series([g.__dict__[e['type']](e) for e in df['geometry']])
-        except:
-            if 'Polygon' in first['type']:
-                df['geometry'] = pd.Series([parse_polygon_to_shapely(e, strict=strict)\
-                                            for e in df['geometry']])
-            elif 'MultiLine' in first['type']:
-                df['geometry'] = pd.Series([g.MultiLineString(e['coordinates'])\
-                                            for e in df['geometry']])
-            elif 'MultiPoint' in first['type']:
-                df['geometry'] = pd.Series([g.MultiPoint(e['coordinates']) 
-                                            for e in df['geometry']])
-            elif 'Point' in first['type']:
-                df['geometry'] = pd.Series([g.Point(e['coordinates'][0])\
-                                            for e in df['geometry']])
-            else:
-                raise KeyError('Geometry type {} not understood by geoparser.'.format(first['type']))
+
+def convert_geometries(df,  strict=False):
+    first = df.geometry.head(1).tolist()[0]
+    from shapely import geometry as g
+    try:
+        df.geometry = pd.Series(
+            [g.__dict__[e['type']](e) for e in df.geometry])
+    except:
+        if 'Polygon' in first['type']:
+            df.geometry = pd.Series([parse_polygon(e, strict=strict)
+                                     for e in df.geometry])
+        elif 'MultiLine' in first['type']:
+            df.geometry = pd.Series([g.MultiLineString(e['coordinates'])
+                                     for e in df.geometry])
+        elif 'MultiPoint' in first['type']:
+            df.geometry = pd.Series([g.MultiPoint(e['coordinates'])
+                                     for e in df.geometry])
+        elif 'Point' in first['type']:
+            df.geometry = pd.Series([g.Point(e['coordinates'][0])
+                                     for e in df.geometry])
+        else:
+            raise KeyError('Geometry type {} not understood '
+                           'by geoparser.'.format(first['type']))
     return df
 
-def parse_polygon_to_pysal(raw_feature):
-    """
-    get an OGC polygon from an input ESRI ring array.
-    """
-    pgon_type, ogc_nest = _get_polygon_type(raw_feature)
-    from libpysal.cg import Polygon 
-    if pgon_type == 'Polygon':
-        return Polygon([(c[0],c[1]) for c in ogc_nest])
-    elif pgon_type == 'MultiPolygon':
-        polygons = []
-        for p in ogc_nest:
-            polygons.append([(c[0],c[1]) for c in p])
-        return Polygon(polygons)
-    elif pgon_type == 'Polygon with Holes':
-        polygon = [(c[0],c[1]) for c in ogc_nest[0]]
-        holes = []
-        for hole in ogc_nest[1:]:
-            holes.append([(c[0],c[1]) for c in hole])
-        return Polygon(polygon, holes=holes)
-    elif pgon_type == 'MultiPolygon with Holes':
-        # return ogc_nest
-        return Polygon(vertices = [ring[0] for ring in ogc_nest], 
-                       holes = [list(hole) for ring in ogc_nest for hole in ring[1:]])
-    else:
-        raise Exception('Unexpected Polygon kind {} provided to'
-                        ' parse_polygon_to_pysal'.format(pgon_type)) 
 
-def parse_polygon_to_shapely(raw_feature, strict=False):
+def parse_polygon(raw_feature, strict=False):
     pgon_type, ogc_nest = _get_polygon_type(raw_feature)
     from shapely.geometry import Polygon, MultiPolygon
     if pgon_type == 'Polygon':
@@ -125,14 +86,15 @@ def parse_polygon_to_shapely(raw_feature, strict=False):
     elif pgon_type == 'MultiPolygon':
         return MultiPolygon(Polygon(s, holes=None) for s in ogc_nest)
     elif pgon_type == 'MultiPolygon with Holes':
-        out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:]) 
-                                      for ring in ogc_nest])
+        out = MultiPolygon(polygons=[Polygon(shell=ring[0], holes=ring[1:])
+                                     for ring in ogc_nest])
         if not out.is_valid:
             out = fix_rings(out, strict=strict)
         return out
     else:
         raise Exception('Unexpected Polygon kind {} provided to'
                         ' parse_polygon_to_shapely'.format(pgon_type))
+
 
 def _get_polygon_type(raw_feature):
     """
@@ -173,14 +135,16 @@ def _get_polygon_type(raw_feature):
         return "Polygon", ring_array[0]
     else:
         clockwise_sequence = list(map(_is_cw, ring_array))
-        if sum(clockwise_sequence) == 1: #only one ring is clockwise (external)
+        if sum(clockwise_sequence) == 1:  # only one ring is clockwise (external)
             return "Polygon with Holes", ring_array
         else:
-            if sum(clockwise_sequence) == len(clockwise_sequence): #all rings are clockwise (external)
+            # all rings are clockwise (external)
+            if sum(clockwise_sequence) == len(clockwise_sequence):
                 return "MultiPolygon", ring_array
             else:
-                return "MultiPolygon with Holes", _parse_clockwise_sequence(ring_array, 
-                                                                            clockwise_sequence) 
+                return "MultiPolygon with Holes", _parse_clockwise_sequence(ring_array,
+                                                                            clockwise_sequence)
+
 
 def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
     """
@@ -210,7 +174,8 @@ def _parse_clockwise_sequence(ring_array, clockwise_sequence=None):
             OGC_nest[-1].append(list(ring))
     return OGC_nest
 
-def fix_rings(multipolygon, strict=False):    
+
+def fix_rings(multipolygon, strict=False):
     """
     This resolves a multipolygon with invalid exterior/interior ring pairing. 
 
@@ -223,12 +188,12 @@ def fix_rings(multipolygon, strict=False):
 
     Requires shapely, may take a bit for shapes with many exteriors/interiors. 
 
-    Argument:
+    Parameters
     ---------
     multipolygon: a shapely polygon. (should be invalid due to ring ordering)
 
-    Returns:
-    --------
+    Returns
+    -------
     multipolygon: a shapely polygon that should have valid ring ordering. 
                   May be invalid due to other reasons.
 
@@ -241,24 +206,28 @@ def fix_rings(multipolygon, strict=False):
     if "hole lies outside shell" not in vexplain.lower():
         if strict:
             from shapely.geos import TopologicalError
+
             def tell_user(x):
                 raise TopologicalError(x)
         else:
             from warnings import warn as tell_user
-        tell_user('Shape is invalid for a different reason than'
-                  ' hole outside of shell: \n{}'.format(vexplain))
+        tell_user('Shape is invalid: \n{}'.format(vexplain))
     exteriors = [geom.Polygon(part.exterior) for part in multipolygon.geoms]
-    interiors = [geom.Polygon(interior) for part in multipolygon.geoms for interior in part.interiors]
-    zorder = [sum([exterior.contains(other_exterior) for other_exterior in exteriors]) - 1
+    interiors = [geom.Polygon(interior) for part in multipolygon.geoms
+                                        for interior in part.interiors]
+    zorder = [sum([exterior.contains(other_exterior)
+                   for other_exterior in exteriors]) - 1
                    for exterior in exteriors]
     sort_zorder = np.argsort(zorder)
     zordered_exteriors = np.asarray(exteriors)[sort_zorder]
     polygons = [[exterior] for exterior in exteriors]
     for i, exterior in enumerate(zordered_exteriors):
         owns = [exterior.contains(interior) for interior in interiors]
-        owned_interiors = [interior for owned,interior in zip(owns, interiors)
+        owned_interiors = [interior for owned, interior
+                           in zip(owns, interiors)
                            if owned]
         polygons[i] = exterior.difference(cascaded_union(owned_interiors))
-        interiors = [interior for owned, interior in zip(owns, interiors)
+        interiors = [interior for owned, interior
+                     in zip(owns, interiors)
                      if not owned]
     return geom.MultiPolygon(polygons)

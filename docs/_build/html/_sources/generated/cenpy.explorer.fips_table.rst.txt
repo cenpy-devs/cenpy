@@ -1,0 +1,6 @@
+cenpy.explorer.fips\_table
+==========================
+
+.. currentmodule:: cenpy.explorer
+
+.. autofunction:: fips_table

@@ -1,0 +1,6 @@
+cenpy.products.ACS.check\_match
+===============================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: ACS.check_match
