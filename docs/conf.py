@@ -97,7 +97,8 @@ todo_include_todos = False
 # html_theme = 'alabaster'
 html_theme = 'bootstrap'
 html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
-html_title = "%s v%s Manual" % (project, version)
+html_title = "{} v{} Manual".format(project, version)
+html_short_title = "{} manual".format(project)
 
 # (Optional) Logo of your package. Should be small enough to fit the navbar (ideally 24x24).
 # Path should be relative to the ``_static`` files directory.

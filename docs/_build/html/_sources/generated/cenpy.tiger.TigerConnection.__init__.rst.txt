@@ -1,6 +1,0 @@
-cenpy.tiger.TigerConnection.\_\_init\_\_
-========================================
-
-.. currentmodule:: cenpy.tiger
-
-.. automethod:: TigerConnection.__init__

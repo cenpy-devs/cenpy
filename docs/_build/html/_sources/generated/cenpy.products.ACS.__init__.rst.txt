@@ -1,6 +1,0 @@
-cenpy.products.ACS.\_\_init\_\_
-===============================
-
-.. currentmodule:: cenpy.products
-
-.. automethod:: ACS.__init__

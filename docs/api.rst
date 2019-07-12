@@ -45,7 +45,7 @@ A product that integrates the data & geographic APIs for the 5-year 2013-2017 AC
         cenpy.products.ACS.from_state
 
 Product: Decennial 2010 Census
----------------------
+--------------------------------
 
 A product that integrates the data & geographic APIs for the 2010 Census.
 
@@ -68,7 +68,7 @@ A product that integrates the data & geographic APIs for the 2010 Census.
         cenpy.products.Decennial2010.from_state
 
 Architectural Component: APIConnection
---------------------------------------
+---------------------------------------
 
 The fundamental building block that manages connections to the raw data API, a REST-ful plaintext API.
 
@@ -85,7 +85,7 @@ The fundamental building block that manages connections to the raw data API, a R
 
 
 Architectural Component: TigerConnection
-----------------------------------------
+-----------------------------------------
 
 The fundamental building block that manages connections to the geographic API, the US Census's ESRI MapService.
 
@@ -113,7 +113,7 @@ The fundamental building block that manages connections to individual ESRI Layer
 
 
 Architectural Component: APIConnection
---------------------------------------
+---------------------------------------
 
 The fundamental building block that provides an absract base class for subclasses, which are Census Data Products that unite raw data & geographical APIs. 
 
