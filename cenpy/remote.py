@@ -66,14 +66,20 @@ class APIConnection():
                 self.geographies = {k: pd.DataFrame().from_dict(v) for k, v
                                     in iteritems(res)}
             if 'tags' in self.__urls__.keys():
-                tags = r.get(self.__urls__['tags'])
-                tags.raise_for_status()
-                self.tags = list(tags.json().values())[0]
+                try:
+                    tags = r.get(self.__urls__['tags'])
+                    tags.raise_for_status()
+                    self.tags = list(tags.json().values())[0]
+                except r.HTTPError:
+                    pass
 
             if 'examples' in self.__urls__.keys():
-                examples = r.get(self.__urls__['examples'])
-                examples.raise_for_status()
-                self.example_entries = examples.json()
+                try:
+                    examples = r.get(self.__urls__['examples'])
+                    examples.raise_for_status()
+                    self.example_entries = examples.json()
+                except r.HTTPError:
+                    pass
 
         elif 'eits' in api_name:
             raise NotImplementedError(
