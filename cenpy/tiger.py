@@ -241,6 +241,6 @@ class TigerConnection(object):
         if isinstance(layer_idx, str):
             from .products import _fuzzy_match
             layer_result = _fuzzy_match(layer_idx, [f.__repr__() for f in self.layers]).index
-        if layer_idx is None:
+        if layer_result is None:
             raise Exception('No layer selected.')
-        return self.layers[layer_idx].query(**kwargs)
+        return self.layers[layer_result].query(**kwargs)
