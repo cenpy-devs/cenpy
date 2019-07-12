@@ -12,7 +12,7 @@ with open(os.path.join(basepath, 'README.rst'), 'r') as readme:
     long_description = readme.readlines()
 long_description = ''.join(long_description)
 
-with open(os.path.join(basepath, 'REQUIREMENTS.txt'), 'r') as reqfile:
+with open(os.path.join(basepath, 'requirements.txt'), 'r') as reqfile:
     reqs = reqfile.readlines()
 reqs = [req.strip() for req in reqs]
 
