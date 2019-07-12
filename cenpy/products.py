@@ -43,6 +43,12 @@ class _Product(object):
 
     @tables.getter
     def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
         raise NotImplementedError('This must be implemented on children of this class!')
 
     def filter_variables(self, pattern=None, by=None, engine='re'):
@@ -50,6 +56,9 @@ class _Product(object):
     filter_variables.__doc__ = APIConnection.varslike.__doc__
 
     def filter_tables(self, pattern=None, by=None, engine='re'):
+        """
+        Filter tables by a given pattern. Consult filter_variables for options.
+        """
         return self._api.varslike(pattern=pattern, by=by, engine=engine, 
                                   within=self.tables)
 
@@ -502,6 +511,12 @@ class Decennial2010(_Product):
     
     @tables.getter
     def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
         try:
             return self._tables
         except AttributeError:
@@ -531,6 +546,12 @@ class Decennial2010(_Product):
 
     @crosstab_tables.getter
     def crosstab_tables(self):
+        """
+        All of the crosstab table codes in the Census API for this product. 
+        
+        These *do not* include main tables, like "Race", whose table numbers
+        end in integers (like B02001).
+        """
         try:
             return self._crosstabs
         except AttributeError:
@@ -658,6 +679,12 @@ class ACS(_Product):
     
     @tables.getter
     def tables(self):
+        """
+        All of the main table codes in the Census API for this product. 
+        
+        These *do not* include crosstabulations, like "Sex by Age (White Alone)",
+        whose table numbers end in characters (like B01001A)
+        """
         try:
             return self._tables
         except AttributeError:
@@ -688,6 +715,12 @@ class ACS(_Product):
 
     @crosstab_tables.getter
     def crosstab_tables(self):
+        """
+        All of the crosstab table codes in the Census API for this product. 
+        
+        These *do not* include main tables, like "Race", whose table numbers
+        end in integers (like B02001).
+        """
         try:
             return self._crosstabs
         except AttributeError:
