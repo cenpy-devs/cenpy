@@ -1,0 +1,38 @@
+cenpy.products.ACS
+==================
+
+.. currentmodule:: cenpy.products
+
+.. autoclass:: ACS
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ACS.__init__
+      ~ACS.check_match
+      ~ACS.filter_tables
+      ~ACS.filter_variables
+      ~ACS.from_county
+      ~ACS.from_csa
+      ~ACS.from_msa
+      ~ACS.from_place
+      ~ACS.from_state
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ACS.crosstab_tables
+      ~ACS.tables
+      ~ACS.variables
+   
+   

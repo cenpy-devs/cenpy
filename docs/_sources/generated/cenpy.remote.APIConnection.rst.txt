@@ -1,0 +1,26 @@
+cenpy.remote.APIConnection
+==========================
+
+.. currentmodule:: cenpy.remote
+
+.. autoclass:: APIConnection
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~APIConnection.__init__
+      ~APIConnection.explain
+      ~APIConnection.query
+      ~APIConnection.set_mapservice
+      ~APIConnection.varslike
+   
+   
+
+   
+   
+   

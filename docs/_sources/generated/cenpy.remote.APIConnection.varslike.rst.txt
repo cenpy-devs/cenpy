@@ -1,0 +1,6 @@
+cenpy.remote.APIConnection.varslike
+===================================
+
+.. currentmodule:: cenpy.remote
+
+.. automethod:: APIConnection.varslike

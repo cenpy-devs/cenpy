@@ -1,0 +1,23 @@
+cenpy.tiger.TigerConnection
+===========================
+
+.. currentmodule:: cenpy.tiger
+
+.. autoclass:: TigerConnection
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~TigerConnection.__init__
+      ~TigerConnection.query
+   
+   
+
+   
+   
+   

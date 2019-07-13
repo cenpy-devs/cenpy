@@ -1,0 +1,6 @@
+cenpy.products.ACS.crosstab\_tables
+===================================
+
+.. currentmodule:: cenpy.products
+
+.. autoproperty:: ACS.crosstab_tables

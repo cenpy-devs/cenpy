@@ -1,0 +1,6 @@
+cenpy.products.ACS.from\_state
+==============================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: ACS.from_state

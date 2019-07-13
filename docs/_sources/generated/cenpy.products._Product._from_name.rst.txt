@@ -1,0 +1,6 @@
+cenpy.products.\_Product.\_from\_name
+=====================================
+
+.. currentmodule:: cenpy.products
+
+.. automethod:: _Product._from_name
