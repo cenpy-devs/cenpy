@@ -45,7 +45,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
       </div>
     </div>
 
-To install: 
+Cenpy is easiest to install using ``pip``, the python package manager. 
 ::
 
    pip install cenpy
