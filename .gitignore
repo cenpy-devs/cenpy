@@ -7,4 +7,5 @@ SITEKEY.txt
 .cache
 .pytest_cache
 docsrc/generated
+docsrc/_build
 build/
