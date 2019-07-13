@@ -50,7 +50,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
 
 Cenpy is easiest to install using ``conda``, a commonly-used package manager for scientific python. First, `install Anaconda <https://www.anaconda.com/distribution/>`__.
 
-Then, ``cenpy`` is available on the ``conda-forge`` channel:
+Then, ``cenpy`` is available on the ``conda-forge`` channel. You can install this using the `Anaconda Prompt`, or from within the Anaconda Navigator program. If you want to install the package from within the Anaconda Prompt, you can use:
 ::
 
    conda install -c conda-forge cenpy
