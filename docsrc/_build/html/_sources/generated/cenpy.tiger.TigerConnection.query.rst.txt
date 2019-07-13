@@ -1,6 +1,0 @@
-cenpy.tiger.TigerConnection.query
-=================================
-
-.. currentmodule:: cenpy.tiger
-
-.. automethod:: TigerConnection.query

@@ -1,6 +1,0 @@
-cenpy.products.ACS.variables
-============================
-
-.. currentmodule:: cenpy.products
-
-.. autoproperty:: ACS.variables

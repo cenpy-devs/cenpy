@@ -1,6 +1,0 @@
-cenpy.products.ACS.from\_msa
-============================
-
-.. currentmodule:: cenpy.products
-
-.. automethod:: ACS.from_msa

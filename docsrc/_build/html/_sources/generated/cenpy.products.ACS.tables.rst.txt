@@ -1,6 +1,0 @@
-cenpy.products.ACS.tables
-=========================
-
-.. currentmodule:: cenpy.products
-
-.. autoproperty:: ACS.tables

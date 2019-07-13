@@ -1,6 +1,0 @@
-cenpy.products.Decennial2010.tables
-===================================
-
-.. currentmodule:: cenpy.products
-
-.. autoproperty:: Decennial2010.tables

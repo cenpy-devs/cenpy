@@ -1,6 +1,0 @@
-cenpy.tiger.ESRILayer.query
-===========================
-
-.. currentmodule:: cenpy.tiger
-
-.. automethod:: ESRILayer.query

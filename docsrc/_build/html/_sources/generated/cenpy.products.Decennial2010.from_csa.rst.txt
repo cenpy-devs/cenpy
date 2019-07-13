@@ -1,6 +1,0 @@
-cenpy.products.Decennial2010.from\_csa
-======================================
-
-.. currentmodule:: cenpy.products
-
-.. automethod:: Decennial2010.from_csa
