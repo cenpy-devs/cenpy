@@ -31,11 +31,17 @@ by `@dfolch <https://github.com/dfolch>`__.
 Installation
 ------------
 
-This package depends on `Pandas <https://pandas.pydata.org>`__ and
-`requests <https://docs.python-requests.org/en/latest>`__. You can
-install ``cenpy`` and other dependencies using ``pip``:
+Cenpy is easiest to install using ``conda``, a commonly-used package manager for scientific python. First, `install Anaconda <https://www.anaconda.com/distribution/>`__.
 
-``pip install cenpy``
+Then, ``cenpy`` is available on the ``conda-forge`` channel:
+::
+
+    conda install -c conda-forge cenpy
+
+Alternatively, you can install cenpy *via* ``pip``, the python package manager, if you have installed ``geopandas`` and ``rtree``:
+:: 
+
+    pip install cenpy
 
 
 For Users
@@ -61,9 +67,9 @@ For more information on how the product API works, consult the `notebook on the 
 
 For Developers
 ----------------
+The API reference is available at `cenpy-devs.github.io/cenpy <https://cenpy-devs.github.io/cenpy>`__. The ``products`` are typically what most end-users will want to interact with. If you want more fine-grained access to the USCB APIs, you will likely want to build on top of ``APIConnection`` and ``TigerConnection``. 
 
-Once done, importing ``cenpy`` will provide the ``explorer`` and
-``remote`` modules. To create a connection:
+To create a connection:
 
 ::
 
