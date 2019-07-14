@@ -66,5 +66,3 @@ Alternatively, you can install cenpy *via* ``pip``, the python package manager, 
    :caption: Contents:
 
    API <api>
-
-.. _PySAL: https://github.com/pysal/pysal
