@@ -8,4 +8,5 @@ SITEKEY.txt
 .pytest_cache
 docsrc/generated
 docsrc/_build
+cenpy-feedstock
 build/
