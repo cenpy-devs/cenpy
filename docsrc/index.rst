@@ -10,7 +10,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
     <div class="container-fluid">
       <div class="row">
         <div class="col-lg-3">
-            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/product-api.ipynb" class="thumbnail">
+            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/master/notebooks/product-api.ipynb?flush_cache=true" class="thumbnail">
                 <img src="_static/images/product.png" class="img-responsive center-block">
                 <div class="caption text-center">
                 <h6>Getting Data using cenpy</h6>
@@ -18,7 +18,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
             </a>
         </div>
         <div class="col-lg-3">
-            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/segregation.ipynb" class="thumbnail">
+            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/master/notebooks/segregation.ipynb?flush_cache=true" class="thumbnail">
                 <img src="_static/images/segregation.png" class="img-responsive center-block">
                 <div class="caption text-center">
                 <h6>Segregation in Time and Space with cenpy and pysal</h6>
@@ -26,7 +26,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
             </a>
         </div>
         <div class="col-lg-3">
-            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb" class="thumbnail">
+            <a href="https://nbviewer.jupyter.org/github/ljwolf/cenpy/blob/master/notebooks/osmnx-and-cenpy.ipynb?flush_cache=true" class="thumbnail">
                 <img src="_static/images/osmnx.png"
                 class="img-responsive center-block">
                 <div class="caption text-center">
@@ -36,7 +36,7 @@ Cenpy (pronounced sen-pie) is a package that automatically discovers US Census B
             </a>
         </div>
         <div class="col-lg-3">
-            <a href="http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/product/notebooks/automatic-wrapper.ipynb" class="thumbnail">
+            <a href="http://nbviewer.ipython.org/github/ljwolf/cenpy/blob/master/notebooks/automatic-wrapper.ipynb?flush_cache=true" class="thumbnail">
                 <img src="_static/images/developers.png"
                 class="img-responsive center-block">
                 <div class="caption text-center">
