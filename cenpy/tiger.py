@@ -1,7 +1,17 @@
 from six import iteritems as diter
 import requests as r
 import pandas as pd
-from geopandas import GeoDataFrame
+try:
+    from geopandas import GeoDataFrame
+except (ImportError, OSError):
+    raise ImportError('Geopandas is required to do spatial operations, and'
+                          ' must be installed in order to use the cenpy product API.'
+                          ' For directions on how to install geopandas, consult'
+                          ' https://geopandas.org/install.html. Ensure that all'
+                          ' of the dependencies, including rtree, are installed.'
+                          ' Normally, installing geopandas through the '
+                          ' Anaconda Software Distribution (https://repo.continuum.io)'
+                          ' in the "conda-forge" software channel will work.')
 import copy
 
 from . import geoparser as gpsr
