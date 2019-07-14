@@ -1,5 +1,8 @@
 .. documentation master file
 
+Cenpy
+=====
+
 Cenpy (pronounced sen-pie) is a package that automatically discovers US Census Bureau API endpoints and exposes them to Python in a consistent fashion. It also provides easy-to-use access to certain well-used data products, like the American Community Survey (ACS) and 2010 Decennial Census. To get started, check out one of the case studies shown below.
 
 .. raw:: html
