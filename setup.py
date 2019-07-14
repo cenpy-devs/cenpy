@@ -17,7 +17,7 @@ with open(os.path.join(basepath, 'requirements.txt'), 'r') as reqfile:
 reqs = [req.strip() for req in reqs]
 
 setup(name='cenpy',
-      version='1.0.0rc2',
+      version=init_version,
       description='Explore and download data from Census APIs',
       long_description=long_description,
       url='https://github.com/ljwolf/cenpy',
