@@ -104,8 +104,8 @@ html_short_title = "{} manual".format(project)
 # Path should be relative to the ``_static`` files directory.
 #html_logo = "_static/images/package_logo.jpg"
 
-# (Optional) PySAL favicon
-#html_favicon = "_static/images/pysal_favicon.ico"
+# cenpy favicon
+html_favicon = "_static/images/cenpy_favicon.ico"
 
 
 # Theme options are theme-specific and customize the look and feel of a theme
