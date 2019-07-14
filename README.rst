@@ -1,5 +1,10 @@
 CenPy
 =====
+.. image:: https://avatars0.githubusercontent.com/u/52840632?s=200&v=4
+    :height: 100px
+    :width: 100px
+    :scale: 19 %
+
 .. image:: https://img.shields.io/static/v1.svg?label=documentation&message=latest&color=blueviolet
     :target: cenpy-devs.github.io/cenpy
 .. image:: https://travis-ci.org/cenpy-devs/cenpy.svg?branch=master
