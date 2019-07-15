@@ -4,16 +4,20 @@ import warnings as warn
 import time
 from .explorer import fips_table as _ft
 from requests import HTTPError
+
 try:
     from tqdm import tqdm
 except ImportError:
+
     def tqdm(arg, **kwargs):
         return arg
-_state_fipscodes = _ft('state')['FIPS Code']
-_state_fipscodes = [str(f).rjust(2, '0') for f in _state_fipscodes if f < 60] 
 
-def national_to_block(cxn, *columns, wait_by_state=0, 
-                                     wait_by_county=0):
+
+_state_fipscodes = _ft("state")["FIPS Code"]
+_state_fipscodes = [str(f).rjust(2, "0") for f in _state_fipscodes if f < 60]
+
+
+def national_to_block(cxn, *columns, wait_by_state=0, wait_by_county=0):
     """
     A helper function to grab all blocks by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_block for each state, so will end up executing quite a few queries. 
@@ -41,42 +45,45 @@ def national_to_block(cxn, *columns, wait_by_state=0,
                     wait time (or wait time callable) applied between each county-level query. See wait_by_state for more information. If this value tends to be large, the time it takes to conduct the query can get large quickly. 
     """
     if isinstance(wait_by_state, (int, float)):
-        waitfunc = lambda : wait_by_state
+        waitfunc = lambda: wait_by_state
     else:
         waitfunc = wait_by_state
     outs = []
     for fp in tqdm(_state_fipscodes):
         print(fp)
         try:
-            outs.append(state_to_block(fp, cxn, *columns, 
-                                       wait=wait_by_county))
+            outs.append(state_to_block(fp, cxn, *columns, wait=wait_by_county))
         except HTTPError:
-            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            warn.warn(
+                "Something failed in state {}, terminating prematurely".format(fp)
+            )
             raise
         time.sleep(waitfunc())
     return pd.concat(outs)
 
-def national_to_tract(cxn, *columns, wait_by_state = 0,
-                                     wait_by_county = 0):
+
+def national_to_tract(cxn, *columns, wait_by_state=0, wait_by_county=0):
     """
     A helper function to grab all tracts by iterating over state fips codes in cenpy.explorer.fips_table. 
     This just naively calls state_to_tract for each state, so will end up executing quite a few queries. 
     You may be rate limited if you don't use an APIKEY
     """
     if isinstance(wait_by_state, (int, float)):
-        waitfunc = lambda : wait_by_state
+        waitfunc = lambda: wait_by_state
     else:
         waitfunc = wait_by_state
     outs = []
     for fp in _state_fipscodes:
         try:
-            outs.append(state_to_tract(fp, cxn, *columns, 
-                                       wait=wait_by_county))
+            outs.append(state_to_tract(fp, cxn, *columns, wait=wait_by_county))
         except HTTPError:
-            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            warn.warn(
+                "Something failed in state {}, terminating prematurely".format(fp)
+            )
             raise
         time.sleep(waitfunc())
     return pd.concat(outs)
+
 
 def national_to_blockgroup(cxn, *columns, wait_by_state=0, wait_by_county=0):
     """
@@ -85,7 +92,7 @@ def national_to_blockgroup(cxn, *columns, wait_by_state=0, wait_by_county=0):
     You may be rate limited if you don't use an APIKEY
     """
     if isinstance(wait_by_state, (int, float)):
-        wait_by_state = lambda : wait_by_state
+        wait_by_state = lambda: wait_by_state
     else:
         waitfunc = wait_by_state
     outs = []
@@ -93,10 +100,13 @@ def national_to_blockgroup(cxn, *columns, wait_by_state=0, wait_by_county=0):
         try:
             outs.append(state_to_blockgroup(fp, cxn, *columns, wait=wait_by_county))
         except HTTPError:
-            warn.warn('Something failed in state {}, terminating prematurely'.format(fp))
+            warn.warn(
+                "Something failed in state {}, terminating prematurely".format(fp)
+            )
             raise
         time.sleep(waitfunc(a))
     return pd.concat(outs)
+
 
 def state_to_block(stfips, cxn, *columns, wait=0):
     """
@@ -104,7 +114,7 @@ def state_to_block(stfips, cxn, *columns, wait=0):
     For arguments, see genstate_to_block
     """
     if isinstance(wait, (int, float)):
-        waitfunc = lambda : wait
+        waitfunc = lambda: wait
     else:
         waitfunc = wait
     out = []
@@ -113,13 +123,14 @@ def state_to_block(stfips, cxn, *columns, wait=0):
         time.sleep(waitfunc())
     return pd.concat(out)
 
+
 def state_to_blockgroup(stfips, cxn, *columns, wait=0):
     """
     Casts the generator constructed by genstate_to_blockgroup to a full dataframe. 
     For arguments, see genstate_to_blockgroup
     """
     if isinstance(wait, (int, float)):
-        waitfunc = lambda : wait
+        waitfunc = lambda: wait
     else:
         waitfunc = wait
     out = []
@@ -127,6 +138,7 @@ def state_to_blockgroup(stfips, cxn, *columns, wait=0):
         out.append(cblock)
         time.sleep(waitfunc())
     return pd.concat(out)
+
 
 def state_to_tract(stfips, cxn, *columns, wait=0):
     """
@@ -151,7 +163,7 @@ def state_to_tract(stfips, cxn, *columns, wait=0):
     For arguments, see genstate_to_tract
     """
     if isinstance(wait, (int, float)):
-        waitfunc = lambda : wait
+        waitfunc = lambda: wait
     else:
         waitfunc = wait
     out = []
@@ -159,6 +171,7 @@ def state_to_tract(stfips, cxn, *columns, wait=0):
         out.append(cblock)
         time.sleep(waitfunc())
     return pd.concat(out)
+
 
 def county_to_block(stfips, ctfips, cxn, *columns, wait=0):
     """
@@ -175,7 +188,7 @@ def county_to_block(stfips, ctfips, cxn, *columns, wait=0):
     dataframe containing the entries of columns for each block. 
     """
     if isinstance(wait, (int, float)):
-        waitfunc = lambda : wait
+        waitfunc = lambda: wait
     else:
         waitfunc = wait
     out = []
@@ -183,6 +196,7 @@ def county_to_block(stfips, ctfips, cxn, *columns, wait=0):
         out.append(cblock)
         time.sleep(waitfunc())
     return pd.concat(out)
+
 
 def genstate_to_block(stfips, cxn, *columns):
     """
@@ -200,17 +214,23 @@ def genstate_to_block(stfips, cxn, *columns):
     -------
     a Generator that yields dataframes.
     """
-    counties = cxn.query(['NAME'], geo_unit='county', geo_filter={'state':stfips})
+    counties = cxn.query(["NAME"], geo_unit="county", geo_filter={"state": stfips})
     counties = counties.county.tolist()
-    ctracts = ((county, tract) for county in counties 
-                for tract in cxn.query(['NAME'], geo_unit='tract', 
-                                       geo_filter={'state':stfips, 'county':county}).tract)
-    for county,tract in tqdm(ctracts):
-        blocks = cxn.query(['NAME'] + list(columns), geo_unit='block', 
-                           geo_filter={'state':stfips, 
-                                       'county':county,
-                                       'tract':tract})
+    ctracts = (
+        (county, tract)
+        for county in counties
+        for tract in cxn.query(
+            ["NAME"], geo_unit="tract", geo_filter={"state": stfips, "county": county}
+        ).tract
+    )
+    for county, tract in tqdm(ctracts):
+        blocks = cxn.query(
+            ["NAME"] + list(columns),
+            geo_unit="block",
+            geo_filter={"state": stfips, "county": county, "tract": tract},
+        )
         yield blocks
+
 
 def gencounty_to_block(stfips, ctfips, cxn, *columns):
     """
@@ -230,12 +250,17 @@ def gencounty_to_block(stfips, ctfips, cxn, *columns):
     -------
     a Generator that yields dataframes
     """
-    start_filter = dict(state=str(stfips).rjust(2, '0'), county=str(ctfips).rjust(3, '0'))
-    tracts = cxn.query(['NAME'], geo_unit='tract', geo_filter=start_filter)
+    start_filter = dict(
+        state=str(stfips).rjust(2, "0"), county=str(ctfips).rjust(3, "0")
+    )
+    tracts = cxn.query(["NAME"], geo_unit="tract", geo_filter=start_filter)
     for tract in tqdm(tracts.tract):
         start_filter.update(dict(tract=tract))
-        blocks = cxn.query(['NAME'] + list(columns), geo_unit = 'block', geo_filter = start_filter)
+        blocks = cxn.query(
+            ["NAME"] + list(columns), geo_unit="block", geo_filter=start_filter
+        )
         yield blocks
+
 
 def genstate_to_blockgroup(stfips, cxn, *columns):
     """
@@ -253,17 +278,23 @@ def genstate_to_blockgroup(stfips, cxn, *columns):
     -------
     a Generator that yields dataframes.
     """
-    counties = cxn.query(['NAME'], geo_unit='county', geo_filter={'state':stfips})
+    counties = cxn.query(["NAME"], geo_unit="county", geo_filter={"state": stfips})
     counties = counties.county.tolist()
-    ctracts = ((county, tract) for county in counties 
-                for tract in cxn.query(['NAME'], geo_unit='tract', 
-                                       geo_filter={'state':stfips, 'county':county}).tract)
-    for county,tract in tqdm(ctracts):
-        blockgroups = cxn.query(['NAME'] + list(columns), geo_unit='blockgroup', 
-                           geo_filter={'state':stfips, 
-                                       'county':county,
-                                       'tract':tract})
+    ctracts = (
+        (county, tract)
+        for county in counties
+        for tract in cxn.query(
+            ["NAME"], geo_unit="tract", geo_filter={"state": stfips, "county": county}
+        ).tract
+    )
+    for county, tract in tqdm(ctracts):
+        blockgroups = cxn.query(
+            ["NAME"] + list(columns),
+            geo_unit="blockgroup",
+            geo_filter={"state": stfips, "county": county, "tract": tract},
+        )
         yield blockgroups
+
 
 def genstate_to_tract(stfips, cxn, *columns):
     """
@@ -281,13 +312,16 @@ def genstate_to_tract(stfips, cxn, *columns):
     -------
     a Generator that yields dataframes.
     """
-    counties = cxn.query(['NAME'], geo_unit='county', geo_filter={'state':stfips})
+    counties = cxn.query(["NAME"], geo_unit="county", geo_filter={"state": stfips})
     counties = counties.county.tolist()
     for county in tqdm(counties):
-        tract = cxn.query(['NAME'] + list(columns), geo_unit='tract', 
-                           geo_filter={'state':stfips, 
-                                       'county':county})
+        tract = cxn.query(
+            ["NAME"] + list(columns),
+            geo_unit="tract",
+            geo_filter={"state": stfips, "county": county},
+        )
         yield tract
+
 
 def set_sitekey(sitekey, overwrite=False):
     """
@@ -306,19 +340,20 @@ def set_sitekey(sitekey, overwrite=False):
     path to the location of the sitekey file or raises FileError if overwriting is prohibited and the file exists.  
     """
     thispath = os.path.dirname(os.path.abspath(__file__))
-    targetpath = os.path.join(thispath, 'SITEKEY.txt')
+    targetpath = os.path.join(thispath, "SITEKEY.txt")
     if os.path.isfile(targetpath):
         if not overwrite:
-            raise FileError('SITEKEY already bound and overwrite flag is not set')
-    with open(targetpath, 'w') as outfile:
+            raise FileError("SITEKEY already bound and overwrite flag is not set")
+    with open(targetpath, "w") as outfile:
         outfile.write(sitekey)
     return targetpath
 
+
 def _load_sitekey():
     basepath = os.path.dirname(os.path.abspath(__file__))
-    targetpath = os.path.join(basepath, 'SITEKEY.txt')
+    targetpath = os.path.join(basepath, "SITEKEY.txt")
     try:
-        with open(targetpath, 'r') as f:
+        with open(targetpath, "r") as f:
             s = f.read()
         return s.strip()
     except FileNotFoundError:

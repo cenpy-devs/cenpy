@@ -1,5 +1,5 @@
-__version__ = '1.0.0post2'
-__author__ = 'Levi John Wolf levi.john.wolf@gmail.com'
+__version__ = "1.0.0post2"
+__author__ = "Levi John Wolf levi.john.wolf@gmail.com"
 
 from . import explorer
 from .remote import APIConnection as _APIConnection
@@ -8,4 +8,4 @@ from .products import *
 
 SITEKEY = _load_sitekey()
 
-#__all__ = ['explorer', 'base']
+# __all__ = ['explorer', 'base']
