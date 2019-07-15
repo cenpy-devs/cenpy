@@ -8,6 +8,8 @@ CenPy
     :target: https://pypi.org/project/cenpy/
 .. image:: https://zenodo.org/badge/36956226.svg
     :target: https://zenodo.org/badge/latestdoi/36956226
+.. image:: https://img.shields.io/badge/Census%20Slack--lightgrey.svg
+    :target: https://uscensusbureau.slack.com/messages/C8Y5PUE4D
 
 An interface to explore and query the US Census API and return Pandas
 Dataframes. This package is intended for exploratory data
@@ -63,9 +65,11 @@ For more information on how the product API works, consult the `notebook on the 
 
 For Developers
 ----------------
-The API reference is available at `cenpy-devs.github.io/cenpy <https://cenpy-devs.github.io/cenpy>`__. The ``products`` are typically what most end-users will want to interact with. If you want more fine-grained access to the USCB APIs, you will likely want to build on top of ``APIConnection`` and ``TigerConnection``. 
+The API reference is available at `cenpy-devs.github.io/cenpy <https://cenpy-devs.github.io/cenpy>`__. The ``products`` are typically what most end-users will want to interact with. If you want more fine-grained access to the USCB APIs, you will likely want to build on top of ``APIConnection`` and ``TigerConnection``.
 
-To create a connection:
+At a high level, the ``APIConnection`` object connects to resources exposed on the US Census Bureau's API at ``https://api.census.gov/data.json``. Its methods and relevant utilities are defined in ``cenpy.remote``. The ``TigerConnection`` wraps one map service exposed at ``http://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb`` and is defined in ``cenpy.tiger``. Each ``TigerConnection`` is composed of many ``ESRILayer`` objects, which wrap an individual geography within the ESRI map service. For instance, an ACS ``TigerConnection`` may contain State, County, and Tract ``ESRILayer`` objects within their ``layer`` attribute. 
+
+To use the developer-focused API, you can create an ``APIConnection`` using its shortcode:
 
 ::
 
@@ -78,7 +82,7 @@ Check the variables required and geographies supported:
     cxn.variables #is a pandas dataframe containing query-able vbls
     cxn.geographies #is a pandas dataframe containing query-able geographies
 
-Note that some geographies (like tract) have higher-level requirements
+Note that some geographies (like tract) have requirements higher in the hierarchy
 that you'll have to specify for the query to work.
 
 The structure of the query function maps to the Census API's use of
@@ -93,6 +97,40 @@ units should be. ``geo_unit`` must be a string containing the unit of
 analysis and an identifier. For instance, if you want all counties in
 Arizona, you specify ``geo_unit = 'county:*'`` and ``geo_filter =
 {'state':'04'}``.
+
+To create a ``TigerConnection``:
+
+::
+
+    cxn = cenpy.tiger.TigerConnection('tigerWMS_ACS2013')
+
+Then, all of the ``ESRILayer`` objects are contained in the ``layer`` attribute:
+
+::
+
+    cxn.layers
+
+the ``cxn.query`` method passes the relevant query down to the chosen layer and returns a ``geopandas`` dataframe. The actual query is structured like ``SQL``, and follows the `ESRI documentation. <https://tigerweb.geo.census.gov/arcgis/sdk/rest/index.html#//02ss0000006v000000>`__  
+
+Contributing
+------------
+
+To contribute to ``cenpy``:
+
+1. Use ``cenpy``! Every user is a contributor in kind. If you feel like it, `file an issue <https://help.github.com/en/articles/github-glossary#issue>`__:
+
+   - to tell us how you use ``cenpy``. 
+   - to post a code snippit, a jupyter notebook, or whatever you can. 
+   - to tell us about your `blog posts! <https://medium.com/@mswhitetoyou/scraping-us-census-data-via-cenpy-9aeab12c877e>`__
+   - to ask questions about how you might use census data from Python, and we'll try to help. 
+
+2. If you're using ``cenpy`` and something goes wrong, `file an issue <https://help.github.com/en/articles/github-glossary#issue>`__ telling us:
+
+   - what you want that is not in ``cenpy`` or doesn't work well in other packages
+   - what functionality in ``cenpy`` isn't working how you believe it ought
+   - what in the documentation isn't spelled correctly or is confusing
+
+3. `Fork <https://help.github.com/en/articles/github-glossary#fork>`__ the ``cenpy-devs/cenpy`` github repository, make changes, and send us a `pull request <https://help.github.com/en/articles/github-glossary#pull-request>`__ 
 
 ToDo:
 -----
