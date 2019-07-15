@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>cenpy.tools &#8212; cenpy v1.0.0post2 Manual</title>
+    <link rel="stylesheet" href="../../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pysal-styles.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../../_static/cenpy_favicon.ico"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          cenpy</a>
+        <span class="navbar-text navbar-version pull-left"><b>1.0.0post2</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../api.html">API</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#exploration-tools">Exploration Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#configuration-tools">Configuration Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#product-american-community-survey">Product: American Community Survey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#product-decennial-2010-census">Product: Decennial 2010 Census</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#architectural-component-apiconnection">Architectural Component: APIConnection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#architectural-component-tigerconnection">Architectural Component: TigerConnection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#architectural-component-esrilayer">Architectural Component: ESRILayer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api.html#id1">Architectural Component: APIConnection</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for cenpy.tools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span> <span class="k">as</span> <span class="nn">warn</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">.explorer</span> <span class="k">import</span> <span class="n">fips_table</span> <span class="k">as</span> <span class="n">_ft</span>
+<span class="kn">from</span> <span class="nn">requests</span> <span class="k">import</span> <span class="n">HTTPError</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">tqdm</span> <span class="k">import</span> <span class="n">tqdm</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">tqdm</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">arg</span>
+<span class="n">_state_fipscodes</span> <span class="o">=</span> <span class="n">_ft</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">)[</span><span class="s1">&#39;FIPS Code&#39;</span><span class="p">]</span>
+<span class="n">_state_fipscodes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">_state_fipscodes</span> <span class="k">if</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">]</span> 
+
+<span class="k">def</span> <span class="nf">national_to_block</span><span class="p">(</span><span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait_by_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+                                     <span class="n">wait_by_county</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A helper function to grab all blocks by iterating over state fips codes in cenpy.explorer.fips_table. </span>
+<span class="sd">    This just naively calls state_to_block for each state, so will end up executing quite a few queries. </span>
+<span class="sd">    You may be rate limited if you don&#39;t use an APIKEY</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    cxn     :   cenpy.base.Connection object</span>
+<span class="sd">                    the connection to use to query.</span>
+<span class="sd">    columns :   comma separated collection</span>
+<span class="sd">                    splatted comma separated collection of column names</span>
+<span class="sd">                    to grab from the connection. A call may be like:</span>
+<span class="sd">                    &gt;&gt;&gt; tools.national_to_block(cxn, *cxn.varslike(&#39;H001*&quot;))</span>
+<span class="sd">    wait_by_state : callable or int</span>
+<span class="sd">                    if an integer, gives the number of seconds passed </span>
+<span class="sd">                    to sys.sleep between each state query. if callable,</span>
+<span class="sd">                    will be called each state to get a sleep time. This</span>
+<span class="sd">                    means you can use random waittimes. So, to wait</span>
+<span class="sd">                    for an exponentially-distributed number of seconds:</span>
+<span class="sd">                    &gt;&gt;&gt; import random</span>
+<span class="sd">                    &gt;&gt;&gt; tools.national_to_block(cxn, </span>
+<span class="sd">                                                *cxn.varslike(&quot;P001*&quot;), </span>
+<span class="sd">                                                wait_by_state = lambda : (random.expovariate(2) * 20))</span>
+<span class="sd">    wait_by_county: callable or int</span>
+<span class="sd">                    wait time (or wait time callable) applied between each county-level query. See wait_by_state for more information. If this value tends to be large, the time it takes to conduct the query can get large quickly. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait_by_state</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait_by_state</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait_by_state</span>
+    <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">_state_fipscodes</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_to_block</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> 
+                                       <span class="n">wait</span><span class="o">=</span><span class="n">wait_by_county</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="n">warn</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Something failed in state </span><span class="si">{}</span><span class="s1">, terminating prematurely&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">national_to_tract</span><span class="p">(</span><span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait_by_state</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+                                     <span class="n">wait_by_county</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A helper function to grab all tracts by iterating over state fips codes in cenpy.explorer.fips_table. </span>
+<span class="sd">    This just naively calls state_to_tract for each state, so will end up executing quite a few queries. </span>
+<span class="sd">    You may be rate limited if you don&#39;t use an APIKEY</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait_by_state</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait_by_state</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait_by_state</span>
+    <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">_state_fipscodes</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_to_tract</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> 
+                                       <span class="n">wait</span><span class="o">=</span><span class="n">wait_by_county</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="n">warn</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Something failed in state </span><span class="si">{}</span><span class="s1">, terminating prematurely&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">national_to_blockgroup</span><span class="p">(</span><span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait_by_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">wait_by_county</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A helper function to grab all blockgroups by iterating over state fips codes in cenpy.explorer.fips_table. </span>
+<span class="sd">    This just naively calls state_to_blockgroup for each state, so will end up executing quite a few queries. </span>
+<span class="sd">    You may be rate limited if you don&#39;t use an APIKEY</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait_by_state</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">wait_by_state</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait_by_state</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait_by_state</span>
+    <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">_state_fipscodes</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_to_blockgroup</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait_by_county</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="n">warn</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Something failed in state </span><span class="si">{}</span><span class="s1">, terminating prematurely&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fp</span><span class="p">))</span>
+            <span class="k">raise</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">(</span><span class="n">a</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">state_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Casts the generator constructed by genstate_to_block to a full dataframe. </span>
+<span class="sd">    For arguments, see genstate_to_block</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cblock</span> <span class="ow">in</span> <span class="n">genstate_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cblock</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">state_to_blockgroup</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Casts the generator constructed by genstate_to_blockgroup to a full dataframe. </span>
+<span class="sd">    For arguments, see genstate_to_blockgroup</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cblock</span> <span class="ow">in</span> <span class="n">genstate_to_blockgroup</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cblock</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">state_to_tract</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Casts the generator constructed by genstate_to_tract to a full dataframe. </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    stfips  :   str</span>
+<span class="sd">                two-digit state fips code used to grab tracts</span>
+<span class="sd">    cxn     :   cenpy.base.Connection</span>
+<span class="sd">                connection object against which the query occurs</span>
+<span class="sd">    *columns:   comma separated collection</span>
+<span class="sd">                splatted list of columns to use in the query:</span>
+<span class="sd">                &gt;&gt;&gt; state_to_tract(&#39;06&#39;, cxn, &#39;H0010001&#39;, &#39;P001002&#39;)</span>
+<span class="sd">                &gt;&gt;&gt; #is equivalent to:</span>
+<span class="sd">                &gt;&gt;&gt; state_to_tract(&#39;06&#39;, cxn, *[&#39;H0010001&#39;, &#39;P001002&#39;])</span>
+<span class="sd">    wait    :   int or callable</span>
+<span class="sd">                a number of seconds to wait before the next county</span>
+<span class="sd">                is queried. Must be an integer or a function that </span>
+<span class="sd">                takes no arguments and returns a number of seconds </span>
+<span class="sd">                to wait. </span>
+<span class="sd">                </span>
+<span class="sd">    For arguments, see genstate_to_tract</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cblock</span> <span class="ow">in</span> <span class="n">genstate_to_tract</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cblock</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">county_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">ctfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns all blocks underneath a county</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    stfips : int or str describing the state&#39;s fips code</span>
+<span class="sd">    ctfips : int or str describing the county&#39;s fips code</span>
+<span class="sd">    *columns: splatted list of columns to grab from the API</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dataframe containing the entries of columns for each block. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wait</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">wait</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">waitfunc</span> <span class="o">=</span> <span class="n">wait</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cblock</span> <span class="ow">in</span> <span class="n">gencounty_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">ctfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cblock</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">waitfunc</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">genstate_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stfips  :   str</span>
+<span class="sd">                fips of the state </span>
+<span class="sd">    cxn     :   cenpy.base.Connection</span>
+<span class="sd">                connection instance</span>
+<span class="sd">    *columns:   str</span>
+<span class="sd">                columns that are desired by the user to grab for each block. </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    a Generator that yields dataframes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;county&#39;</span><span class="p">,</span> <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">})</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">counties</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">ctracts</span> <span class="o">=</span> <span class="p">((</span><span class="n">county</span><span class="p">,</span> <span class="n">tract</span><span class="p">)</span> <span class="k">for</span> <span class="n">county</span> <span class="ow">in</span> <span class="n">counties</span> 
+                <span class="k">for</span> <span class="n">tract</span> <span class="ow">in</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> 
+                                       <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">,</span> <span class="s1">&#39;county&#39;</span><span class="p">:</span><span class="n">county</span><span class="p">})</span><span class="o">.</span><span class="n">tract</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">county</span><span class="p">,</span><span class="n">tract</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">ctracts</span><span class="p">):</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;block&#39;</span><span class="p">,</span> 
+                           <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">,</span> 
+                                       <span class="s1">&#39;county&#39;</span><span class="p">:</span><span class="n">county</span><span class="p">,</span>
+                                       <span class="s1">&#39;tract&#39;</span><span class="p">:</span><span class="n">tract</span><span class="p">})</span>
+        <span class="k">yield</span> <span class="n">blocks</span>
+
+<span class="k">def</span> <span class="nf">gencounty_to_block</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">ctfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator to handle geo-in-geo queries without the user having to worry about wrangling the tracts</span>
+<span class="sd">    within a county.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ---------</span>
+<span class="sd">    stfips : str</span>
+<span class="sd">             fips of the state</span>
+<span class="sd">    ctfips : str</span>
+<span class="sd">             fips of the county</span>
+<span class="sd">    cxn    : connection to use</span>
+<span class="sd">    *columns: splatted list of the columns to query, all strings</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    a Generator that yields dataframes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start_filter</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">stfips</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">),</span> <span class="n">county</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">ctfips</span><span class="p">)</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">))</span>
+    <span class="n">tracts</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> <span class="n">geo_filter</span><span class="o">=</span><span class="n">start_filter</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">tract</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">tracts</span><span class="o">.</span><span class="n">tract</span><span class="p">):</span>
+        <span class="n">start_filter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tract</span><span class="o">=</span><span class="n">tract</span><span class="p">))</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="n">geo_unit</span> <span class="o">=</span> <span class="s1">&#39;block&#39;</span><span class="p">,</span> <span class="n">geo_filter</span> <span class="o">=</span> <span class="n">start_filter</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">blocks</span>
+
+<span class="k">def</span> <span class="nf">genstate_to_blockgroup</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stfips  :   str</span>
+<span class="sd">                fips of the state </span>
+<span class="sd">    cxn     :   cenpy.base.Connection</span>
+<span class="sd">                connection instance</span>
+<span class="sd">    *columns:   str</span>
+<span class="sd">                columns that are desired by the user to grab for each blockgroup. </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    a Generator that yields dataframes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;county&#39;</span><span class="p">,</span> <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">})</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">counties</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">ctracts</span> <span class="o">=</span> <span class="p">((</span><span class="n">county</span><span class="p">,</span> <span class="n">tract</span><span class="p">)</span> <span class="k">for</span> <span class="n">county</span> <span class="ow">in</span> <span class="n">counties</span> 
+                <span class="k">for</span> <span class="n">tract</span> <span class="ow">in</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> 
+                                       <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">,</span> <span class="s1">&#39;county&#39;</span><span class="p">:</span><span class="n">county</span><span class="p">})</span><span class="o">.</span><span class="n">tract</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">county</span><span class="p">,</span><span class="n">tract</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">ctracts</span><span class="p">):</span>
+        <span class="n">blockgroups</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;blockgroup&#39;</span><span class="p">,</span> 
+                           <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">,</span> 
+                                       <span class="s1">&#39;county&#39;</span><span class="p">:</span><span class="n">county</span><span class="p">,</span>
+                                       <span class="s1">&#39;tract&#39;</span><span class="p">:</span><span class="n">tract</span><span class="p">})</span>
+        <span class="k">yield</span> <span class="n">blockgroups</span>
+
+<span class="k">def</span> <span class="nf">genstate_to_tract</span><span class="p">(</span><span class="n">stfips</span><span class="p">,</span> <span class="n">cxn</span><span class="p">,</span> <span class="o">*</span><span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator to handle geo-in-geo queries without the user having to worry about wrangling the counties. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    stfips  :   str</span>
+<span class="sd">                fips of the state </span>
+<span class="sd">    cxn     :   cenpy.base.Connection</span>
+<span class="sd">                connection instance</span>
+<span class="sd">    *columns:   str</span>
+<span class="sd">                columns that are desired by the user to grab for each tract. </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    a Generator that yields dataframes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;county&#39;</span><span class="p">,</span> <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">})</span>
+    <span class="n">counties</span> <span class="o">=</span> <span class="n">counties</span><span class="o">.</span><span class="n">county</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">county</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">counties</span><span class="p">):</span>
+        <span class="n">tract</span> <span class="o">=</span> <span class="n">cxn</span><span class="o">.</span><span class="n">query</span><span class="p">([</span><span class="s1">&#39;NAME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="n">geo_unit</span><span class="o">=</span><span class="s1">&#39;tract&#39;</span><span class="p">,</span> 
+                           <span class="n">geo_filter</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;state&#39;</span><span class="p">:</span><span class="n">stfips</span><span class="p">,</span> 
+                                       <span class="s1">&#39;county&#39;</span><span class="p">:</span><span class="n">county</span><span class="p">})</span>
+        <span class="k">yield</span> <span class="n">tract</span>
+
+<div class="viewcode-block" id="set_sitekey"><a class="viewcode-back" href="../../generated/cenpy.set_sitekey.html#cenpy.set_sitekey">[docs]</a><span class="k">def</span> <span class="nf">set_sitekey</span><span class="p">(</span><span class="n">sitekey</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save the sitekey so that users can access it via cenpy.SITEKEY. </span>
+<span class="sd">    This lets users bind an API key to a given installation. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    sitekey     :   str</span>
+<span class="sd">                    str containing the census data api key the user wants to bind</span>
+<span class="sd">    overwrite   :   bool</span>
+<span class="sd">                    flag denoting whether to overwrite existing sitekey. Defaults to False. </span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    --------</span>
+<span class="sd">    path to the location of the sitekey file or raises FileError if overwriting is prohibited and the file exists.  </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">thispath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">targetpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thispath</span><span class="p">,</span> <span class="s1">&#39;SITEKEY.txt&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">targetpath</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">FileError</span><span class="p">(</span><span class="s1">&#39;SITEKEY already bound and overwrite flag is not set&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">targetpath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+        <span class="n">outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sitekey</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">targetpath</span></div>
+
+<span class="k">def</span> <span class="nf">_load_sitekey</span><span class="p">():</span>
+    <span class="n">basepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">targetpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basepath</span><span class="p">,</span> <span class="s1">&#39;SITEKEY.txt&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">targetpath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+        <br/>
+        
+      
+    </p>
+    <p>
+        &copy; Copyright 2018, cenpy developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>

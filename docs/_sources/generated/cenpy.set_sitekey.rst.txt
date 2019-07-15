@@ -1,0 +1,6 @@
+cenpy.set\_sitekey
+==================
+
+.. currentmodule:: cenpy
+
+.. autofunction:: set_sitekey

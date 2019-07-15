@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>API reference &#8212; cenpy v1.0.0 Manual</title>
+    <title>API reference &#8212; cenpy v1.0.0post2 Manual</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/pysal-styles.css" />
@@ -39,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           cenpy</a>
-        <span class="navbar-text navbar-version pull-left"><b>1.0.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>1.0.0post2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -60,6 +60,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#exploration-tools">Exploration Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-tools">Configuration Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#product-american-community-survey">Product: American Community Survey</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#product-decennial-2010-census">Product: Decennial 2010 Census</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#architectural-component-apiconnection">Architectural Component: APIConnection</a></li>
@@ -83,6 +84,7 @@
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">API reference</a><ul>
 <li><a class="reference internal" href="#exploration-tools">Exploration Tools</a></li>
+<li><a class="reference internal" href="#configuration-tools">Configuration Tools</a></li>
 <li><a class="reference internal" href="#product-american-community-survey">Product: American Community Survey</a></li>
 <li><a class="reference internal" href="#product-decennial-2010-census">Product: Decennial 2010 Census</a></li>
 <li><a class="reference internal" href="#architectural-component-apiconnection">Architectural Component: APIConnection</a></li>
@@ -139,6 +141,21 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/cenpy.explorer.fips_table.html#cenpy.explorer.fips_table" title="cenpy.explorer.fips_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cenpy.explorer.fips_table</span></code></a>(kind[, in_state])</p></td>
 <td><p>Pulls a table of FIPS codes for reference</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="configuration-tools">
+<h2>Configuration Tools<a class="headerlink" href="#configuration-tools" title="Permalink to this headline">¶</a></h2>
+<p>These are functions that allow users to register their US Census Bureau API Key with <code class="docutils literal notranslate"><span class="pre">cenpy</span></code>.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/cenpy.set_sitekey.html#cenpy.set_sitekey" title="cenpy.set_sitekey"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cenpy.set_sitekey</span></code></a>(sitekey[, overwrite])</p></td>
+<td><p>Save the sitekey so that users can access it via cenpy.SITEKEY.</p></td>
 </tr>
 </tbody>
 </table>

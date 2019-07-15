@@ -20,6 +20,16 @@ These are functions that assist in understanding the census bureau products.
         cenpy.explorer.explain
         cenpy.explorer.fips_table
 
+Configuration Tools
+--------------------
+
+These are functions that allow users to register their US Census Bureau API Key with ``cenpy``. 
+
+.. autosummary::
+    :toctree: generated/
+
+
+        cenpy.set_sitekey
 
 Product: American Community Survey
 ------------------------------------
