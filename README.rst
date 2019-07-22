@@ -20,10 +20,10 @@ the needs of most who aim to get US Census Data from Python.
 
 A few examples are available from `our website <https://cenpy-devs.github.io/cenpy>`__:
 
-- `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/product-api.ipynb>`__.
-- `analyzing segregation over time & across space using cenpy and segregation <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/segregation.ipynb>`__
-- `a road to frictionless urban data science using cenpy and osmnx <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/osmnx-and-cenpy.ipynb>`__
-- `developer building blocks <http://nbviewer.ipython.org/github/cenpy-devs/cenpy/blob/product/notebooks/automatic-wrapper.ipynb>`__.
+- `getting data quickly using Cenpy <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/master/notebooks/product-api.ipynb>`__.
+- `analyzing segregation over time & across space using cenpy and segregation <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/master/notebooks/segregation.ipynb>`__
+- `a road to frictionless urban data science using cenpy and osmnx <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/master/notebooks/osmnx-and-cenpy.ipynb>`__
+- `developer building blocks <http://nbviewer.ipython.org/github/cenpy-devs/cenpy/blob/master/notebooks/automatic-wrapper.ipynb>`__.
 - `piecing together the developer building blocks (by @dfolch) <https://nbviewer.jupyter.org/gist/dfolch/2440ba28c2ddf5192ad7>`__
 
 Installation
@@ -60,7 +60,7 @@ Likewise, the decennial census can be accessed using:
     decennial = cenpy.products.Decennial2010()
     decennial.from_place('Seattle, WA')
 
-For more information on how the product API works, consult the `notebook on the topic <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/product/notebooks/product-api.ipynb>`__.
+For more information on how the product API works, consult the `notebook on the topic <https://nbviewer.jupyter.org/github/cenpy-devs/cenpy/blob/master/notebooks/product-api.ipynb>`__.
 
 
 For Developers
