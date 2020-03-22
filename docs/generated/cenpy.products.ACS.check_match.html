@@ -151,12 +151,12 @@ match for the name and the full table of possible names, and the second contains
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>matches are made based on the <cite>partial_ratio</cite> and <cite>ratio</cite> scorings from the fuzzywuzzy package. The <cite>partial_ratio</cite> 
+<p>matches are made based on the <cite>partial_ratio</cite> and <cite>ratio</cite> scorings from the rapidfuzz package. The <cite>partial_ratio</cite> 
 prioritizes the “target” being fully contained in the match. So, a string like <cite>Chicago, IL</cite> would be a perfect 
 match for <cite>Chicago, IL</cite> as well as ‘North Chicago, IL’ or <cite>Chicago Heights, IL</cite>. If there are ties (which happens often),
 the <cite>ratio</cite> percentage is used to break them. This considers the full string similarity, so that the closest
 full strings are matched. This ensures that <cite>Chicago, IL</cite> is matched to <cite>Chicago, IL</cite>, and not <cite>West Chicago, IL</cite>.</p>
-<p>Consult the fuzzywuzzy package documentation for more information on the <cite>partial_ratio</cite>
+<p>Consult the rapidfuzz package documentation for more information on the <cite>partial_ratio</cite>
 and <cite>ratio</cite> matches.</p>
 </dd></dl>
 

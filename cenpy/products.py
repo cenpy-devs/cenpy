@@ -1,7 +1,7 @@
 from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
-from fuzzywuzzy import fuzz
+from rapidfuzz import fuzz
 from warnings import warn
 import geopandas
 import pandas
@@ -428,13 +428,13 @@ class _Product(object):
 
         Notes
         -----
-        matches are made based on the `partial_ratio` and `ratio` scorings from the fuzzywuzzy package. The `partial_ratio` 
+        matches are made based on the `partial_ratio` and `ratio` scorings from the rapidfuzz package. The `partial_ratio` 
         prioritizes the "target" being fully contained in the match. So, a string like `Chicago, IL` would be a perfect 
         match for `Chicago, IL` as well as 'North Chicago, IL' or `Chicago Heights, IL`. If there are ties (which happens often),
         the `ratio` percentage is used to break them. This considers the full string similarity, so that the closest
         full strings are matched. This ensures that `Chicago, IL` is matched to `Chicago, IL`, and not `West Chicago, IL`. 
 
-        Consult the fuzzywuzzy package documentation for more information on the `partial_ratio`
+        Consult the rapidfuzz package documentation for more information on the `partial_ratio`
         and `ratio` matches. 
 
         """

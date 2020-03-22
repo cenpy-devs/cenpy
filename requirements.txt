@@ -4,5 +4,5 @@ requests
 rtree
 numpy
 six
-fuzzywuzzy
+rapidfuzz
 libpysal

@@ -111,7 +111,7 @@
 <span></span><span class="kn">from</span> <span class="nn">.remote</span> <span class="k">import</span> <span class="n">APIConnection</span>
 <span class="kn">from</span> <span class="nn">.explorer</span> <span class="k">import</span> <span class="n">fips_table</span> <span class="k">as</span> <span class="n">_ft</span>
 <span class="kn">from</span> <span class="nn">shapely</span> <span class="k">import</span> <span class="n">geometry</span>
-<span class="kn">from</span> <span class="nn">fuzzywuzzy</span> <span class="k">import</span> <span class="n">fuzz</span>
+<span class="kn">from</span> <span class="nn">rapidfuzz</span> <span class="k">import</span> <span class="n">fuzz</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">geopandas</span>
 <span class="kn">import</span> <span class="nn">pandas</span>
@@ -464,13 +464,13 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        matches are made based on the `partial_ratio` and `ratio` scorings from the fuzzywuzzy package. The `partial_ratio` </span>
+<span class="sd">        matches are made based on the `partial_ratio` and `ratio` scorings from the rapidfuzz package. The `partial_ratio` </span>
 <span class="sd">        prioritizes the &quot;target&quot; being fully contained in the match. So, a string like `Chicago, IL` would be a perfect </span>
 <span class="sd">        match for `Chicago, IL` as well as &#39;North Chicago, IL&#39; or `Chicago Heights, IL`. If there are ties (which happens often),</span>
 <span class="sd">        the `ratio` percentage is used to break them. This considers the full string similarity, so that the closest</span>
 <span class="sd">        full strings are matched. This ensures that `Chicago, IL` is matched to `Chicago, IL`, and not `West Chicago, IL`. </span>
 
-<span class="sd">        Consult the fuzzywuzzy package documentation for more information on the `partial_ratio`</span>
+<span class="sd">        Consult the rapidfuzz package documentation for more information on the `partial_ratio`</span>
 <span class="sd">        and `ratio` matches. </span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
