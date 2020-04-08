@@ -9,7 +9,6 @@ https://www.census.gov/content/dam/Census/library/publications/2009/acs/ACSResea
 import pandas as pd
 import numpy as np
 import warnings
-import multi_variable_measures as mvm
 
 
 def fxn():
@@ -40,7 +39,7 @@ def analytic_sum(ests, moes):
     Pandas two column dataframe, where the first column is the estimates and
     the second is the MOEs.
     """
-    ests_comp = mvm.get_sum(ests)
+    ests_comp = ests.sum(axis=1)
     moes = moes.copy()
     # if multiple zero estimates, just use the max MOE in the MOE computation
     zeros = moes[ests == 0].max(axis=1)
@@ -86,7 +85,7 @@ def analytic_ratio(ests, moes):
     Pandas two column dataframe, where the first column is the estimates and
     the second is the MOEs.
     """
-    ests_comp = mvm.get_div(ests)
+    ests_comp = ests.iloc[:,0] / (ests.iloc[:,1]*1.0)
     moes_comp = _analytic_div(ests_comp, ests, moes)
     ests_comp = ests_comp.to_frame(name="est")
     ests_comp["moe"] = moes_comp
@@ -116,7 +115,7 @@ def analytic_prop(ests, moes):
     Pandas two column dataframe, where the first column is the estimates and
     the second is the MOEs.
     """
-    ests_comp = mvm.get_div(ests)
+    ests_comp = ests.iloc[:,0] / (ests.iloc[:,1]*1.0)
     with warnings.catch_warnings():
         # there might be a negative in the sqrt, suppress the warning
         warnings.simplefilter("ignore")
