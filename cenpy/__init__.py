@@ -1,4 +1,4 @@
-__version__ = "1.0.0post2"
+__version__ = "1.1.dev1"
 __author__ = "Levi John Wolf levi.john.wolf@gmail.com"
 
 from . import explorer
