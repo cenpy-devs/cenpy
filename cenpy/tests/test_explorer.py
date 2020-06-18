@@ -27,7 +27,9 @@ class TestExplorer(unittest.TestCase):
 
         self.assertIsInstance(self.avv, pandas.DataFrame)
         self.assertNotEqual(len(self.avv), 0)
-        self.assertEqual(self.avv.columns[0].lower(), "title")
+        self.assertIn("title", self.avv.columns)
+        self.assertIn("description", self.avv.columns)
+        self.assertIn("keyword", self.avv.columns)
 
     def test_explain(self):
         explaintext = cenpy.explorer.explain(self.av[0])
