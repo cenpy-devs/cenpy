@@ -251,12 +251,19 @@ class APIConnection:
             print("tiny query!")
             return self.query(cols, geo_unit, geo_filter, apikey, **kwargs)
         else:
-            result = pd.DataFrame()
             chunks = np.array_split(cols, math.ceil(len(cols) / 49.0))
             for chunk in chunks:
                 tdf = self.query(list(chunk), geo_unit, geo_filter, apikey, **kwargs)
-                noreps = [x for x in tdf.columns if x not in result.columns]
-                result = pd.concat([result, tdf[noreps]], axis=1)
+                try:
+                    # join on the shared columns
+                    ids = tuple(tdf.columns[tdf.columns.isin(result.columns)])
+                    result = pd.merge(result, tdf, on=ids)
+                except UnboundLocalError:
+                    result = tdf
+                except KeyError:
+                    print(tdf.columns)
+                    print(result.columns)
+                    print(ids)
             return result
 
     def varslike(self, pattern=None, by=None, engine="re", within=None):
