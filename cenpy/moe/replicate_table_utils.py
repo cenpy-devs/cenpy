@@ -69,16 +69,8 @@ def read_replicate_file(fname):
     rows are the geographic areas (e.g., tracts or counties or ...).    
     """
 
-    # Tables from 2014 do not have the meta-data on the second and third rows
-    # that tables from all other years have.
-    if "/2014/" in fname and "/140/" in fname:
-        skiprows = None
-    else:
-        skiprows = [1,2]
-
     table = pd.read_csv(
         fname,
-        skiprows=skiprows,
         dtype={
             "TBLID": str,
             "GEOID": str,
@@ -89,6 +81,10 @@ def read_replicate_file(fname):
         },
         encoding="latin-1",
     )
+
+    # Keep only rows that have a GEOID
+    mask = table["GEOID"].notna()
+    table = table[mask]
 
     table.loc[table.ORDER.str.len() == 1, "ORDER"] = (
         "00" + table.loc[table.ORDER.str.len() == 1, "ORDER"]
