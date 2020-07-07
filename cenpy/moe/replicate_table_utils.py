@@ -71,7 +71,7 @@ def read_replicate_file(fname):
 
     # Tables from 2014 do not have the meta-data on the second and third rows
     # that tables from all other years have.
-    if "/2014/" in fname:
+    if "/2014/" in fname and "/140/" in fname:
         skiprows = None
     else:
         skiprows = [1,2]
