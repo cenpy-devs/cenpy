@@ -71,7 +71,6 @@ def read_replicate_file(fname):
 
     table = pd.read_csv(
         fname,
-        skiprows=[1, 2],
         dtype={
             "TBLID": str,
             "GEOID": str,
@@ -82,6 +81,9 @@ def read_replicate_file(fname):
         },
         encoding="latin-1",
     )
+
+    # Keep only rows that have a GEOID (remove meta-data rows)
+    table = table[table["GEOID"].notna()]
 
     table.loc[table.ORDER.str.len() == 1, "ORDER"] = (
         "00" + table.loc[table.ORDER.str.len() == 1, "ORDER"]
