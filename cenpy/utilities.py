@@ -78,10 +78,14 @@ def _coerce(column, kind):
         return column
 
 
-def _replace_missing(column, missings=_ACS_MISSING):
+def _replace_missing(column):
+
     """
     replace ACS missing values using numpy.nan. 
     """
+
+    _ACS_MISSING = (-999999999, -888888888, -666666666, -555555555, -333333333, -222222222)
+
     for val in _ACS_MISSING:
         column.replace(val, numpy.nan, inplace=True)
     return column

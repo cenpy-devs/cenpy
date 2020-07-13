@@ -1,4 +1,4 @@
-from utilities import *
+from .utilities import *
 from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
@@ -16,8 +16,6 @@ _places["STATEFP"] = _places.STATEFP.apply(lambda x: str(x).rjust(2, "0"))
 _places.drop(["PLACEFP", "FUNCSTAT", "COUNTY", "PLACENAME"], inplace=True, axis=1)
 
 __all__ = ["Decennial2010", "ACS"]
-
-_ACS_MISSING = (-999999999, -888888888, -666666666, -555555555, -333333333, -222222222)
 
 
 class _Product(object):
