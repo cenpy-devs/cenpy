@@ -87,24 +87,43 @@ def _coerce(data, cast_to = numpy.float64):
         for column in data.columns:
             data[column] = _coerce(data[column], cast_to = cast_to)
         return data
-    else:
+    elif isinstance(data, pandas.Series):
         try:
             return data.astype(cast_to)
         except:
             return data
+    else:
+        raise TypeError("_coerce is designed to only work"
+                        "with pandas DataFrames and Series")
 
 
-def _replace_missing(column):
+def _replace_missing(data):
 
     """
-    replace ACS missing values using numpy.nan. 
+    Replace ACS missing values using numpy.nan. 
+
+    Parameters
+    ----------
+    data     :   DataFrame or Series 
+
+    Returns
+    -------
+    data with missing values changed to numpy.nans
     """
 
-    _ACS_MISSING = (-999999999, -888888888, -666666666, -555555555, -333333333, -222222222)
+    acs_missing = [-999999999, -888888888, -666666666,
+                   -555555555, -333333333, -222222222]
 
-    for val in _ACS_MISSING:
-        column.replace(val, numpy.nan, inplace=True)
-    return column
+    if isinstance(data, pandas.DataFrame):
+        data = data.copy()
+        for column in data.columns:
+            data[column] = _replace_missing(data[column])
+        return data
+    elif isinstance(data, pandas.Series):
+        return data.replace(acs_missing, numpy.nan)
+    else:
+        raise TypeError("_replace_missing is designed to only work"
+                        "with pandas DataFrames and Series")
 
 
 def _break_ties(matchtarget, table):
