@@ -6,7 +6,7 @@ from . import explorer as exp
 from . import tiger as tig
 import math
 from six import iteritems, PY3
-from .utilities import _coerce
+from .utilities import _coerce as coerce
 
 if PY3:
     unicode = str
@@ -221,7 +221,7 @@ class APIConnection:
             df = pd.DataFrame().from_records(json_content[1:], columns=json_content[0])
             assert all([col in df.columns for col in cols])
             if convert_numeric:
-                df[cols] = _coerce(df[cols], int)
+                df[cols] = coerce(df[cols], int)
             if index is not "":
                 df.index = df[index]
             return df

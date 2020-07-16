@@ -1,5 +1,6 @@
 import pandas
 import numpy
+from fuzzywuzzy import fuzz
 
 
 def _fuzzy_match(matchtarget, matchlist, return_table=False):

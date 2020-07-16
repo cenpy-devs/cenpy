@@ -1,8 +1,10 @@
-from .utilities import *
+from .utilities import _replace_missing as replace_missing 
+from .utilities import _fuzzy_match as fuzzy_match
+from .utilities import _coerce as coerce
+from .utilities import _can_int as can_int
 from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
-from fuzzywuzzy import fuzz
 from warnings import warn
 import geopandas
 import pandas
@@ -181,10 +183,10 @@ class _Product(object):
         else:
             raise Exception()
 
-        placematch = _fuzzy_match(name.strip(), searchtarget)
+        placematch = fuzzy_match(name.strip(), searchtarget)
         placerow = _places.loc[placematch.name]
 
-        env_name = _fuzzy_match(
+        env_name = fuzzy_match(
             placerow.TYPE, [layer.__repr__() for layer in self._api.mapservice.layers]
         )
 
@@ -315,7 +317,7 @@ class _Product(object):
 
         if replace_missing:
             for variable in variables:
-                data[variable] = _replace_missing(_coerce(data[variable], float))
+                data[variable] = replace_missing(coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
@@ -336,7 +338,7 @@ class _Product(object):
         A helper function to extract the right "container", or "environment" to
         conduct a query against. 
         """
-        layername_match = _fuzzy_match(
+        layername_match = fuzzy_match(
             layername, [f.__repr__() for f in self._api.mapservice.layers]
         )
         layer = self._api.mapservice.layers[layername_match.name]
@@ -437,7 +439,7 @@ class _Product(object):
         and `ratio` matches. 
 
         """
-        layer_result = _fuzzy_match(
+        layer_result = fuzzy_match(
             level,
             [f.__repr__() for f in self._api.mapservice.layers],
             return_table=return_table,
@@ -469,7 +471,7 @@ class _Product(object):
                     lambda x: ", ".join(x), axis=1
                 )
             self._cache.update({cache_name: cache})
-        result = _fuzzy_match(name, cache.BASENAME, return_table=return_table)
+        result = fuzzy_match(name, cache.BASENAME, return_table=return_table)
         if return_level:
             return result, layer_result
         else:
@@ -638,7 +640,7 @@ class Decennial2010(_Product):
             )
             self._stems["columns"] = groups.apply(lambda x: x.index.tolist())
 
-            is_table = numpy.asarray([_can_int(x[-1]) for x in self._stems.index])
+            is_table = numpy.asarray([can_int(x[-1]) for x in self._stems.index])
             self._tables = self._stems[is_table]
             self._crosstabs = self._stems[~is_table]
 
@@ -851,7 +853,7 @@ class ACS(_Product):
             result = stems.drop("GEO", axis=0, errors="ignore")
             self._stems = result
             # keep around the main tables only if they're not crosstabs (ending in alphanumeric)
-            self._tables = result.loc[[ix for ix in result.index if _can_int(ix[-1])]]
+            self._tables = result.loc[[ix for ix in result.index if can_int(ix[-1])]]
             return self._tables
 
     @property
