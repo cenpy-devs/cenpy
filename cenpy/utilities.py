@@ -1,6 +1,5 @@
-#############
-# UTILITIES #
-#############
+import pandas
+import numpy
 
 
 def _fuzzy_match(matchtarget, matchlist, return_table=False):
@@ -67,15 +66,32 @@ def _fuzzy_match(matchtarget, matchlist, return_table=False):
     return rowmax
 
 
-def _coerce(column, kind):
+def _coerce(data, cast_to = numpy.float64):
     """
-    Converty type of column to kind, or keep column unchanged
-    if that conversion fails.
+    Convert each column of data to cast_to. If a conversion of a column fails, move onto
+    the next column.
+
+    Parameters
+    ----------
+    data    :   DataFrame or Series
+
+    cast_to :   type, default numpy.float64
+             One of: numpy.int8, numpy.float64, str, int, etc..
+
+    Returns
+    -------
+    data with columns casted to specified type
     """
-    try:
-        return column.astype(kind)
-    except ValueError:
-        return column
+    if isinstance(data, pandas.DataFrame):
+        data = data.copy() # Don't operate on user's data
+        for column in data.columns:
+            data[column] = _coerce(data[column], cast_to = cast_to)
+        return data
+    else:
+        try:
+            return data.astype(cast_to)
+        except:
+            return data
 
 
 def _replace_missing(column):
