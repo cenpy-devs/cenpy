@@ -1,4 +1,4 @@
-from .utilities import _replace_missing as replace_missing 
+from .utilities import _replace_missing as replace_missing_func 
 from .utilities import _fuzzy_match as fuzzy_match
 from .utilities import _coerce as coerce
 from .utilities import _can_int as can_int
@@ -317,7 +317,7 @@ class _Product(object):
 
         if replace_missing:
             for variable in variables:
-                data[variable] = replace_missing(coerce(data[variable], float))
+                data[variable] = replace_missing_func(coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
