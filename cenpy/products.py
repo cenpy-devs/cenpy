@@ -478,7 +478,7 @@ class _Product(object):
 
 
 class Decennial2010(_Product):
-    """The 2010 Decennial Census from the Census Bueau"""
+    """The 2010 Decennial Census from the Census Bureau"""
 
     _layer_lookup = {"county": 100, "tract": 14, "block": 18}
 
@@ -505,7 +505,7 @@ class Decennial2010(_Product):
                 "Only levels {} are supported. You provided {}."
                 "Try picking the state containing that level,"
                 " and then selecting from that data after it is"
-                " fetched".format(level)
+                " fetched".format(self._layer_lookup.keys(), level)
             )
         if variables is None:
             variables = []
@@ -704,7 +704,7 @@ class ACS(_Product):
                 "Only levels {} are supported. You provided {}."
                 "Try picking the state containing that level,"
                 " and then selecting from that data after it is"
-                " fetched".format(level)
+                " fetched".format(self._layer_lookup.keys(), level)
             )
         if level == "block":
             raise ValueError(
