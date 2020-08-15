@@ -262,9 +262,9 @@ class TigerConnection(object):
         """
         layer_result = kwargs.pop("layer", None)
         if isinstance(layer_result, str):
-            from .products import _fuzzy_match
+            from .utilities import _fuzzy_match as fuzzy_match
 
-            layer_result = _fuzzy_match(
+            layer_result = fuzzy_match(
                 layer_result, [f.__repr__() for f in self.layers]
             ).index
         if layer_result is None:

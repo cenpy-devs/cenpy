@@ -1,7 +1,10 @@
+from .utilities import _replace_missing as replace_missing_func 
+from .utilities import _fuzzy_match as fuzzy_match
+from .utilities import _coerce as coerce
+from .utilities import _can_int as can_int
 from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
-from fuzzywuzzy import fuzz
 from warnings import warn
 import geopandas
 import pandas
@@ -15,8 +18,6 @@ _places["STATEFP"] = _places.STATEFP.apply(lambda x: str(x).rjust(2, "0"))
 _places.drop(["PLACEFP", "FUNCSTAT", "COUNTY", "PLACENAME"], inplace=True, axis=1)
 
 __all__ = ["Decennial2010", "ACS"]
-
-_ACS_MISSING = (-999999999, -888888888, -666666666, -555555555, -333333333, -222222222)
 
 
 class _Product(object):
@@ -182,10 +183,10 @@ class _Product(object):
         else:
             raise Exception()
 
-        placematch = _fuzzy_match(name.strip(), searchtarget)
+        placematch = fuzzy_match(name.strip(), searchtarget)
         placerow = _places.loc[placematch.name]
 
-        env_name = _fuzzy_match(
+        env_name = fuzzy_match(
             placerow.TYPE, [layer.__repr__() for layer in self._api.mapservice.layers]
         )
 
@@ -316,7 +317,7 @@ class _Product(object):
 
         if replace_missing:
             for variable in variables:
-                data[variable] = _replace_missing(_coerce(data[variable], float))
+                data[variable] = replace_missing_func(coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
@@ -337,7 +338,7 @@ class _Product(object):
         A helper function to extract the right "container", or "environment" to
         conduct a query against. 
         """
-        layername_match = _fuzzy_match(
+        layername_match = fuzzy_match(
             layername, [f.__repr__() for f in self._api.mapservice.layers]
         )
         layer = self._api.mapservice.layers[layername_match.name]
@@ -438,7 +439,7 @@ class _Product(object):
         and `ratio` matches. 
 
         """
-        layer_result = _fuzzy_match(
+        layer_result = fuzzy_match(
             level,
             [f.__repr__() for f in self._api.mapservice.layers],
             return_table=return_table,
@@ -470,7 +471,7 @@ class _Product(object):
                     lambda x: ", ".join(x), axis=1
                 )
             self._cache.update({cache_name: cache})
-        result = _fuzzy_match(name, cache.BASENAME, return_table=return_table)
+        result = fuzzy_match(name, cache.BASENAME, return_table=return_table)
         if return_level:
             return result, layer_result
         else:
@@ -639,7 +640,7 @@ class Decennial2010(_Product):
             )
             self._stems["columns"] = groups.apply(lambda x: x.index.tolist())
 
-            is_table = numpy.asarray([_can_int(x[-1]) for x in self._stems.index])
+            is_table = numpy.asarray([can_int(x[-1]) for x in self._stems.index])
             self._tables = self._stems[is_table]
             self._crosstabs = self._stems[~is_table]
 
@@ -852,7 +853,7 @@ class ACS(_Product):
             result = stems.drop("GEO", axis=0, errors="ignore")
             self._stems = result
             # keep around the main tables only if they're not crosstabs (ending in alphanumeric)
-            self._tables = result.loc[[ix for ix in result.index if _can_int(ix[-1])]]
+            self._tables = result.loc[[ix for ix in result.index if can_int(ix[-1])]]
             return self._tables
 
     @property
@@ -882,129 +883,3 @@ class ACS(_Product):
             ]
             return self._crosstabs
 
-
-#############
-# UTILITIES #
-#############
-
-
-def _fuzzy_match(matchtarget, matchlist, return_table=False):
-    """
-    Conduct a fuzzy match with matchtarget, within the list of possible match candidates in matchlist. 
-
-    Parameters
-    ---------
-    matchtarget :   str
-                 a string to be matched to a set of possible candidates
-    matchlist   :   list of str
-                 a list (or iterable) containing strings we are interested in matching
-    return_table:   bool
-                 whether to return the full table of scored candidates, or to return only the single
-                 best match. If False (the default), only the best match is returned.
-    
-    Notes
-    -----
-    consult the docstring for Product.check_match for more information on how the actual matching
-    algorithm works. 
-    """
-    split = matchtarget.split(",")
-    if len(split) == 2:
-        target, state = split
-    elif len(split) == 1:
-        target = split[0]
-    else:
-        raise AssertionError(
-            "Uncertain place identifier {}. The place identifier should "
-            'look something like "placename, state" or, for larger areas, '
-            "like Combined Statistical Areas or Metropolitan Statistical Areas,"
-            "placename1-placename2, state1-state2-state3".format(target)
-        )
-
-    table = pandas.DataFrame({"target": matchlist})
-    table["score"] = table.target.apply(
-        lambda x: fuzz.partial_ratio(target.strip().lower(), x.lower())
-    )
-    if len(split) == 1:
-        if (table.score == table.score.max()).sum() > 1:
-            ixmax, rowmax = _break_ties(matchtarget, table)
-        else:
-            ixmax = table.score.idxmax()
-            rowmax = table.loc[ixmax]
-        if return_table:
-            return rowmax, table.sort_values("score")
-        return rowmax
-
-    in_state = table.target.str.lower().str.endswith(state.strip().lower())
-
-    assert any(in_state), (
-        "State {} is not found from place {}. "
-        "Should be a standard Census abbreviation, like"
-        " CA, AZ, NC, or PR".format(state, matchtarget)
-    )
-    table = table[in_state]
-    if (table.score == table.score.max()).sum() > 1:
-        ixmax, rowmax = _break_ties(matchtarget, table)
-    else:
-        ixmax = table.score.idxmax()
-        rowmax = table.loc[ixmax]
-    if return_table:
-        return rowmax, table.sort_values("score")
-    return rowmax
-
-
-def _coerce(column, kind):
-    """
-    Converty type of column to kind, or keep column unchanged
-    if that conversion fails.
-    """
-    try:
-        return column.astype(kind)
-    except ValueError:
-        return column
-
-
-def _replace_missing(column, missings=_ACS_MISSING):
-    """
-    replace ACS missing values using numpy.nan. 
-    """
-    for val in _ACS_MISSING:
-        column.replace(val, numpy.nan, inplace=True)
-    return column
-
-
-def _break_ties(matchtarget, table):
-    """
-    break ties in the fuzzy matching algorithm using a second scoring method 
-    which prioritizes full string matches over substring matches.  
-    """
-    split = matchtarget.split(",")
-    if len(split) == 2:
-        target, state = split
-    else:
-        target = split[0]
-    table["score2"] = table.target.apply(
-        lambda x: fuzz.ratio(target.strip().lower(), x.lower())
-    )
-    among_winners = table[table.score == table.score.max()]
-    double_winners = among_winners[among_winners.score2 == among_winners.score2.max()]
-    if double_winners.shape[0] > 1:
-        ixmax = double_winners.score2.idxmax()
-        ixmax_row = double_winners.loc[ixmax]
-        warn(
-            "Cannot disambiguate placename {}. Picking the shortest, best "
-            "matched placename, {}, from {}".format(
-                matchtarget, ixmax_row.target, ", ".join(double_winners.target.tolist())
-            )
-        )
-        return ixmax, ixmax_row
-    ixmax = double_winners.score2.idxmax()
-    return ixmax, double_winners.loc[ixmax]
-
-
-def _can_int(char):
-    """check if a character can be turned into an integer"""
-    try:
-        int(char)
-        return True
-    except ValueError:
-        return False
