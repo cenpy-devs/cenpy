@@ -1,7 +1,7 @@
-from .utilities import _replace_missing as replace_missing_func 
-from .utilities import _fuzzy_match as fuzzy_match
-from .utilities import _coerce as coerce
-from .utilities import _can_int as can_int
+from .utilities import _replace_missing
+from .utilities import _fuzzy_match
+from .utilities import _coerce
+from .utilities import _can_int
 from .remote import APIConnection
 from .explorer import fips_table as _ft
 from shapely import geometry
@@ -183,10 +183,10 @@ class _Product(object):
         else:
             raise Exception()
 
-        placematch = fuzzy_match(name.strip(), searchtarget)
+        placematch = _fuzzy_match(name.strip(), searchtarget)
         placerow = _places.loc[placematch.name]
 
-        env_name = fuzzy_match(
+        env_name = _fuzzy_match(
             placerow.TYPE, [layer.__repr__() for layer in self._api.mapservice.layers]
         )
 
@@ -317,7 +317,7 @@ class _Product(object):
 
         if replace_missing:
             for variable in variables:
-                data[variable] = replace_missing_func(coerce(data[variable], float))
+                data[variable] = _replace_missing(_coerce(data[variable], float))
 
         if return_geometry:
             data = geopandas.GeoDataFrame(data)
@@ -640,7 +640,7 @@ class Decennial2010(_Product):
             )
             self._stems["columns"] = groups.apply(lambda x: x.index.tolist())
 
-            is_table = numpy.asarray([can_int(x[-1]) for x in self._stems.index])
+            is_table = numpy.asarray([_can_int(x[-1]) for x in self._stems.index])
             self._tables = self._stems[is_table]
             self._crosstabs = self._stems[~is_table]
 
