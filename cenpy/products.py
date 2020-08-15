@@ -338,7 +338,7 @@ class _Product(object):
         A helper function to extract the right "container", or "environment" to
         conduct a query against. 
         """
-        layername_match = fuzzy_match(
+        layername_match = _fuzzy_match(
             layername, [f.__repr__() for f in self._api.mapservice.layers]
         )
         layer = self._api.mapservice.layers[layername_match.name]
@@ -439,7 +439,7 @@ class _Product(object):
         and `ratio` matches. 
 
         """
-        layer_result = fuzzy_match(
+        layer_result = _fuzzy_match(
             level,
             [f.__repr__() for f in self._api.mapservice.layers],
             return_table=return_table,
@@ -471,7 +471,7 @@ class _Product(object):
                     lambda x: ", ".join(x), axis=1
                 )
             self._cache.update({cache_name: cache})
-        result = fuzzy_match(name, cache.BASENAME, return_table=return_table)
+        result = _fuzzy_match(name, cache.BASENAME, return_table=return_table)
         if return_level:
             return result, layer_result
         else:
