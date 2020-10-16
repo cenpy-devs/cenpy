@@ -285,6 +285,10 @@ class _Product(object):
                     geo_unit = "block:*"
                     geo_filter["tract"] = ",".join(elements_in_chunk)
                     geo_filter["county"] = county
+                elif level == "blockgroup":
+                    geo_unit = "blockgroup:*"
+                    geo_filter["tract"] = ",".join(elements_in_chunk)
+                    geo_filter["county"] = county
                 elif level == "tract":
                     geo_unit = "tract:{}".format(",".join(elements_in_chunk))
                     geo_filter["county"] = county
