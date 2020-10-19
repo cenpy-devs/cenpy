@@ -677,7 +677,7 @@ class Decennial2010(_Product):
 class ACS(_Product):
     """The American Community Survey (5-year vintages) from the Census Bueau"""
 
-    _layer_lookup = {"county": 84, "tract": 8}
+    _layer_lookup = {"county": 84, "tract": 8, "blockgroup": 10}
 
     def __init__(self, year="latest"):
         self._cache = dict()
