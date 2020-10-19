@@ -286,7 +286,7 @@ class _Product(object):
                     geo_filter["tract"] = ",".join(elements_in_chunk)
                     geo_filter["county"] = county
                 elif level == "blockgroup":
-                    geo_unit = "blockgroup:*"
+                    geo_unit = "block group:*"
                     geo_filter["tract"] = ",".join(elements_in_chunk)
                     geo_filter["county"] = county
                 elif level == "tract":
@@ -484,7 +484,7 @@ class _Product(object):
 class Decennial2010(_Product):
     """The 2010 Decennial Census from the Census Bueau"""
 
-    _layer_lookup = {"county": 100, "tract": 14, "blockgroup":16, "block": 18}
+    _layer_lookup = {"county": 100, "tract": 14, "blockgroup": 16, "block": 18}
 
     def __init__(self):
         super(Decennial2010, self).__init__()
