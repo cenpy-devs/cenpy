@@ -92,7 +92,7 @@ def test_all():
 
     # In[8]:
 
-    aus = dectest.from_msa("Austin, TX", level="block", variables=["^P003", "P001001"])
+    aus = dectest.from_msa("Carson City, NV", level="block", variables=["^P003", "P001001"])
 
     # In[9]:
 
