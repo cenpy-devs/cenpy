@@ -83,7 +83,6 @@ class _Product(object):
         """
 
         supported_levels = {
-            'States': 'state',
             'Counties': 'county',
             'Census Blocks': 'block',
             'Census Tracts': 'tract',
@@ -92,7 +91,7 @@ class _Product(object):
         return {
             supported_levels[l._name]: l._id
             for l in self._api.mapservice.layers if
-            l._name in ['Counties', 'Census Tracts', 'Census Blocks']
+            l._name in supported_levels.keys()
         }
 
     def from_place(
