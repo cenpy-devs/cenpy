@@ -678,11 +678,11 @@ class ACS(_Product):
     def __init__(self, year="latest"):
         self._cache = dict()
         if year == "latest":
-            year = 2018
-        if year < 2013:
+            year = 2019
+        if year not in list(range(2017,2020)):
             raise NotImplementedError(
-                "The requested year {} is too early. "
-                "Only 2013 and onwards is supported.".format(year)
+                "The requested year ({}) is too early/late. "
+                "Only 2017, 2018, or 2019 are supported.".format(year)
             )
         self._api = APIConnection("ACSDT{}Y{}".format(5, year))
         self._api.set_mapservice("tigerWMS_ACS{}".format(year))

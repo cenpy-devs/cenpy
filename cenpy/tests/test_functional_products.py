@@ -92,7 +92,7 @@ def test_all():
 
     # In[8]:
 
-    aus = dectest.from_msa("Austin, TX", level="block", variables=["^P003", "P001001"])
+    aus = dectest.from_msa("Carson City, NV", level="block", variables=["^P003", "P001001"])
 
     # In[9]:
 
@@ -128,11 +128,11 @@ def test_all():
 
     # # Additional Products
     #
-    # This works for all of the ACSs that are supported by the Web Mapping Service. This means that `cenpy` supports this place-based API for the results from 2013 to 2017:
+    # This works for all of the ACSs that are supported by the Web Mapping Service. This means that `cenpy` supports this place-based API for the results from 2017 to 2019:
 
     # In[17]:
 
-    for year in range(2013, 2018):
+    for year in range(2017, 2020):
         print(year)
         acs = products.ACS(year=year)
         acs.from_place("Tucson, AZ")
