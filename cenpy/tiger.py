@@ -183,7 +183,7 @@ class ESRILayer(object):
         datadict = resp.json()
         if raw:
             return datadict
-        if kwargs.get("returnGeometry", "true") is "false":
+        if kwargs.get("returnGeometry", "true") == "false":
             return pd.DataFrame.from_records(
                 [x["attributes"] for x in datadict["features"]]
             )
@@ -217,7 +217,7 @@ class ESRILayer(object):
         crs = datadict.pop("spatialReference", None)
         if crs is not None:
             crs = crs.get("latestWkid", crs.get("wkid"))
-            crs = dict(init="epsg:{}".format(crs))
+            crs = 'epsg:{}'.format(crs)
         outdf.crs = crs
         return outdf
 
