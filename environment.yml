@@ -1,0 +1,13 @@
+name: cenpy
+dependencies:
+  - numpy
+  - scipy
+  - pandas
+  - six
+  - requests
+  - geopandas
+  - rtree
+  - pip
+  - pip:
+    - libpysal
+    - fuzzywuzzy
