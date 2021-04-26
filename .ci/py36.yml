@@ -1,0 +1,14 @@
+name: tests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.6
+  - geopandas
+  - fuzzywuzzy
+  - libpysal
+  - numpy
+  - pandas
+  - requests
+  - rtree
+  - scipy
+  - six
