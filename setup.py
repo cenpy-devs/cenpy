@@ -1,7 +1,7 @@
 from setuptools import setup
 import os
 
-package = "spaghetti"
+package = "cenpy"
 
 basepath = os.path.dirname(__file__)
 init = os.path.join(basepath, f"{package}/__init__.py")
