@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
         environment-file: [.ci/py36.yml, .ci/py37.yml, .ci/py38.yml, .ci/py39.yml]
     
     steps:
