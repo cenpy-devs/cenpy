@@ -1,20 +1,15 @@
-name: notebooks-environment
+name: tests
 channels:
   - conda-forge
 dependencies:
   - python=3.6
-  - contextily
   - geopandas
   - fuzzywuzzy
   - libpysal
-  - matplotlib
   - numpy
-  - osmnx
   - pandas
+  - pytest
   - requests
   - rtree
   - scipy
-  - segregation
   - six
-  - pip
-    - git+https://github.com/cenpy-devs/cenpy.git@master
