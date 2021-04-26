@@ -8,6 +8,7 @@ dependencies:
   - libpysal
   - numpy
   - pandas
+  - pytest
   - requests
   - rtree
   - scipy
