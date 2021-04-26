@@ -2,7 +2,7 @@ CenPy
 =====
 .. image:: https://img.shields.io/static/v1.svg?label=documentation&message=latest&color=blueviolet
     :target: https://cenpy-devs.github.io/cenpy
-.. image:: https://github.com/cenpy-devs/cenpy/actions/workflows/build.yml/badge.svg
+.. image:: https://github.com/cenpy-devs/cenpy/workflows/.github/workflows/build.yml/badge.svg
     :target: https://github.com/cenpy-devs/cenpy/actions?query=workflow%3A.github%2Fworkflows%2Fbuild.yml
 .. image:: https://img.shields.io/pypi/dm/cenpy.svg
     :target: https://pypi.org/project/cenpy/
