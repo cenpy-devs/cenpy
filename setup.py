@@ -1,8 +1,10 @@
 from setuptools import setup
 import os
 
+package = "spaghetti"
+
 basepath = os.path.dirname(__file__)
-init = os.path.join(basepath, "cenpy/__init__.py")
+init = os.path.join(basepath, f"{package}/__init__.py")
 
 with open(init, "r") as initfile:
     firstline = initfile.readline()
@@ -18,18 +20,18 @@ with open(os.path.join(basepath, "requirements.txt"), "r") as reqfile:
 reqs = [req.strip() for req in reqs]
 
 setup(
-    name="cenpy",
+    name=package,
     version=init_version,
     description="Explore and download data from Census APIs",
     long_description=long_description,
-    url="https://github.com/cenpy-devs/cenpy",
+    url=f"https://github.com/{package}-devs/{package}",
     author="Levi John Wolf",
     author_email="levi.john.wolf@gmail.com",
     license="3-Clause BSD",
     python_requires=">=3.6",
-    packages=["cenpy"],
+    packages=[package],
     install_requires=reqs,
-    package_data={"cenpy": ["stfipstable.csv"]},
+    package_data={package: ["stfipstable.csv"]},
     zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
