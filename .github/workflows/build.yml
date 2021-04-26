@@ -11,26 +11,25 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  cenpy-CI:
+    name: CenPy Tests (${{ matrix.os }}, ${{ matrix.environment-file }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       matrix:
-        python-version: [3.6]
+        os: [ubuntu-latest]
+        environment-file: [.ci/py36.yml]
+    
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda install python=${{ matrix.python-version }}
-        conda env update --file environment.yml --name base --prune
-    - name: Test with pytest
-      run: |
-        conda install pytest
-        pytest
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      
+      - name: Setup micromamba
+        uses: mamba-org/provision-with-micromamba@main
+        with:
+          environment-file: ${{ matrix.environment-file }}
+          micromamba-version: 'latest'
+      
+      - name: Test with pytest
+        shell: bash -l {0}
+        run: pytest -v cenpy
