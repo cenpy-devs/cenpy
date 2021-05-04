@@ -6,6 +6,7 @@ from . import explorer as exp
 from . import tiger as tig
 import math
 from six import iteritems, PY3
+from .api import RestApiBase
 
 if PY3:
     unicode = str
@@ -17,10 +18,10 @@ class ParseException(Exception):
         self.response = response
 
 
-class APIConnection:
+class APIConnection(RestApiBase):
     """The fundamental building block for US Census Bureau data API Endpoints"""
 
-    def __init__(self, api_name=None, apikey=""):
+    def __init__(self, api_name=None, apikey="", session=None):
         """
         Constructor for a Connection object
 
@@ -31,6 +32,8 @@ class APIConnection:
         api_key  : str
                    US Census bureau API key
         """
+        super(APIConnection, self).__init__(session=session)
+
         if "eits" not in api_name and api_name is not None:
             try:
                 curr = exp.APIs[api_name]
@@ -63,12 +66,12 @@ class APIConnection:
                 self.doclink = self.__urls__["documentation"]
             if "variables" in self.__urls__.keys():
                 v = pd.DataFrame()
-                variables = r.get(self.__urls__["variables"])
+                variables = self._get(self.__urls__["variables"])
                 variables.raise_for_status()
 
                 self.variables = v.from_dict(variables.json()["variables"]).T
             if "geography" in self.__urls__.keys():
-                res = r.get(self.__urls__["geography"])
+                res = self._get(self.__urls__["geography"])
                 res.raise_for_status()
                 res = res.json()
                 self.geographies = {
@@ -76,7 +79,7 @@ class APIConnection:
                 }
             if "tags" in self.__urls__.keys():
                 try:
-                    tags = r.get(self.__urls__["tags"])
+                    tags = self._get(self.__urls__["tags"])
                     tags.raise_for_status()
                     self.tags = list(tags.json().values())[0]
                 except r.HTTPError:
@@ -84,7 +87,7 @@ class APIConnection:
 
             if "examples" in self.__urls__.keys():
                 try:
-                    examples = r.get(self.__urls__["examples"])
+                    examples = self._get(self.__urls__["examples"])
                     examples.raise_for_status()
                     self.example_entries = examples.json()
                 except r.HTTPError:
@@ -210,7 +213,7 @@ class APIConnection:
                 ["&{k}={v}".format(k=k, v=v) for k, v in iteritems(kwargs)]
             )
 
-        res = r.get(self.last_query)
+        res = self._get(self.last_query)
         if res.status_code == 204:
             raise r.HTTPError(
                 " ".join((str(res.status_code), "error: no records matched your query"))
@@ -221,7 +224,7 @@ class APIConnection:
             assert all([col in df.columns for col in cols])
             if convert_numeric:
                 df = df.infer_objects()
-            if index is not "":
+            if index != "":
                 df.index = df[index]
             return df
         except (ValueError, JSONDecodeError):
@@ -346,5 +349,5 @@ class APIConnection:
         if isinstance(key, tig.TigerConnection):
             self.mapservice = key
         elif isinstance(key, str):
-            self.mapservice = tig.TigerConnection(name=key)
+            self.mapservice = tig.TigerConnection(name=key, session=self._session)
         return self

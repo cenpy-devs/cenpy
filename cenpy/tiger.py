@@ -1,3 +1,6 @@
+
+from .api import RestApiBase
+
 from six import iteritems as diter
 import requests as r
 import pandas as pd
@@ -95,10 +98,10 @@ def available(verbose=False):
             return q
 
 
-class ESRILayer(object):
+class ESRILayer(RestApiBase, object):
     """The fundamental building block to access a single Geography/Layer in an ESRI MapService"""
 
-    def __init__(self, baseurl, **kwargs):
+    def __init__(self, baseurl, session=None, **kwargs):
         """
         Class representing the ESRI Layer in the TIGER API
 
@@ -108,6 +111,8 @@ class ESRILayer(object):
                     the url for the Layer. 
 
         """
+        super(ESRILayer, self).__init__(session=session)
+
         self.__dict__.update({"_" + k: v for k, v in diter(kwargs)})
         if hasattr(self, "_fields"):
             self.variables = pd.DataFrame(self._fields)
@@ -178,7 +183,7 @@ class ESRILayer(object):
         qstring = "&".join(["{}={}".format(k, v) for k, v in diter(self._basequery)])
         self._last_query = self._baseurl + "/query?" + qstring
         # run query
-        resp = r.get(self._last_query + "&f=json")
+        resp = self._get(self._last_query + "&f=json")
         resp.raise_for_status()
         datadict = resp.json()
         if raw:
@@ -222,10 +227,10 @@ class ESRILayer(object):
         return outdf
 
 
-class TigerConnection(object):
+class TigerConnection(RestApiBase, object):
     """The fundamental building block for US Census Bureau's Geographic, an ESRI MapService"""
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, session=None):
         """
         Parameters
         ----------
@@ -233,6 +238,8 @@ class TigerConnection(object):
                     string describing the API to connect to
 
         """
+        super(TigerConnection, self).__init__(session=session)
+
         if name not in available(verbose=-1):
             raise KeyError(
                 "Dataset {n} not found. Please check cenpy.tiger.available()".format(
@@ -241,7 +248,7 @@ class TigerConnection(object):
             )
         else:
             self._baseurl = "/".join([_baseurl, name, "MapServer"])
-            resp = _jget(self._baseurl)
+            resp = self._get(self._baseurl, params={'f': 'json'})
             resp.raise_for_status()
             resp = resp.json()
             self._key = name
@@ -251,10 +258,10 @@ class TigerConnection(object):
             self.projection = resp["spatialReference"]["latestWkid"]
 
     def _get_layers(self):
-        resp = _jget(self._baseurl + "/layers")
+        resp = self._get(self._baseurl + "/layers", params={'f': 'json'})
         resp.raise_for_status()
         resp = resp.json()
-        return [ESRILayer(self._baseurl, **d) for d in resp["layers"]]
+        return [ESRILayer(self._baseurl, session=self._session, **d) for d in resp["layers"]]
 
     def query(self, **kwargs):
         """
