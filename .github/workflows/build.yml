@@ -17,8 +17,8 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        environment-file: [.ci/py36.yml]
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        environment-file: [.ci/py36.yml, .ci/py37.yml, .ci/py38.yml, .ci/py39.yml]
     
     steps:
       - name: Checkout repo
@@ -30,6 +30,12 @@ jobs:
           environment-file: ${{ matrix.environment-file }}
           micromamba-version: 'latest'
       
-      - name: Test with pytest
+      - name: Test with pytest - bash
         shell: bash -l {0}
         run: pytest -v cenpy
+        if: matrix.os != 'windows-latest'
+      
+      - name: Test with pytest - powershell
+        shell: powershell
+        run: pytest -v cenpy
+        if: matrix.os == 'windows-latest'
