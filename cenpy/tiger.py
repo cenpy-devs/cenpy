@@ -25,7 +25,7 @@ from . import geoparser as gpsr
 
 # none of the types at that url?f=json are not Mapservers.
 
-_baseurl = "http://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
+_baseurl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
 _pcs = "https://developers.arcgis.com/javascript/jshelp/pcs.html"
 _bcs = "https://developers.arcgis.com/javascript/jshelp/bcs.html"
 
