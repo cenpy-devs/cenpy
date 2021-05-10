@@ -210,13 +210,13 @@ class Decennial(ProductBase):
         )
 
     @lazy_property
-    def legislative_year(self):
+    def _legislative_year(self):
         return 'NotImpementedError'
 
     @lazy_property
-    def census_year(self):
+    def _census_year(self):
         return ''
 
     @lazy_property
-    def congressional_district(self):
+    def _congressional_district(self):
         return 'NotImpementedError'

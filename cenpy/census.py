@@ -59,7 +59,9 @@ class CensusDataset(RestApiBase):
 
             if in_dict:
                 # convert lists to csv
-                params_in_dict = {k: ','.join(v) for k, v in in_dict.items() if isinstance(v, list)}
+                params_in_dict = {}
+                params_in_dict.update(in_dict)
+                params_in_dict.update({k: ','.join(v) for k, v in in_dict.items() if isinstance(v, list)})
 
                 params['in'] = '+'.join([f'{k}:{v}' for k, v in params_in_dict.items()])
 
