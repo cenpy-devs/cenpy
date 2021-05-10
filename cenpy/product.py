@@ -9,12 +9,13 @@ from cenpy.census import CensusDataset
 from cenpy.tiger import EsriMapServer
 from cenpy.utils import RestApiBase, lazy_property
 
-config = pkg_resources.resource_filename(__name__, 'conf/geographies.ini')
+
+CONFIG = pkg_resources.resource_filename(__name__, 'conf/geographies.ini')
 
 
 class ProductBase(RestApiBase):
 
-    def __init__(self, year, config=config, session=None):
+    def __init__(self, year, config=CONFIG, session=None):
         self.year = year
 
         self.config = ConfigParser()
@@ -23,26 +24,33 @@ class ProductBase(RestApiBase):
         super(ProductBase, self).__init__(session=session)
 
     @lazy_property
-    def legislative_year(self):
+    def _legislative_year(self):
         return self.year - (self.year % 2)
 
     @lazy_property
-    def census_year(self):
+    def _census_year(self):
         return f'{self.year - (self.year % 10)} Census'
 
     @lazy_property
-    def congressional_district(self):
+    def _congressional_district(self):
         return 'NotImplementedYet'
 
     @lazy_property
-    def variable_lookup(self):
+    def _variable_lookup(self):
         return dict(self.config.items('variables'))
 
     @lazy_property
-    def layer_lookup(self):
+    def _layer_lookup(self):
         return dict(self.config.items('layers'))
 
-    def query(self, get, for_dict, in_dict=None, key=None, **kwargs):
+    def query(
+        self,
+        get: dict,
+        for_dict: dict,
+        in_dict: dict = None,
+        key: str = None,
+        **kwargs,
+    ) -> pd.DataFrame:
 
         if not isinstance(get, list):
             get = [get]
@@ -73,14 +81,13 @@ class ProductBase(RestApiBase):
             in_dict = {}
 
         sql_dict = {
-            self.variable_lookup[k]: v for k, v in {**in_dict, **for_dict}.items() if v != '*'
+            self._variable_lookup[k]: v for k, v in {**in_dict, **for_dict}.items() if v != '*'
         }
 
         # construct sql where
         sql_where = ' AND '.join(
             f"{k} IN ('{v}')" for k, v in sql_dict.items()
         )
-
 
         if sql_where == '':
             sql_where = '1=1'
@@ -97,16 +104,16 @@ class ProductBase(RestApiBase):
         # get layer name from .ini file
         # format if {} exists in string
         # if ',' present, query multiple layers (will have side effect on resultRecordCount)
-        layername_s = self.layer_lookup[for_geography].format(
-            census_year=self.census_year,
-            legislative_year=self.legislative_year,
-            congressional_district=self.congressional_district,
+        layername_s = self._layer_lookup[for_geography].format(
+            census_year=self._census_year,
+            legislative_year=self._legislative_year,
+            congressional_district=self._congressional_district,
         )
 
-        layername_s = [l.strip() for l in layername_s.split(',')]
+        layername_s = [layer.strip() for layer in layername_s.split(',')]
 
         returnGeometry = kwargs.pop('returnGeometry', True)
-        geometryPrecision=kwargs.pop('geometryPrecision', 2)
+        geometryPrecision = kwargs.pop('geometryPrecision', 2)
 
         # census data (american indian area/alaska native area/hawaiian home
         # land) does not have letter at end of GEOID, but tigerweb does; set
@@ -204,5 +211,5 @@ class Decennial(ProductBase):
 if __name__ == '__main__':
 
     acs = ACS(2019)
-    data = acs.query('B01001_001E', {'tract':'*'}, {'state':'06','county':'071'}, key='a4b2eab7c7050050923fffa485fb81e22be63e68')
+    data = acs.query('B01001_001E', {'tract': '*'}, {'state': '06', 'county': '071'}, key='a4b2eab7c7050050923fffa485fb81e22be63e68')
     print(data.head())

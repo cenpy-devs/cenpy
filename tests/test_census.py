@@ -11,6 +11,9 @@ def CensusApi():
     return api
 
 shared_geography_params = [
+]
+
+acs_geography_params = [
     ({'us': '1'}, None),
     ({'region': '1'}, None),
     ({'division': '1'}, None),
@@ -100,7 +103,7 @@ shared_geography_params = [
     ({'school district (unified)': '00790'}, {'state': '34'}),
 ]
 
-@pytest.mark.parametrize('for_dict, in_dict', shared_geography_params)
+@pytest.mark.parametrize('for_dict, in_dict', shared_geography_params + acs_geography_params)
 def test_all_geographies(CensusApi, for_dict, in_dict):
     CensusApi.query(
         'B01001_001E',
