@@ -3,7 +3,7 @@ import geopandas as gpd
 import pandas as pd
 
 from .geoparser import esri_geometry_polygon_to_shapely
-from .utils import RestApiBase, lazy_property, chunks
+from .utils import RestApiBase, lazy_property
 
 QUERY_PARAMS = [
     'text',
@@ -40,7 +40,7 @@ QUERY_PARAMS = [
     'quantizationParameters',
     'parameterValues',
     'historicMoment',
-    'f',
+#    'f',  # remove as possibility to ignore any attempts to overwrite
 ]
 
 QUERY_DEFAULTS = {
@@ -60,6 +60,9 @@ QUERY_DEFAULTS = {
     'featureEncoding': 'esriDefault',
     'f': 'json',
 }
+
+
+CHUNKED_QUERY_NUMBER_OF_CHUNKS = 2
 
 
 class EsriMapServer(RestApiBase):
@@ -85,14 +88,52 @@ class EsriMapServiceLayer(RestApiBase):
         self.url = url
         super(EsriMapServiceLayer, self).__init__(session=session)
 
+    def chunked_query(self, **kwargs):
+
+        # returnCountOnly=True
+        count_params = {}
+        count_params.update(kwargs)
+        count_params['returnCountOnly'] = True
+
+        count_response = self._get(f'{self.url}/query', params=count_params)
+        count_response.raise_for_status()
+        count_data = count_response.json()
+        count = count_data['count']
+
+        # divide count by #, use resultOffset and resultRecordCount to get in chunks
+        offset = 0
+        chunk_size = round(count/CHUNKED_QUERY_NUMBER_OF_CHUNKS + 0.5)
+
+        result = {}
+        for chunk in range(1, count, chunk_size):
+
+            chunk_params = {}
+            chunk_params.update(kwargs)
+            chunk_params['resultOffset'] = offset
+            chunk_params['resultRecordCount'] = chunk_size if (offset + chunk_size) < count else count - offset
+
+            chunk_response = self._get(f'{self.url}/query', params=chunk_params)
+            chunk_response.raise_for_status()
+            chunk_data = chunk_response.json()
+
+            if 'error' in chunk_data:
+                raise Exception
+
+            if result == {}:
+                result['features'] = result.get('features', []).append(chunk_data['features'])
+
+            else:
+                result.update(chunk_data)
+
+            offset += chunk_size
+
+        return result
+
     def query(self, **kwargs):
 
         params = {}
         params.update(QUERY_DEFAULTS)
         params.update({k: v for k, v in kwargs.items() if k in QUERY_PARAMS})
-
-        # overwrite return type to json (just in case)
-        params['f'] = 'json'
 
 #        from urllib.parse import urlencode; print(f'{self.url}/query?{urlencode(params)}')
 
@@ -100,6 +141,11 @@ class EsriMapServiceLayer(RestApiBase):
         response.raise_for_status()
 
         data = response.json()
+
+        # handle large transactions
+        if 'error' in data:
+            if data['error']['code'] == 500:
+                data = self.chunked_query(**params)
 
         # check to see if geometryType is present, if it is expect geometry
         if 'geometryType' in data:

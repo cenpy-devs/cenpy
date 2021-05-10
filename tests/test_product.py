@@ -181,3 +181,14 @@ def test_all_dec_geographies(DecennialProductApi, for_dict, in_dict):
     assert isinstance(data, pd.DataFrame)
     assert data.shape > (0, 0)
     assert 'geometry' in data.columns
+
+
+def test_chunked_query(ACSProductApi):
+    data = ACSProductApi.query(
+        'B01001_001E',
+        {'county': '*'},
+        {'state': ['02', '48', '06', '30', '35', '04', '32', '08']},
+        key='a4b2eab7c7050050923fffa485fb81e22be63e68',
+    )
+    assert isinstance(data, pd.DataFrame)
+    assert data.shape > (0, 0)

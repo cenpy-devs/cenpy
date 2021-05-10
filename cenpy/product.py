@@ -84,9 +84,15 @@ class ProductBase(RestApiBase):
             self._variable_lookup[k]: v for k, v in {**in_dict, **for_dict}.items() if v != '*'
         }
 
+        for k, v in sql_dict.items():
+            if isinstance(v, str):
+                sql_dict[k] = f"'{v}'"
+            elif isinstance(v, list):
+                sql_dict[k] = ','.join(f"'{i}'" for i in v)
+
         # construct sql where
         sql_where = ' AND '.join(
-            f"{k} IN ('{v}')" for k, v in sql_dict.items()
+            f"{k} IN ({v})" for k, v in sql_dict.items()
         )
 
         if sql_where == '':
@@ -99,7 +105,15 @@ class ProductBase(RestApiBase):
             outFields = ','.join(outFields)
 
         # add NAME for ease, GEOID for merging
-        outFields += 'NAME,GEOID'
+        if '*' not in outFields:
+            if 'NAME' not in outFields:
+                outFields += ',NAME'
+            if 'GEOID' not in outFields:
+                outFields += ',GEOID'
+
+        # clean up logic better for `outField = None`
+        if outFields[0] == ',':
+            outFields = outFields[1:]
 
         # get layer name from .ini file
         # format if {} exists in string
@@ -206,10 +220,3 @@ class Decennial(ProductBase):
     @lazy_property
     def congressional_district(self):
         return 'NotImpementedError'
-
-
-if __name__ == '__main__':
-
-    acs = ACS(2019)
-    data = acs.query('B01001_001E', {'tract': '*'}, {'state': '06', 'county': '071'}, key='a4b2eab7c7050050923fffa485fb81e22be63e68')
-    print(data.head())
