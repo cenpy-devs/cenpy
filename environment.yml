@@ -17,4 +17,4 @@ dependencies:
   - segregation
   - six
   - pip
-    - git+https://github.com/cenpy-devs/cenpy.git@master
+    - git+https://github.com/ronnie-llamado/cenpy.git@development

@@ -13,3 +13,5 @@ dependencies:
   - rtree
   - scipy
   - six
+  - pip:
+    - git+https://github.com/ronnie-llamado/cenpy.git@development

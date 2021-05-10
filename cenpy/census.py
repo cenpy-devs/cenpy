@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from cenpy.utils import RestApiBase, lazy_property, chunks
+from .utils import RestApiBase, lazy_property, chunks
 
 
 class CensusCatalog(RestApiBase):

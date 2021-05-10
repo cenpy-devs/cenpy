@@ -31,7 +31,7 @@ setup(
     python_requires=">=3.6",
     packages=[package],
     install_requires=reqs,
-    package_data={package: ["stfipstable.csv"]},
+    package_data={package: ["conf/geographies.ini"]},
     zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",

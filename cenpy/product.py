@@ -5,9 +5,9 @@ import pkg_resources
 import geopandas as gpd
 import pandas as pd
 
-from cenpy.census import CensusDataset
-from cenpy.tiger import EsriMapServer
-from cenpy.utils import RestApiBase, lazy_property
+from .census import CensusDataset
+from .tiger import EsriMapServer
+from .utils import RestApiBase, lazy_property
 
 config = pkg_resources.resource_filename(__name__, 'conf/geographies.ini')
 

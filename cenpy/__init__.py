@@ -1,2 +1,2 @@
 
-from cenpy.product import ACS, Decennial
+from .product import ACS, Decennial

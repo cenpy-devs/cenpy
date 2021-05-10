@@ -2,8 +2,8 @@
 import geopandas as gpd
 import pandas as pd
 
-from cenpy.geoparser import esri_geometry_polygon_to_shapely
-from cenpy.utils import RestApiBase, lazy_property, chunks
+from .geoparser import esri_geometry_polygon_to_shapely
+from .utils import RestApiBase, lazy_property, chunks
 
 QUERY_PARAMS = [
     'text',
