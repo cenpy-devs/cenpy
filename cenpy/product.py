@@ -5,9 +5,9 @@ import pkg_resources
 import geopandas as gpd
 import pandas as pd
 
-from .census import CensusDataset
-from .tiger import EsriMapServer
-from .utils import RestApiBase, lazy_property
+from cenpy.census import CensusDataset
+from cenpy.tiger import EsriMapServer
+from cenpy.utils import RestApiBase, lazy_property
 
 config = pkg_resources.resource_filename(__name__, 'conf/geographies.ini')
 
@@ -42,39 +42,38 @@ class ProductBase(RestApiBase):
     def layer_lookup(self):
         return dict(self.config.items('layers'))
 
-    def query(self, get, forString, inString=None, key=None, **kwargs):
+    def query(self, get, for_dict, in_dict=None, key=None, **kwargs):
 
         if not isinstance(get, list):
             get = [get]
+
+        if len(for_dict) != 1:
+            raise Exception
 
         # ensure GEO_ID is included, for merging purposes
         if 'GEO_ID' not in get:
             get.append('GEO_ID')
 
         # get census data
-        df = self._census.query(get, forString, inString, key)
+        df = self._census.query(get, for_dict, in_dict, key)
 
         # rename GEO_ID to GEOID, split on 'US')
         df['GEOID'] = df['GEO_ID'].str.split('US').str[1]
         df.drop('GEO_ID', axis=1, inplace=True)
 
         # filter geographies for reordering columns
-        forGeographyString, forGeographyValue = forString.split(':')
+        for_geography, for_value = list(for_dict.items())[0]
         geographies = [
             i for i in df.columns if i in list(self._census.geographies.name)
         ]
 
         # if geography not in inString, assume wildcard
         # if geography has wildcard, do not include in sql
-        if inString:
-            in_dict = dict(i.split(':') for i in inString.split('+'))
-        else:
+        if in_dict is None:
             in_dict = {}
 
-        in_dict[forGeographyString] = forGeographyValue
-
         sql_dict = {
-            self.variable_lookup[k]: v for k, v in in_dict.items() if v != '*'
+            self.variable_lookup[k]: v for k, v in {**in_dict, **for_dict}.items() if v != '*'
         }
 
         # construct sql where
@@ -98,7 +97,7 @@ class ProductBase(RestApiBase):
         # get layer name from .ini file
         # format if {} exists in string
         # if ',' present, query multiple layers (will have side effect on resultRecordCount)
-        layername_s = self.layer_lookup[forGeographyString].format(
+        layername_s = self.layer_lookup[for_geography].format(
             census_year=self.census_year,
             legislative_year=self.legislative_year,
             congressional_district=self.congressional_district,
@@ -113,7 +112,7 @@ class ProductBase(RestApiBase):
         # land) does not have letter at end of GEOID, but tigerweb does; set
         # flag to strip from tigerweb later
         aiannh_strip_letter = False
-        if forGeographyString in ['american indian area/alaska native area/hawaiian home land']:
+        if for_geography in ['american indian area/alaska native area/hawaiian home land']:
             aiannh_strip_letter = True
 
         sdf = pd.DataFrame()
@@ -205,9 +204,5 @@ class Decennial(ProductBase):
 if __name__ == '__main__':
 
     acs = ACS(2019)
-    dec = Decennial(2010)
-
-    data = acs.query('B01001_001E', 'tract:*', 'state:06+county:071')
-#    data = dec.query('H001001', 'tract:*', 'state:06+county:071')
-
+    data = acs.query('B01001_001E', {'tract':'*'}, {'state':'06','county':'071'}, key='a4b2eab7c7050050923fffa485fb81e22be63e68')
     print(data.head())

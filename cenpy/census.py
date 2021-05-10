@@ -42,7 +42,7 @@ class CensusDataset(RestApiBase):
         response = self._get(f"{self.url}/groups.json")
         return pd.DataFrame.from_dict(response.json()["groups"])
 
-    def query(self, get, forString, inString=None, key=None):
+    def query(self, get, for_dict, in_dict=None, key=None):
 
         if not isinstance(get, list):
             get = [get]
@@ -54,18 +54,17 @@ class CensusDataset(RestApiBase):
 
             params = {
                 'get': ','.join(c),
-                'for': forString,
+                'for': '+'.join([f'{k}:{v}' for k, v in for_dict.items()]),
             }
 
-            if inString:
-                params['in'] = inString
+            if in_dict:
+                params['in'] = '+'.join([f'{k}:{v}' for k, v in in_dict.items()])
 
             if key or self.key:
                 params['key'] = key if key else self.key
 
             response = self._get(self.url, params=params)
             response.raise_for_status()
-#            print(response.url, response.status_code)
 
             # convert to DataFrame
             chunk_result = pd.DataFrame.from_records(
