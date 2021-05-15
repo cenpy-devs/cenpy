@@ -33,7 +33,10 @@ class ProductBase(RestApiBase):
 
     @lazy_property
     def _congressional_district(self):
-        return 'NotImplementedYet'
+        if self.year % 2:
+            return f'{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th'
+        else:
+            return f'{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th'
 
     @lazy_property
     def _variable_lookup(self):
@@ -200,6 +203,10 @@ class Decennial(ProductBase):
 
     def __init__(self, year, session=None):
         super(Decennial, self).__init__(year, session=session)
+
+        self.set_congressional_district_year(year)
+        self.set_legislative_year(year)
+
         self._census = CensusDataset(
             f'https://api.census.gov/data/{self.year}/dec/sf1',
             session=self._session,
@@ -209,14 +216,17 @@ class Decennial(ProductBase):
             session=self._session,
         )
 
-    @lazy_property
-    def _legislative_year(self):
-        return 'NotImpementedError'
+    def set_legislative_year(self, year):
+        self._lazy__legislative_year = year
+
+    def set_congressional_district_year(self, year):
+        if year % 2:
+            # odd
+            self._lazy__congressional_district = f'{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th'
+        else:
+            # even
+            self._lazy__congressional_district = f'{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th'
 
     @lazy_property
     def _census_year(self):
         return ''
-
-    @lazy_property
-    def _congressional_district(self):
-        return 'NotImpementedError'
