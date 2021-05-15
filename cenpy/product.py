@@ -1,4 +1,3 @@
-
 from configparser import ConfigParser
 import pkg_resources
 
@@ -10,11 +9,10 @@ from cenpy.tiger import EsriMapServer
 from cenpy.utils import RestApiBase, lazy_property
 
 
-CONFIG = pkg_resources.resource_filename(__name__, 'conf/geographies.ini')
+CONFIG = pkg_resources.resource_filename(__name__, "conf/geographies.ini")
 
 
 class ProductBase(RestApiBase):
-
     def __init__(self, year, config=CONFIG, session=None):
         self.year = year
 
@@ -29,22 +27,22 @@ class ProductBase(RestApiBase):
 
     @lazy_property
     def _census_year(self):
-        return f'{self.year - (self.year % 10)} Census'
+        return f"{self.year - (self.year % 10)} Census"
 
     @lazy_property
     def _congressional_district(self):
         if self.year % 2:
-            return f'{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th'
+            return f"{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th"
         else:
-            return f'{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th'
+            return f"{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th"
 
     @lazy_property
     def _variable_lookup(self):
-        return dict(self.config.items('variables'))
+        return dict(self.config.items("variables"))
 
     @lazy_property
     def _layer_lookup(self):
-        return dict(self.config.items('layers'))
+        return dict(self.config.items("layers"))
 
     def query(
         self,
@@ -62,15 +60,15 @@ class ProductBase(RestApiBase):
             raise Exception
 
         # ensure GEO_ID is included, for merging purposes
-        if 'GEO_ID' not in get:
-            get.append('GEO_ID')
+        if "GEO_ID" not in get:
+            get.append("GEO_ID")
 
         # get census data
         df = self._census.query(get, for_dict, in_dict, key)
 
         # rename GEO_ID to GEOID, split on 'US')
-        df['GEOID'] = df['GEO_ID'].str.split('US').str[1]
-        df.drop('GEO_ID', axis=1, inplace=True)
+        df["GEOID"] = df["GEO_ID"].str.split("US").str[1]
+        df.drop("GEO_ID", axis=1, inplace=True)
 
         # filter geographies for reordering columns
         for_geography, for_value = list(for_dict.items())[0]
@@ -84,38 +82,38 @@ class ProductBase(RestApiBase):
             in_dict = {}
 
         sql_dict = {
-            self._variable_lookup[k]: v for k, v in {**in_dict, **for_dict}.items() if v != '*'
+            self._variable_lookup[k]: v
+            for k, v in {**in_dict, **for_dict}.items()
+            if v != "*"
         }
 
         for k, v in sql_dict.items():
             if isinstance(v, str):
                 sql_dict[k] = f"'{v}'"
             elif isinstance(v, list):
-                sql_dict[k] = ','.join(f"'{i}'" for i in v)
+                sql_dict[k] = ",".join(f"'{i}'" for i in v)
 
         # construct sql where
-        sql_where = ' AND '.join(
-            f"{k} IN ({v})" for k, v in sql_dict.items()
-        )
+        sql_where = " AND ".join(f"{k} IN ({v})" for k, v in sql_dict.items())
 
-        if sql_where == '':
-            sql_where = '1=1'
+        if sql_where == "":
+            sql_where = "1=1"
 
         # only pull GEOID for merge
-        outFields = kwargs.pop('outFields', '')
+        outFields = kwargs.pop("outFields", "")
 
         if isinstance(outFields, list):
-            outFields = ','.join(outFields)
+            outFields = ",".join(outFields)
 
         # add NAME for ease, GEOID for merging
-        if '*' not in outFields:
-            if 'NAME' not in outFields:
-                outFields += ',NAME'
-            if 'GEOID' not in outFields:
-                outFields += ',GEOID'
+        if "*" not in outFields:
+            if "NAME" not in outFields:
+                outFields += ",NAME"
+            if "GEOID" not in outFields:
+                outFields += ",GEOID"
 
         # clean up logic better for `outField = None`
-        if outFields[0] == ',':
+        if outFields[0] == ",":
             outFields = outFields[1:]
 
         # get layer name from .ini file
@@ -127,16 +125,18 @@ class ProductBase(RestApiBase):
             congressional_district=self._congressional_district,
         )
 
-        layername_s = [layer.strip() for layer in layername_s.split(',')]
+        layername_s = [layer.strip() for layer in layername_s.split(",")]
 
-        returnGeometry = kwargs.pop('returnGeometry', True)
-        geometryPrecision = kwargs.pop('geometryPrecision', 2)
+        returnGeometry = kwargs.pop("returnGeometry", True)
+        geometryPrecision = kwargs.pop("geometryPrecision", 2)
 
         # census data (american indian area/alaska native area/hawaiian home
         # land) does not have letter at end of GEOID, but tigerweb does; set
         # flag to strip from tigerweb later
         aiannh_strip_letter = False
-        if for_geography in ['american indian area/alaska native area/hawaiian home land']:
+        if for_geography in [
+            "american indian area/alaska native area/hawaiian home land"
+        ]:
             aiannh_strip_letter = True
 
         sdf = pd.DataFrame()
@@ -156,8 +156,8 @@ class ProductBase(RestApiBase):
 
             # drop R/T from end of GEOID to match up with census
             if aiannh_strip_letter:
-                result['GEOID'] = result['GEOID'].str.replace('R', '')
-                result['GEOID'] = result['GEOID'].str.replace('T', '')
+                result["GEOID"] = result["GEOID"].str.replace("R", "")
+                result["GEOID"] = result["GEOID"].str.replace("T", "")
 
             if sdf.shape > (0, 0):
                 sdf = sdf.append(result, ignore_index=True)
@@ -166,41 +166,41 @@ class ProductBase(RestApiBase):
                 sdf = result
 
         # merge dataframes
-        combined = pd.merge(df, sdf, on=['GEOID'])
+        combined = pd.merge(df, sdf, on=["GEOID"])
 
         # drop any duplicate GEOID (targetted to AIANNH)
-        combined = combined.loc[combined['GEOID'].drop_duplicates().index].reset_index(drop=True)
+        combined = combined.loc[combined["GEOID"].drop_duplicates().index].reset_index(
+            drop=True
+        )
 
         # reorder columns
-        outFields = outFields.split(',')
+        outFields = outFields.split(",")
         combined = combined[
-            geographies +
-            outFields +
-            [i for i in combined.columns if i not in geographies + outFields]
+            geographies
+            + outFields
+            + [i for i in combined.columns if i not in geographies + outFields]
         ]
 
-        if 'geometry' in combined.columns:
+        if "geometry" in combined.columns:
             combined = gpd.GeoDataFrame(combined)
 
         return combined
 
 
 class ACS(ProductBase):
-
     def __init__(self, year, session=None):
         super(ACS, self).__init__(year, session=session)
         self._census = CensusDataset(
-            f'https://api.census.gov/data/{self.year}/acs/acs5',
+            f"https://api.census.gov/data/{self.year}/acs/acs5",
             session=self._session,
         )
         self._tiger = EsriMapServer(
-            f'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS{self.year}/MapServer',
+            f"https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS{self.year}/MapServer",
             session=self._session,
         )
 
 
 class Decennial(ProductBase):
-
     def __init__(self, year, session=None):
         super(Decennial, self).__init__(year, session=session)
 
@@ -208,11 +208,11 @@ class Decennial(ProductBase):
         self.set_legislative_year(year)
 
         self._census = CensusDataset(
-            f'https://api.census.gov/data/{self.year}/dec/sf1',
+            f"https://api.census.gov/data/{self.year}/dec/sf1",
             session=self._session,
         )
         self._tiger = EsriMapServer(
-            f'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census{self.year}/MapServer',
+            f"https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Census{self.year}/MapServer",
             session=self._session,
         )
 
@@ -222,11 +222,15 @@ class Decennial(ProductBase):
     def set_congressional_district_year(self, year):
         if year % 2:
             # odd
-            self._lazy__congressional_district = f'{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th'
+            self._lazy__congressional_district = (
+                f"{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th"
+            )
         else:
             # even
-            self._lazy__congressional_district = f'{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th'
+            self._lazy__congressional_district = (
+                f"{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th"
+            )
 
     @lazy_property
     def _census_year(self):
-        return ''
+        return ""
