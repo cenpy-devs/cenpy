@@ -1,272 +1,177 @@
-from six import iteritems as diter
-import requests as r
+import geopandas as gpd
 import pandas as pd
 
-try:
-    from geopandas import GeoDataFrame
-except (ImportError, OSError):
-    raise ImportError(
-        "Geopandas is required to do spatial operations, and"
-        " must be installed in order to use the cenpy product API."
-        " For directions on how to install geopandas, consult"
-        " https://geopandas.org/install.html. Ensure that all"
-        " of the dependencies, including rtree, are installed."
-        " Normally, installing geopandas through the "
-        " Anaconda Software Distribution (https://repo.continuum.io)"
-        ' in the "conda-forge" software channel will work.'
-    )
-import copy
+from .geoparser import esri_geometry_polygon_to_shapely
+from .utils import RestApiBase, lazy_property
 
-from . import geoparser as gpsr
+QUERY_PARAMS = [
+    "text",
+    "geometry",
+    "geometryType",
+    "inSR",
+    "spatialRel",
+    "relationParam",
+    "where",
+    "objectIds",
+    "time",
+    "distance",
+    "units",
+    "outFields",
+    "returnGeometry",
+    "maxAllowableOffset",
+    "geometryPrecision",
+    "outSR",
+    "returnIdsOnly",
+    "returnCountOnly",
+    "returnExtentOnly",
+    "orderByFields",
+    "outStatistics",
+    "groupByFieldsForStatistics",
+    "returnZ",
+    "returnM",
+    "gdbVersion",
+    "returnDistinctValues",
+    "returnTrueCurves",
+    "resultOffset",
+    "resultRecordCount",
+    "datumTransformation",
+    "rangeValues",
+    "quantizationParameters",
+    "parameterValues",
+    "historicMoment",
+    #    'f',  # remove as possibility to ignore any attempts to overwrite
+]
 
-# all queries to a map server, mounted at
-# tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/
-# are mounted by adding <name>/<MapServer> if they're mapservers
-
-# none of the types at that url?f=json are not Mapservers.
-
-_baseurl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
-_pcs = "https://developers.arcgis.com/javascript/jshelp/pcs.html"
-_bcs = "https://developers.arcgis.com/javascript/jshelp/bcs.html"
-
-_basequery = {
-    "where": "",  # sql query component
-    "text": "",  # raw text search
-    "objectIds": "",  # only grab these objects
-    "time": "",  # time instant/time extend to query
-    "geometry": "",  # spatial filter to apply to query
-    "geometryType": "esriGeometryEnvelope",  # spatial support
-    "inSR": "",  # spatial ref of input geometry
-    "spatialRel": "",  # what to do in a DE9IM spatial query
-    "relationParam": "",  # used if arbitrary spatialRel is applied
-    "outFields": "*",  # fields to pass from the header out
-    "returnGeometry": True,  # bool describing whether to pass geometry out
-    "maxAllowableOffset": "",  # set a spatial offset
-    "geometryPrecision": "",
-    "outSR": "",  # spatial reference of returned geometry
-    "returnIdsOnly": False,  # bool stating to only return ObjectIDs
-    "returnCountOnly": False,  # not documented, probably for the sql query
-    "orderByFields": "",  # again not documented, probably for the sql
-    "groupByFieldsForStatistics": "",  # not documented, probably for sql
-    "outStatistics": "",  # no clue
-    "returnZ": False,  # whether to return z components of shp-z
-    "returnM": False,  # whether to return m components of shp-m
-    "gdbVersion": "",  # geodatabase version name
-    "returnDistinctValues": "",
-}  # no clue
-
-
-def _jget(st):
-    return r.get(st + "?f=json")
-
-
-def available(verbose=False):
-    """
-    Query the TIGERweb geoAPI for available MapServices
-
-    Parameters
-    -----------
-    verbose :   int or bool
-                indicator for the verbosity level. Accepts levels -1, 0, 1, and greater.
-
-    Returns
-    -------
-    list or dict of available MapServers through TIGERweb
-    """
-    q = _jget(_baseurl)
-    q.raise_for_status()
-    q = q.json()
-    for d in q["services"]:
-        d["name"] = d["name"].split("/")[-1]
-    if verbose == -1:
-        return [d["name"] for d in q["services"]]
-    if not verbose:
-        return q["services"]
-    else:
-        print("verbose may take a bit...")
-        nexturls = ["/".join([_baseurl, d["name"], d["type"]]) for d in q["services"]]
-        for i, d in enumerate(q["services"]):
-            resp = _jget(nexturls[i])
-            resp.raise_for_status()
-            d["description"] = resp.json()["description"]
-        if verbose == True:
-            return q["services"]
-        else:
-            return q
+QUERY_DEFAULTS = {
+    "where": "1=1",
+    "geometryPrecision": 2,
+    "geometryType": "esriGeometryEnvelope",
+    "spatialRel": "esriSpatialRelIntersects",
+    "units": "esriSRUnit_Foot",
+    "outFields": "*",
+    "returnGeometry": False,
+    "returnTrueCurves": False,
+    "returnIdsOnly": False,
+    "returnCountOnly": False,
+    "returnZ": False,
+    "returnM": False,
+    "returnDistinctValues": False,
+    "featureEncoding": "esriDefault",
+    "f": "json",
+}
 
 
-class ESRILayer(object):
-    """The fundamental building block to access a single Geography/Layer in an ESRI MapService"""
+CHUNKED_QUERY_NUMBER_OF_CHUNKS = 2
 
-    def __init__(self, baseurl, **kwargs):
-        """
-        Class representing the ESRI Layer in the TIGER API
 
-        Parameters
-        ----------
-        baseurl :   str
-                    the url for the Layer. 
+class EsriMapServer(RestApiBase):
+    def __init__(self, url, session=None):
+        self.url = url
+        super(EsriMapServer, self).__init__(session=session)
 
-        """
-        self.__dict__.update({"_" + k: v for k, v in diter(kwargs)})
-        if hasattr(self, "_fields"):
-            self.variables = pd.DataFrame(self._fields)
-        self._baseurl = baseurl + "/" + str(self._id)
+    @lazy_property
+    def layers(self):
+        response = self._get(f"{self.url}", params={"f": "json"})
+        response.raise_for_status()
+        return {
+            layer["name"]: EsriMapServiceLayer(f'{self.url}/{layer["id"]}')
+            for layer in response.json()["layers"]
+            if "Labels" not in layer["name"]
+        }
 
-    def __repr__(self):
-        try:
-            return "(ESRILayer) " + self._name
-        except:
-            return ""
 
-    def query(self, raw=False, strict=False, **kwargs):
-        """
-        A query function to extract data out of MapServer layers. I've exposed
-        every option here 
+class EsriMapServiceLayer(RestApiBase):
+    def __init__(self, url, session=None):
+        self.url = url
+        super(EsriMapServiceLayer, self).__init__(session=session)
 
-        Parameters
-        ---------- 
-        where: str, required
-                    sql query string. 
-        out_fields: list or str
-                    fields to pass from the header out (default: '*')
-        return_geometry: bool
-                    bool describing whether to return geometry or just the
-                    dataframe. (default: True)
-        geometry_precision: str
-                    a number of significant digits to which the output of the
-                    query should be truncated (default: None)
-        out_sr: int or str
-                    ESRI WKID spatial reference into which to reproject 
-                    the geodata (default: None)
-        return_ids_only: bool
-                    bool stating to only return ObjectIDs. (default: False)
-        return_z: bool
-                     whether to return z components of shp-z, (default: False)
-        return_m: bool
-                     whether to return m components of shp-m, (default: False)
-        strict  :   bool
-                    whether to throw an error if invalid polygons are provided from the API (True)
-                    or just warn that at least one polygon is invalid (default: False)
-        raw : bool
-              whether to provide the raw geometries from the API  (default: False)
-        
-        Returns
-        ------- 
-        Dataframe or GeoDataFrame containing entries from the geodatabase
+    def chunked_query(self, **kwargs):
 
-        Notes
-        -----
-        Most of the time, this should be used leaning on the SQL "where"
-        argument: 
+        # returnCountOnly=True
+        count_params = {}
+        count_params.update(kwargs)
+        count_params["returnCountOnly"] = True
 
-        cxn.query(where='GEOID LIKE "06*"')
+        count_response = self._get(f"{self.url}/query", params=count_params)
+        count_response.raise_for_status()
+        count_data = count_response.json()
+        count = count_data["count"]
 
-        In most cases, you'll be querying against layers, not MapServices
-        overall. 
-        """
-        # parse args
-        kwargs = {"".join(k.split("_")): v for k, v in diter(kwargs)}
+        # divide count by #, use resultOffset and resultRecordCount to get in chunks
+        offset = 0
+        chunk_size = round(count / CHUNKED_QUERY_NUMBER_OF_CHUNKS + 0.5)
 
-        # construct query string
-        self._basequery = copy.deepcopy(_basequery)
-        for k, v in diter(kwargs):
-            try:
-                self._basequery[k] = v
-            except KeyError:
-                raise KeyError("Option '{k}' not recognized, check parameters")
-        qstring = "&".join(["{}={}".format(k, v) for k, v in diter(self._basequery)])
-        self._last_query = self._baseurl + "/query?" + qstring
-        # run query
-        resp = r.get(self._last_query + "&f=json")
-        resp.raise_for_status()
-        datadict = resp.json()
-        if raw:
-            return datadict
-        if kwargs.get("returnGeometry", "true") == "false":
-            return pd.DataFrame.from_records(
-                [x["attributes"] for x in datadict["features"]]
+        result = {}
+        for chunk in range(1, count, chunk_size):
+
+            chunk_params = {}
+            chunk_params.update(kwargs)
+            chunk_params["resultOffset"] = offset
+            chunk_params["resultRecordCount"] = (
+                chunk_size if (offset + chunk_size) < count else count - offset
             )
-        # convert to output format
-        try:
-            features = datadict["features"]
-        except KeyError:
-            code, msg = datadict["error"]["code"], datadict["error"]["message"]
-            details = datadict["error"]["details"]
-            if details is []:
-                details = "Mapserver provided no detailed error"
-            raise KeyError(
-                (
-                    r"Response from API is malformed. You may have "
-                    r"submitted too many queries, formatted the request incorrectly, "
-                    r"or experienced significant network connectivity issues."
-                    r" Check to make sure that your inputs, like placenames, are spelled"
-                    r" correctly, and that your geographies match the level at which you"
-                    r" intend to query. The original error from the Census is:\n"
-                    r"(API ERROR {}:{}({}))".format(code, msg, details)
+
+            chunk_response = self._get(f"{self.url}/query", params=chunk_params)
+            chunk_response.raise_for_status()
+            chunk_data = chunk_response.json()
+
+            if "error" in chunk_data:
+                raise Exception
+
+            if result == {}:
+                result["features"] = result.get("features", []).append(
+                    chunk_data["features"]
                 )
-            )
-        todf = []
-        for i, feature in enumerate(features):
-            locfeat = gpsr.__dict__[datadict["geometryType"]](feature)
-            todf.append(locfeat["properties"])
-            todf[i].update({"geometry": locfeat["geometry"]})
-        df = pd.DataFrame(todf)
-        outdf = gpsr.convert_geometries(df, strict=strict)
-        outdf = GeoDataFrame(outdf)
-        crs = datadict.pop("spatialReference", None)
-        if crs is not None:
-            crs = crs.get("latestWkid", crs.get("wkid"))
-            crs = 'epsg:{}'.format(crs)
-        outdf.crs = crs
-        return outdf
 
+            else:
+                result.update(chunk_data)
 
-class TigerConnection(object):
-    """The fundamental building block for US Census Bureau's Geographic, an ESRI MapService"""
+            offset += chunk_size
 
-    def __init__(self, name=None):
-        """
-        Parameters
-        ----------
-        name    :   str
-                    string describing the API to connect to
-
-        """
-        if name not in available(verbose=-1):
-            raise KeyError(
-                "Dataset {n} not found. Please check cenpy.tiger.available()".format(
-                    n=name
-                )
-            )
-        else:
-            self._baseurl = "/".join([_baseurl, name, "MapServer"])
-            resp = _jget(self._baseurl)
-            resp.raise_for_status()
-            resp = resp.json()
-            self._key = name
-            self.title = resp.pop("mapName", name)
-            self.layers = self._get_layers()
-            self.copyright = resp["copyrightText"]
-            self.projection = resp["spatialReference"]["latestWkid"]
-
-    def _get_layers(self):
-        resp = _jget(self._baseurl + "/layers")
-        resp.raise_for_status()
-        resp = resp.json()
-        return [ESRILayer(self._baseurl, **d) for d in resp["layers"]]
+        return result
 
     def query(self, **kwargs):
-        """
-        method to query the ESRI API. Passes down to an appropriately-chosen layer. 
-        """
-        layer_result = kwargs.pop("layer", None)
-        if isinstance(layer_result, str):
-            from .products import _fuzzy_match
 
-            layer_result = _fuzzy_match(
-                layer_result, [f.__repr__() for f in self.layers]
-            ).index
-        if layer_result is None:
-            raise Exception("No layer selected.")
-        return self.layers[layer_result].query(**kwargs)
+        params = {}
+        params.update(QUERY_DEFAULTS)
+        params.update({k: v for k, v in kwargs.items() if k in QUERY_PARAMS})
+
+        #        from urllib.parse import urlencode; print(f'{self.url}/query?{urlencode(params)}')
+
+        response = self._get(f"{self.url}/query", params=params)
+        response.raise_for_status()
+
+        data = response.json()
+
+        # handle large transactions
+        if "error" in data:
+            if data["error"]["code"] == 500:
+                data = self.chunked_query(**params)
+
+        # check to see if geometryType is present, if it is expect geometry
+        if "geometryType" in data:
+
+            # if no features, return empty dataframe
+            if len(data["features"]) == 0:
+                return gpd.GeoDataFrame()
+
+            #            geometryType = data['geometryType']
+            spatialReference = data["spatialReference"]
+
+            spatial_data = []
+            for row in data["features"]:
+                row["attributes"]["geometry"] = row["geometry"]
+                spatial_data.append(row["attributes"])
+
+            df = pd.DataFrame(spatial_data)
+
+            # convert geometries to shapely
+            df["geometry"] = df["geometry"].apply(esri_geometry_polygon_to_shapely)
+
+            df = gpd.GeoDataFrame(df, geometry="geometry")
+            df.set_crs(epsg=spatialReference["latestWkid"], inplace=True)
+
+        else:
+            df = pd.DataFrame([i["attributes"] for i in data["features"]])
+
+        return df

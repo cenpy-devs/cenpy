@@ -5,11 +5,9 @@ dependencies:
   - python=3.6
   - geopandas
   - fuzzywuzzy
-  - libpysal
   - numpy
   - pandas
   - pytest
   - requests
-  - rtree
-  - scipy
-  - six
+  - pip:
+    - git+https://github.com/ronnie-llamado/cenpy.git@development

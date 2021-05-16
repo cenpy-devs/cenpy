@@ -1,8 +1,5 @@
 pandas
 geopandas
 requests
-rtree
 numpy
-six
 fuzzywuzzy
-libpysal

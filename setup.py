@@ -9,7 +9,8 @@ init = os.path.join(basepath, f"{package}/__init__.py")
 with open(init, "r") as initfile:
     firstline = initfile.readline()
 init_version = firstline.split("=")[-1].strip()
-init_version = init_version.replace("'", "")
+init_version = init_version.replace('"', "")
+print(init_version)
 
 with open(os.path.join(basepath, "README.rst"), "r") as readme:
     long_description = readme.readlines()
@@ -31,7 +32,7 @@ setup(
     python_requires=">=3.6",
     packages=[package],
     install_requires=reqs,
-    package_data={package: ["stfipstable.csv"]},
+    package_data={package: ["conf/geographies.ini"]},
     zip_safe=False,
     classifiers=[
         "Development Status :: 5 - Production/Stable",

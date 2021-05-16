@@ -10,3 +10,4 @@ docsrc/generated
 docsrc/_build
 cenpy-feedstock
 build/
+.venv
