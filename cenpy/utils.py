@@ -24,8 +24,6 @@ def lazy_property(fn):
 
 
 def chunks(values, chunk_size):
-    if not isinstance(values, list):
-        values = [values]
     chunk_size = chunk_size if len(values) > chunk_size else len(values)
     for c in range(0, len(values), chunk_size):
         yield values[c : c + chunk_size]

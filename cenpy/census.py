@@ -23,11 +23,6 @@ class CensusDataset(RestApiBase):
         response = self._get(f"{self.url}/geography.json")
         return pd.DataFrame(response.json()["fips"])
 
-    @lazy_property
-    def groups(self):
-        response = self._get(f"{self.url}/groups.json")
-        return pd.DataFrame.from_dict(response.json()["groups"])
-
     def query(self, get, for_dict, in_dict=None, key=None):
 
         if not isinstance(get, list):

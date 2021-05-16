@@ -31,10 +31,7 @@ class ProductBase(RestApiBase):
 
     @lazy_property
     def _congressional_district(self):
-        if self.year % 2:
-            return f"{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th"
-        else:
-            return f"{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th"
+        return f"{int((self.year - (self.year % 2) - 1 + 4 - 1789) / 2)}th"
 
     @lazy_property
     def _variable_lookup(self):
@@ -96,14 +93,8 @@ class ProductBase(RestApiBase):
         # construct sql where
         sql_where = " AND ".join(f"{k} IN ({v})" for k, v in sql_dict.items())
 
-        if sql_where == "":
-            sql_where = "1=1"
-
         # only pull GEOID for merge
         outFields = kwargs.pop("outFields", "")
-
-        if isinstance(outFields, list):
-            outFields = ",".join(outFields)
 
         # add NAME for ease, GEOID for merging
         if "*" not in outFields:
@@ -204,7 +195,9 @@ class Decennial(ProductBase):
     def __init__(self, year, session=None):
         super(Decennial, self).__init__(year, session=session)
 
-        self.set_congressional_district_year(year)
+        # set default year to 2009 for 2010, since no 112th congressional district exists
+        # same issue applies to Census2020
+        self.set_congressional_district_year(year - 1)
         self.set_legislative_year(year)
 
         self._census = CensusDataset(
@@ -220,16 +213,9 @@ class Decennial(ProductBase):
         self._lazy__legislative_year = year
 
     def set_congressional_district_year(self, year):
-        if year % 2:
-            # odd
-            self._lazy__congressional_district = (
-                f"{int((self.year - (self.year % 2) + 1 + 2 - 1789) / 2)}th"
-            )
-        else:
-            # even
-            self._lazy__congressional_district = (
-                f"{int((self.year - (self.year % 2) - 1 + 2 - 1789) / 2)}th"
-            )
+        self._lazy__congressional_district = (
+            f"{int((year - (year % 2) - 1 + 4 - 1789) / 2)}th"
+        )
 
     @lazy_property
     def _census_year(self):
