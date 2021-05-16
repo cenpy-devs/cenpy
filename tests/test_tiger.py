@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-import cenpy
+from cenpy import tiger
 from cenpy.tiger import EsriMapServiceLayer
 
 
@@ -21,7 +21,7 @@ def test_returnGeometry_false(TigerApi):
 
 def test_fail_on_chunked_query(TigerApi):
     with pytest.raises(Exception):
-        cenpy.tiger.CHUNKED_QUERY_NUMBER_OF_CHUNKS = 1
+        tiger.CHUNKED_QUERY_NUMBER_OF_CHUNKS = 1
         data = TigerApi.query(
             where="1=1", geometryPrecision=12, outFields="*", returnGeometry=True
         )
