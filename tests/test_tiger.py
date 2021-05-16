@@ -25,3 +25,4 @@ def test_fail_on_chunked_query(TigerApi):
         data = TigerApi.query(
             where="1=1", geometryPrecision=12, outFields="*", returnGeometry=True
         )
+    tiger.CHUNKED_QUERY_NUMBER_OF_CHUNKS = 2

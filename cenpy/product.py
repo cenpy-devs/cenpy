@@ -43,15 +43,15 @@ class ProductBase(RestApiBase):
 
     def query(
         self,
-        get: dict,
+        get: list,
         for_dict: dict,
-        in_dict: dict = None,
-        key: str = None,
+        in_dict: dict = {},
+        key: str = '',
         **kwargs,
     ) -> pd.DataFrame:
 
-        if not isinstance(get, list):
-            get = [get]
+        if any('(or part)' in k for k in {**for_dict, **in_dict}):
+            raise NotImplementedError
 
         if len(for_dict) != 1:
             raise Exception
@@ -75,9 +75,6 @@ class ProductBase(RestApiBase):
 
         # if geography not in inString, assume wildcard
         # if geography has wildcard, do not include in sql
-        if in_dict is None:
-            in_dict = {}
-
         sql_dict = {
             self._variable_lookup[k]: v
             for k, v in {**in_dict, **for_dict}.items()

@@ -16,10 +16,10 @@ def DecennialCensusApi():
 
 
 acs_geography_params = [
-    ({"us": "1"}, None),
-    ({"region": "1"}, None),
-    ({"division": "1"}, None),
-    ({"state": "11"}, None),
+    ({"us": "1"}, {}),
+    ({"region": "1"}, {}),
+    ({"division": "1"}, {}),
+    ({"state": "11"}, {}),
     ({"county": "610"}, {"state": "51"}),
     ({"county subdivision": "21000"}, {"state": "39", "county": "057"}),
     (
@@ -37,7 +37,7 @@ acs_geography_params = [
     ({"consolidated city": "47500"}, {"state": "09"}),
     ({"place (or part)": "88050"}, {"state": "09", "consolidated city": "47500"}),
     ({"alaska native regional corporation": "41640"}, {"state": "02"}),
-    ({"american indian area/alaska native area/hawaiian home land": "6915"}, None),
+    ({"american indian area/alaska native area/hawaiian home land": "6915"}, {}),
     (
         {"american indian tribal subdivision": "160"},
         {"american indian area/alaska native area/hawaiian home land": "3680"},
@@ -46,13 +46,13 @@ acs_geography_params = [
         {
             "american indian area/alaska native area (reservation or statistical entity only)": "R"
         },
-        None,
+        {},
     ),
     (
         {
             "american indian area (off-reservation trust land only)/hawaiian home land": "T"
         },
-        None,
+        {},
     ),
     (
         {"tribal census tract": "T00100"},
@@ -138,7 +138,7 @@ acs_geography_params = [
             "tribal census tract (or part)": "T00100",
         },
     ),
-    ({"metropolitan statistical area/micropolitan statistical area": "47240"}, None),
+    ({"metropolitan statistical area/micropolitan statistical area": "47240"}, {}),
     (
         {"state (or part)": "25"},
         {"metropolitan statistical area/micropolitan statistical area": "47240"},
@@ -211,7 +211,7 @@ acs_geography_params = [
             "metropolitan division (or part)": "37964",
         },
     ),
-    ({"combined statistical area": "458"}, None),
+    ({"combined statistical area": "458"}, {}),
     ({"state (or part)": "18"}, {"combined statistical area": "458"}),
     (
         {"metropolitan statistical area/micropolitan statistical area": "18220"},
@@ -224,7 +224,7 @@ acs_geography_params = [
             "metropolitan statistical area/micropolitan statistical area": "18220",
         },
     ),
-    ({"combined new england city and town area": "770"}, None),
+    ({"combined new england city and town area": "770"}, {}),
     ({"state (or part)": "50"}, {"combined new england city and town area": "770"}),
     (
         {"new england city and town area": "76150"},
@@ -249,7 +249,7 @@ acs_geography_params = [
         {"new england city and town area (or part)": "76150"},
         {"state": "50", "combined new england city and town area (or part)": "770"},
     ),
-    ({"new england city and town area": "76150"}, None),
+    ({"new england city and town area": "76150"}, {}),
     ({"state (or part)": "50"}, {"new england city and town area": "76150"}),
     (
         {"principal city": "46225"},
@@ -327,7 +327,7 @@ acs_geography_params = [
             "county (or part)": "009",
         },
     ),
-    ({"urban area": "22987"}, None),
+    ({"urban area": "22987"}, {}),
     ({"state (or part)": "06"}, {"urban area": "22987"}),
     ({"county (or part)": "029"}, {"urban area": "22987", "state (or part)": "06"}),
     ({"congressional district": "13"}, {"state": "36"}),
@@ -356,9 +356,9 @@ acs_geography_params = [
 ]
 
 dec_geography_params = [
-    ({"region": "1"}, None),
-    ({"division": "1"}, None),
-    ({"state": "11"}, None),
+    ({"region": "1"}, {}),
+    ({"division": "1"}, {}),
+    ({"state": "11"}, {}),
     ({"county": "610"}, {"state": "51"}),
     ({"county subdivision": "25970"}, {"state": "39", "county": "061"}),
     (
@@ -370,7 +370,7 @@ dec_geography_params = [
     ({"place": "60290"}, {"state": "48"}),
     ({"consolidated city": "47500"}, {"state": "09"}),
     ({"alaska native regional corporation": "41640"}, {"state": "02"}),
-    ({"american indian area/alaska native area/hawaiian home land": "6915"}, None),
+    ({"american indian area/alaska native area/hawaiian home land": "6915"}, {}),
     (
         {"tribal census tract": "T00100"},
         {"american indian area/alaska native area/hawaiian home land": "1955"},
@@ -382,24 +382,24 @@ dec_geography_params = [
             "tribal census tract": "T00100",
         },
     ),
-    ({"metropolitan statistical area/micropolitan statistical area": "45940"}, None),
+    ({"metropolitan statistical area/micropolitan statistical area": "45940"}, {}),
     (
         {"metropolitan division": "37964"},
         {"metropolitan statistical area/micropolitan statistical area": "37980"},
     ),
-    ({"combined statistical area": "408"}, None),
+    ({"combined statistical area": "408"}, {}),
     (
         {"metropolitan statistical area/micropolitan statistical area": "45940"},
         {"combined statistical area": "408"},
     ),
-    ({"combined new england city and town area": "770"}, None),
+    ({"combined new england city and town area": "770"}, {}),
     (
         {"new england city and town area": "72500"},
         {"combined new england city and town area": "725"},
     ),
-    ({"new england city and town area": "76150"}, None),
+    ({"new england city and town area": "76150"}, {}),
     ({"necta division": "74204"}, {"new england city and town area": "71650"}),
-    ({"urban area": "22987"}, None),
+    ({"urban area": "22987"}, {}),
     ({"school district (elementary)": "32340"}, {"state": "06"}),
     ({"school district (secondary)": "17903"}, {"state": "17"}),
     ({"school district (unified)": "00780"}, {"state": "34"}),
@@ -425,14 +425,14 @@ dec_geography_params = [
     ##    ({'alaska native regional corporation': '*'}, {'state': '02', 'congressional district': '00'}),
     ({"state legislative district (upper chamber)": "016"}, {"state": "06"}),
     ({"state legislative district (lower chamber)": "056"}, {"state": "44"}),
-    ({"zip code tabulation area": "82073"}, None),
+    ({"zip code tabulation area": "82073"}, {}),
 ]
 
 
 @pytest.mark.parametrize("for_dict, in_dict", acs_geography_params)
 def test_acs_geographies(ACSCensusApi, for_dict, in_dict):
     ACSCensusApi.query(
-        "B01001_001E",
+        ["B01001_001E"],
         for_dict,
         in_dict,
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
@@ -442,7 +442,7 @@ def test_acs_geographies(ACSCensusApi, for_dict, in_dict):
 @pytest.mark.parametrize("for_dict, in_dict", dec_geography_params)
 def test_dec_geographies(DecennialCensusApi, for_dict, in_dict):
     DecennialCensusApi.query(
-        "H001001",
+        ["H001001"],
         for_dict,
         in_dict,
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
@@ -455,7 +455,7 @@ def test_large_query(ACSCensusApi):
     data = ACSCensusApi.query(
         variables,
         {"us": "1"},
-        None,
+        {},
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
     )
     assert len(data.columns) == 52  # 'us' + 51 variables

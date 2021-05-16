@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from cenpy import ACS, Decennial
+from cenpy import tiger
 
 
 @pytest.fixture(scope="module")
@@ -23,9 +24,9 @@ def DecennialProductApi():
 
 
 shared_geography_params = [
-    ({"region": "1"}, None),
-    ({"division": "1"}, None),
-    ({"state": "11"}, None),
+    ({"region": "1"}, {}),
+    ({"division": "1"}, {}),
+    ({"state": "11"}, {}),
     ({"county": "610"}, {"state": "51"}),
     ({"county subdivision": "25970"}, {"state": "39", "county": "061"}),
     (
@@ -37,7 +38,7 @@ shared_geography_params = [
     ({"place": "60290"}, {"state": "48"}),
     ({"consolidated city": "47500"}, {"state": "09"}),
     ({"alaska native regional corporation": "41640"}, {"state": "02"}),
-    ({"american indian area/alaska native area/hawaiian home land": "6915"}, None),
+    ({"american indian area/alaska native area/hawaiian home land": "6915"}, {}),
     (
         {"tribal census tract": "T00100"},
         {"american indian area/alaska native area/hawaiian home land": "1955"},
@@ -49,24 +50,24 @@ shared_geography_params = [
             "tribal census tract": "T00100",
         },
     ),
-    ({"metropolitan statistical area/micropolitan statistical area": "45940"}, None),
+    ({"metropolitan statistical area/micropolitan statistical area": "45940"}, {}),
     (
         {"metropolitan division": "37964"},
         {"metropolitan statistical area/micropolitan statistical area": "37980"},
     ),
-    ({"combined statistical area": "408"}, None),
+    ({"combined statistical area": "408"}, {}),
     (
         {"metropolitan statistical area/micropolitan statistical area": "45940"},
         {"combined statistical area": "408"},
     ),
-    ({"combined new england city and town area": "770"}, None),
+    ({"combined new england city and town area": "770"}, {}),
     (
         {"new england city and town area": "72500"},
         {"combined new england city and town area": "725"},
     ),
-    ({"new england city and town area": "76150"}, None),
+    ({"new england city and town area": "76150"}, {}),
     ({"necta division": "74204"}, {"new england city and town area": "71650"}),
-    ({"urban area": "22987"}, None),
+    ({"urban area": "22987"}, {}),
     ({"school district (elementary)": "32340"}, {"state": "06"}),
     ({"school district (secondary)": "17903"}, {"state": "17"}),
     ({"school district (unified)": "00780"}, {"state": "34"}),
@@ -81,19 +82,19 @@ acs_geography_params = [
         {
             "american indian area/alaska native area (reservation or statistical entity only)": "R"
         },
-        None,
+        {},
     ),
     (
         {
             "american indian area (off-reservation trust land only)/hawaiian home land": "T"
         },
-        None,
+        {},
     ),
     (
         {"metropolitan statistical area/micropolitan statistical area": "45940"},
         {"combined statistical area": "408"},
     ),
-    ({"combined new england city and town area": "770"}, None),
+    ({"combined new england city and town area": "770"}, {}),
     ({"congressional district": "13"}, {"state": "36"}),
     ({"state legislative district (upper chamber)": "016"}, {"state": "44"}),
     ({"state legislative district (lower chamber)": "726"}, {"state": "33"}),
@@ -127,7 +128,7 @@ dec_geography_params = [
     ##    ({'alaska native regional corporation': '*'}, {'state': '02', 'congressional district': '00'}),
     ({"state legislative district (upper chamber)": "016"}, {"state": "06"}),
     ({"state legislative district (lower chamber)": "056"}, {"state": "44"}),
-    ({"zip code tabulation area": "82073"}, None),
+    ({"zip code tabulation area": "82073"}, {}),
 ]
 
 
@@ -141,7 +142,7 @@ def test_acs_geographies(ACSProductApi, for_dict, in_dict):
         assert False
 
     data = ACSProductApi.query(
-        "B01001_001E",
+        ["B01001_001E"],
         for_dict,
         in_dict,
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
@@ -163,7 +164,7 @@ def test_dec_geographies(DecennialProductApi, for_dict, in_dict):
         assert False
 
     data = DecennialProductApi.query(
-        "H001001",
+        ["H001001"],
         for_dict,
         in_dict,
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
@@ -178,10 +179,11 @@ def test_dec_geographies(DecennialProductApi, for_dict, in_dict):
 
 
 def test_chunked_query(ACSProductApi):
+    tiger.CHUNKED_QUERY_NUMBER_OF_CHUNKS = 2
     data = ACSProductApi.query(
-        "B01001_001E",
+        ["B01001_001E"],
         {"county": "*"},
-        {"state": ["02", "48", "06", "30", "35", "04", "32", "08"]},
+        {"state": ["02", "48", "06", "30", "35", "04", "32", "08", "41"]},
         key="a4b2eab7c7050050923fffa485fb81e22be63e68",
     )
     assert isinstance(data, pd.DataFrame)
@@ -192,11 +194,21 @@ def test_even_year_acs_congressional_district(ACS2018ProductApi):
     assert ACS2018ProductApi._congressional_district == "116th"
 
 
+def test_not_implemented_error_geography(ACSProductApi):
+    with pytest.raises(NotImplementedError):
+        ACSProductApi.query(
+            ["B01001_001E"],
+            {"county (or part)": "427"},
+            {"state": "48", "place": "60290"},
+            key="a4b2eab7c7050050923fffa485fb81e22be63e68",
+        )
+
+
 def test_invalid_for_dict(ACSProductApi):
     with pytest.raises(Exception):
         ACSProductApi.query(
-            "B01001_001E",
+            ["B01001_001E"],
             {"county": "*", "state": "06"},
-            None,
+            {},
             key="a4b2eab7c7050050923fffa485fb81e22be63e68",
         )

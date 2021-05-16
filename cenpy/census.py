@@ -23,10 +23,13 @@ class CensusDataset(RestApiBase):
         response = self._get(f"{self.url}/geography.json")
         return pd.DataFrame(response.json()["fips"])
 
-    def query(self, get, for_dict, in_dict=None, key=None):
-
-        if not isinstance(get, list):
-            get = [get]
+    def query(
+        self,
+        get : list ,
+        for_dict : dict,
+        in_dict : dict = {},
+        key : str = '',
+        ):
 
         result = None
 
