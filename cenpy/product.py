@@ -46,11 +46,11 @@ class ProductBase(RestApiBase):
         get: list,
         for_dict: dict,
         in_dict: dict = {},
-        key: str = '',
+        key: str = "",
         **kwargs,
     ) -> pd.DataFrame:
 
-        if any('(or part)' in k for k in {**for_dict, **in_dict}):
+        if any("(or part)" in k for k in {**for_dict, **in_dict}):
             raise NotImplementedError
 
         if len(for_dict) != 1:

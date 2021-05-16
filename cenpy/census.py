@@ -25,11 +25,11 @@ class CensusDataset(RestApiBase):
 
     def query(
         self,
-        get : list ,
-        for_dict : dict,
-        in_dict : dict = {},
-        key : str = '',
-        ):
+        get: list,
+        for_dict: dict,
+        in_dict: dict = {},
+        key: str = "",
+    ):
 
         result = None
 
