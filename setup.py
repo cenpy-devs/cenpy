@@ -9,7 +9,8 @@ init = os.path.join(basepath, f"{package}/__init__.py")
 with open(init, "r") as initfile:
     firstline = initfile.readline()
 init_version = firstline.split("=")[-1].strip()
-init_version = init_version.replace("'", "")
+init_version = init_version.replace('"', "")
+print(init_version)
 
 with open(os.path.join(basepath, "README.rst"), "r") as readme:
     long_description = readme.readlines()
