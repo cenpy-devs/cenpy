@@ -482,7 +482,7 @@ class _Product(object):
 
 
 class Decennial2010(_Product):
-    """The 2010 Decennial Census from the Census Bueau"""
+    """The 2010 Decennial Census from the Census Bureau"""
 
     _layer_lookup = {"county": 100, "tract": 14, "blockgroup": 16, "block": 18}
 
@@ -509,7 +509,7 @@ class Decennial2010(_Product):
                 "Only levels {} are supported. You provided {}."
                 "Try picking the state containing that level,"
                 " and then selecting from that data after it is"
-                " fetched".format(level)
+                " fetched".format(self._layer_lookup.keys(), level)
             )
         if variables is None:
             variables = []
@@ -682,11 +682,11 @@ class ACS(_Product):
     def __init__(self, year="latest"):
         self._cache = dict()
         if year == "latest":
-            year = 2018
-        if year < 2013:
+            year = 2019
+        if year not in list(range(2017,2020)):
             raise NotImplementedError(
-                "The requested year {} is too early. "
-                "Only 2013 and onwards is supported.".format(year)
+                "The requested year ({}) is too early/late. "
+                "Only 2017, 2018, or 2019 are supported.".format(year)
             )
         self._api = APIConnection("ACSDT{}Y{}".format(5, year))
         self._api.set_mapservice("tigerWMS_ACS{}".format(year))
@@ -708,7 +708,7 @@ class ACS(_Product):
                 "Only levels {} are supported. You provided {}."
                 "Try picking the state containing that level,"
                 " and then selecting from that data after it is"
-                " fetched".format(level)
+                " fetched".format(self._layer_lookup.keys(), level)
             )
         if level == "block":
             raise ValueError(

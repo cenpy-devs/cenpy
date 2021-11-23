@@ -25,7 +25,7 @@ from . import geoparser as gpsr
 
 # none of the types at that url?f=json are not Mapservers.
 
-_baseurl = "http://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
+_baseurl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb"
 _pcs = "https://developers.arcgis.com/javascript/jshelp/pcs.html"
 _bcs = "https://developers.arcgis.com/javascript/jshelp/bcs.html"
 
@@ -183,7 +183,7 @@ class ESRILayer(object):
         datadict = resp.json()
         if raw:
             return datadict
-        if kwargs.get("returnGeometry", "true") is "false":
+        if kwargs.get("returnGeometry", "true") == "false":
             return pd.DataFrame.from_records(
                 [x["attributes"] for x in datadict["features"]]
             )
@@ -217,7 +217,7 @@ class ESRILayer(object):
         crs = datadict.pop("spatialReference", None)
         if crs is not None:
             crs = crs.get("latestWkid", crs.get("wkid"))
-            crs = dict(init="epsg:{}".format(crs))
+            crs = 'epsg:{}'.format(crs)
         outdf.crs = crs
         return outdf
 
