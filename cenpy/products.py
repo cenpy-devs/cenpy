@@ -219,7 +219,7 @@ class _Product(object):
             replace_missing=replace_missing,
         )
         if strict_within:
-            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", op="within")
+            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", predicate="within")
         if return_bounds:
             return (geoms, data, env)
         return geoms, data
@@ -258,7 +258,7 @@ class _Product(object):
         # filter the records by a strict "within" query if needed
         if strict_within:
             involved = geopandas.sjoin(
-                involved, env[["geometry"]], how="inner", op="within"
+                involved, env[["geometry"]], how="inner", predicate="within"
             )
 
         # Construct a "query" translator between the GeoAPI and the Census API
@@ -386,7 +386,7 @@ class _Product(object):
             replace_missing=replace_missing,
         )
         if strict_within:
-            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", op="within")
+            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", predicate="within")
         if return_bounds:
             return geoms, data, env
         return geoms, data
