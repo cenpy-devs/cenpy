@@ -77,16 +77,22 @@ class _Product(object):
     @property
     def _layer_lookup(self):
         """
-        The lookup table relating the layers in the WMS service and the levels
-        supported by this API product.
+        Create lookup table to translate cenpy levels ('county', 'block', 
+        'tract') to layer id. Dynamically create to handle year to year id 
+        changes (naming changes will break) 
         """
-        pass
 
-    @_layer_lookup.getter
-    def _layer_lookup(self):
-        raise NotImplementedError(
-            "This must be implemented on children " "of this class!"
-        )
+        supported_levels = {
+            'Counties': 'county',
+            'Census Blocks': 'block',
+            'Census Tracts': 'tract',
+        }
+
+        return {
+            supported_levels[l._name]: l._id
+            for l in self._api.mapservice.layers if
+            l._name in supported_levels.keys()
+        }
 
     def from_place(
         self,
@@ -480,8 +486,6 @@ class _Product(object):
 class Decennial2010(_Product):
     """The 2010 Decennial Census from the Census Bureau"""
 
-    _layer_lookup = {"county": 100, "tract": 14, "block": 18}
-
     def __init__(self):
         super(Decennial2010, self).__init__()
         self._api = APIConnection("DECENNIALSF12010")
@@ -672,8 +676,6 @@ class Decennial2010(_Product):
 
 class ACS(_Product):
     """The American Community Survey (5-year vintages) from the Census Bueau"""
-
-    _layer_lookup = {"county": 84, "tract": 8}
 
     def __init__(self, year="latest"):
         self._cache = dict()
