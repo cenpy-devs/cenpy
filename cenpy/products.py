@@ -191,12 +191,12 @@ class _Product(object):
 
         env_layer = self._api.mapservice.layers[env_name.name]
         if place_type == "County Subdivision":
-            placer = "STATE={} AND COUSUB={}".format(
+            placer = "STATE='{}' AND COUSUB='{}'".format(
                 placerow.STATEFP, placerow.TARGETFP
             )
         else:
 
-            placer = "STATE={} AND PLACE={}".format(placerow.STATEFP, placerow.TARGETFP)
+            placer = "STATE='{}' AND PLACE='{}'".format(placerow.STATEFP, placerow.TARGETFP)
         env = env_layer.query(where=placer)
 
         print(
@@ -219,7 +219,7 @@ class _Product(object):
             replace_missing=replace_missing,
         )
         if strict_within:
-            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", op="within")
+            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", predicate="within")
         if return_bounds:
             return (geoms, data, env)
         return geoms, data
@@ -258,7 +258,7 @@ class _Product(object):
         # filter the records by a strict "within" query if needed
         if strict_within:
             involved = geopandas.sjoin(
-                involved, env[["geometry"]], how="inner", op="within"
+                involved, env[["geometry"]], how="inner", predicate="within"
             )
 
         # Construct a "query" translator between the GeoAPI and the Census API
@@ -348,7 +348,7 @@ class _Product(object):
             cache_name = layername_match.target.lstrip("(ESRILayer) ")
         row = self._cache[cache_name].loc[item_name.name]
         return layer.query(
-            where="GEOID={}".format(row.GEOID), geometryPrecision=geometry_precision
+            where="GEOID='{}'".format(row.GEOID), geometryPrecision=geometry_precision
         )
 
     def _from_name(
@@ -386,7 +386,7 @@ class _Product(object):
             replace_missing=replace_missing,
         )
         if strict_within:
-            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", op="within")
+            geoms = geopandas.sjoin(geoms, env[["geometry"]], how="inner", predicate="within")
         if return_bounds:
             return geoms, data, env
         return geoms, data
