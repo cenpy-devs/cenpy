@@ -96,6 +96,11 @@ def read_replicate_file(fname):
     table = table.drop(["TBLID", "NAME", "ORDER", "CME", "TITLE"], axis=1)
     table = table.pivot(index="GEOID", columns="variable")
     table.columns.names = ["categories", "variables"]
+    # Standardize the names of the columns because the ACB's 2014 tables have
+    # lowercase titles while others are uppercase.
+    table = table.rename(columns = {"estimate":"ESTIMATE", 
+                                    "moe": "MOE",
+                                     "se": "SE"})
     return table
 
 
@@ -472,9 +477,9 @@ def apply_func(func, data, params={}):
     Pandas 81 column dataframe, where the first column is the estimates and
     the remaining columns are the replicates.
     """
-    estimates = func(data.estimate, **params)
+    estimates = func(data.ESTIMATE, **params)
     # subset just the replicates
-    replicates = data.drop(["estimate", "moe", "SE"], axis=1, level=0)
+    replicates = data.drop(["ESTIMATE", "MOE", "SE"], axis=1, level=0)
     # clean out unused column names
     replicates.columns = replicates.columns.remove_unused_levels()
     # apply the user function to each replicate
@@ -488,7 +493,7 @@ def apply_func(func, data, params={}):
     ]
     rep_results = pd.concat(rep_results, axis=1, keys=replicates.columns.levels[0])
     # cleanup
-    rep_results["estimate"] = estimates
+    rep_results["ESTIMATE"] = estimates
     rep_results = rep_results.replace([np.inf, -np.inf], 0)  # per census documentation
     return rep_results
 
