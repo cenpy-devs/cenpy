@@ -77,16 +77,23 @@ class _Product(object):
     @property
     def _layer_lookup(self):
         """
-        The lookup table relating the layers in the WMS service and the levels
-        supported by this API product.
+        Create lookup table to translate cenpy levels ('county', 'block', 
+        'tract') to layer id. Dynamically create to handle year to year id 
+        changes (naming changes will break) 
         """
-        pass
+        supported_levels = {
+            'Counties': 'county',
+            'Census Blocks': 'block',
+            'Census Block Groups': 'blockgroup',
+            'Census Tracts': 'tract',
+        }
 
-    @_layer_lookup.getter
-    def _layer_lookup(self):
-        raise NotImplementedError(
-            "This must be implemented on children " "of this class!"
-        )
+        return {
+            supported_levels[l._name]: l._id
+            for l in self._api.mapservice.layers if
+            l._name in supported_levels.keys()
+        }
+
 
     def from_place(
         self,
@@ -484,7 +491,8 @@ class _Product(object):
 class Decennial2010(_Product):
     """The 2010 Decennial Census from the Census Bureau"""
 
-    _layer_lookup = {"county": 100, "tract": 14, "blockgroup": 16, "block": 18}
+    #_layer_lookup = {"county": 100, "tract": 14, "blockgroup": 16, "block": 18}
+    #2020: {"county": 82, "tract": 6, "blockgroup": 8, "block": 10}
 
     def __init__(self):
         super(Decennial2010, self).__init__()
@@ -677,17 +685,23 @@ class Decennial2010(_Product):
 class ACS(_Product):
     """The American Community Survey (5-year vintages) from the Census Bueau"""
 
-    _layer_lookup = {"county": 84, "tract": 8, "blockgroup": 10}
-
+    #_layer_lookup = {
+    #    2017: {'county': 84, 'tract': 8, "blockgroup": 10},
+    #    2018: {'county': 86, 'tract': 8, "blockgroup": 10},
+    #    2019: {'county': 86, 'tract': 8, "blockgroup": 10},
+    #    2020: {'county': 78, 'tract': 6, "blockgroup": 8}
+    #}
+    
     def __init__(self, year="latest"):
         self._cache = dict()
         if year == "latest":
-            year = 2019
-        if year not in list(range(2017,2020)):
+            year = 2020
+        if year not in list(range(2017,2021)):
             raise NotImplementedError(
                 "The requested year ({}) is too early/late. "
-                "Only 2017, 2018, or 2019 are supported.".format(year)
+                "Only 2017, 2018, 2019 or 2020 are supported.".format(year)
             )
+        self._year = year
         self._api = APIConnection("ACSDT{}Y{}".format(5, year))
         self._api.set_mapservice("tigerWMS_ACS{}".format(year))
 
