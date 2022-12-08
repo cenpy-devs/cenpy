@@ -136,7 +136,7 @@ def test_all():
 
     # In[17]:
 
-    for year in range(2017, 2022):
+    for year in range(2017, 2020):
         print(year)
         acs = products.ACS(year=year)
         acs.from_place("Tucson, AZ")
