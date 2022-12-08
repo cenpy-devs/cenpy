@@ -695,7 +695,7 @@ class ACS(_Product):
     def __init__(self, year="latest"):
         self._cache = dict()
         if year == "latest":
-            year = 2022
+            year = 2021
         if year not in list(range(2017, 2022)):
             raise NotImplementedError(
                 "The requested year ({}) is too early/late. "
