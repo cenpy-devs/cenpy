@@ -226,7 +226,7 @@ def test_all():
 
     # In[30]:
 
-    conn2 = c.remote.APIConnection("CBP2012")
+    conn2 = c.remote.APIConnection("CBP2011")
 
     # Alright, let's look at the available columns:
 
