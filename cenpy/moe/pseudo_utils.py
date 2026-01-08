@@ -165,7 +165,7 @@ def pseudo(
         zero_ests = ests.copy()
         for col in zero_ests.columns:
             zero_ests[col] = base.zero_bool
-    elif ignore_zeros is not "no":  # to catch bad parameter values
+    elif ignore_zeros != "no":  # to catch bad parameter values
         raise Exception("ignore_zeros must be 'all', 'partial' or 'no'")
 
     # setup output array

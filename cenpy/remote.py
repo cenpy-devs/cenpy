@@ -221,7 +221,7 @@ class APIConnection:
             assert all([col in df.columns for col in cols])
             if convert_numeric:
                 df = df.infer_objects()
-            if index is not "":
+            if index != "":
                 df.index = df[index]
             return df
         except (ValueError, JSONDecodeError):
