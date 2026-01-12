@@ -346,5 +346,9 @@ class APIConnection:
         if isinstance(key, tig.TigerConnection):
             self.mapservice = key
         elif isinstance(key, str):
-            self.mapservice = tig.TigerConnection(name=key)
+            if key == 'tigerWMS_ACS2020':
+                # No unique layer use census 2020 geographies
+                self.mapservice = tig.TigerConnection(name='tigerWMS_Census2020')
+            else:
+                self.mapservice = tig.TigerConnection(name=key)
         return self

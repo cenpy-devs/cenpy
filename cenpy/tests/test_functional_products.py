@@ -76,6 +76,10 @@ def test_all():
     # In[6]:
 
     la = dectest.from_county("Los Angeles, CA", level="tract", variables=["^P004"])
+    
+    # Test block group
+    la_bg = dectest.from_county("Los Angeles, CA", level="blockgroup", variables=["^P004"])
+
 
     # And, making a pretty plot of the Hispanic population in LA:
 
@@ -143,6 +147,10 @@ def test_all():
 
     sf = products.ACS(2017).from_place(
         "San Francisco, CA", level="tract", variables=["B00002*", "B01002H_001E"]
+    )
+    
+    sf_bg = products.ACS(2017).from_place(
+        "San Francisco, CA", level="blockgroup", variables=["B00002*", "B01002H_001E"]
     )
 
     # In[19]:
