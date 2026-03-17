@@ -210,7 +210,7 @@ def fix_rings(multipolygon, strict=False):
     NOTE: This function has undefined behavior for invalid multipolygons. 
     """
     from shapely import geometry as geom
-    from shapely.ops import cascaded_union
+    from shapely.ops import unary_union 
     from shapely.validation import explain_validity
 
     vexplain = explain_validity(multipolygon)
@@ -242,6 +242,6 @@ def fix_rings(multipolygon, strict=False):
         owned_interiors = [
             interior for owned, interior in zip(owns, interiors) if owned
         ]
-        polygons[i] = exterior.difference(cascaded_union(owned_interiors))
+        polygons[i] = exterior.difference(unary_union(owned_interiors))
         interiors = [interior for owned, interior in zip(owns, interiors) if not owned]
     return geom.MultiPolygon(polygons)
