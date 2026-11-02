@@ -29,13 +29,17 @@ jobs:
             .ci/py37.yml,
             .ci/py38.yml,
             .ci/py39.yml,
-            .ci/py314.yml
+            .ci/py314.yml,
         ]
         include:
           - environment-file: .ci/py314.yml
             os: macos-latest
           - environment-file: .ci/py314.yml
             os: windows-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
       - name: Checkout repo
