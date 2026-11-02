@@ -1,0 +1,57 @@
+---
+name: Continuous Integration
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches:
+      - "*"
+  schedule:
+    - cron: "59 23 * * 2,5"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Manual CI Run
+        default: test
+        required: false
+
+jobs:
+  cenpy-CI:
+    name: CenPy Tests (${{ matrix.os }}, ${{ matrix.environment-file }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        environment-file: [
+            .ci/py36.yml,
+            .ci/py37.yml,
+            .ci/py38.yml,
+            .ci/py39.yml,
+            .ci/py314.yml,
+        ]
+        include:
+          - environment-file: .ci/py314.yml
+            os: macos-latest
+          - environment-file: .ci/py314.yml
+            os: windows-latest
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
+        with:
+          environment-file: ${{ matrix.environment-file }}
+
+      - name: Install package
+        run: pip install -e . --no-deps
+
+      - name: Test with pytest
+        run: pytest -v cenpy
