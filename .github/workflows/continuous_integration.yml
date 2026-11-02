@@ -23,8 +23,19 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        environment-file: [.ci/py36.yml, .ci/py37.yml, .ci/py38.yml, .ci/py39.yml, .ci/py314.yml]
+        os: [ubuntu-latest]
+        environment-file: [
+            .ci/py36.yml,
+            .ci/py37.yml,
+            .ci/py38.yml,
+            .ci/py39.yml,
+            .ci/py314.yml
+        ]
+        include:
+          - environment-file: .ci/py314.yml
+            os: macos-latest
+          - environment-file: .ci/py314.yml
+            os: windows-latest
 
     steps:
       - name: Checkout repo
